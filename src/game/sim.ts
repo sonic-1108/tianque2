@@ -676,7 +676,8 @@ export class Sim {
     }
     clampWorld(f.pos);
     // too steep to walk up: slide along the slope if one way is easier, otherwise stop (mountains are walls)
-    if (f.grounded) {
+    if (f.grounded && groundHeight(ox, oz) > WATER_Y - 0.5) {
+      // (out of the water you can always climb the bank)
       const steep = (x: number, z: number) => {
         const step = Math.hypot(x - ox, z - oz);
         const rise = floorAt(x, z) - og;

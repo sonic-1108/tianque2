@@ -197,7 +197,7 @@ function walks(hero: HeroId | null) {
       // like a player: follow the den's road out, then turn off to the den
       const pr = Math.hypot(s.player.pos[0], s.player.pos[2]);
       const [rx, rz] = roadPoint(d.road, Math.min(pr + 18, d.r));
-      const near = Math.hypot(d.x - s.player.pos[0], d.z - s.player.pos[2]) < 60;
+      const near = Math.hypot(d.x - s.player.pos[0], d.z - s.player.pos[2]) < 60 || pr > d.r - 10;
       const y = near ? yawTo(s.player, d.x, d.z) : yawTo(s.player, rx, rz);
       const inp = { ...noInput(y), move: [0, 1] as [number, number] };
       // like a player, step round whatever is in the way (a house, a trunk)
