@@ -2,7 +2,7 @@
 // the ground and the little effects the renderer draws. Pure logic: no React, no three.js.
 import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } from './types';
 import { DENS, DEN_R, FOE_KINDS } from './foes';
-import { VILLAGE_SPAWN, clampWorld, groundHeight, pushOutOfTrees } from './world';
+import { VILLAGE_R, VILLAGE_SPAWN, clampWorld, groundHeight, pushOutOfTrees } from './world';
 import { Progress, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
 import { WANDERER, heroOf } from './heroes';
 import { SKILLS } from './skills';
@@ -167,7 +167,7 @@ export class Sim {
     f.yaw = Math.atan2(-(x - f.pos[0]), -(z - f.pos[2]));
   }
   power(f: Fighter) {
-    return f.team === 'player' ? playerPower(f.level) : 0.25 + f.level * 0.045; // bandits hit softer than you: a few at once is the danger
+    return f.team === 'player' ? playerPower(f.level) : 0.25 + f.level * 0.04; // bandits hit softer than you: a few at once is the danger
   }
   setAct(f: Fighter, act: Fighter['act'], dur: number, anim?: string) {
     f.act = act;
@@ -217,6 +217,7 @@ export class Sim {
     return zn;
   }
   heal(f: Fighter, n: number) {
+    if (f.hp <= 0) return;
     const h = Math.min(f.maxHp - f.hp, n);
     if (h <= 0) return;
     f.hp += h;
@@ -348,6 +349,19 @@ export class Sim {
     const slow = f.team === 'sect' ? 1.5 : 1; // disciples wind up slower: time to see it coming
     this.setAct(f, 'attack', CHAIN[f.combo].dur * slow, ranged ? 'throw' : `attack_${f.combo + 1}`);
     if (!(f.run && SKILLS[f.run.id]?.parallel)) f.run = ranged ? { id: '_throw', t: 0, data: {} } : null;
+    if (f.id === PLAYER && !ranged) {
+      // a swing steps in to the foe in front (within 4.5 m): no more swinging at air a step short
+      const t = this.nearestEnemy(f, 4.5, Math.cos(0.9));
+      if (t) {
+        const d = this.dist(f, t);
+        this.faceTo(f, t.pos[0], t.pos[2]);
+        const [fx, fz] = this.fwd(f);
+        const go = Math.max(0, d - 1.4) / 0.12;
+        f.vel[0] = fx * Math.min(go, 22);
+        f.vel[2] = fz * Math.min(go, 22);
+        (f as any).lunge = 0.12;
+      }
+    }
     return true;
   }
 
@@ -414,6 +428,27 @@ export class Sim {
     if (input) this.control(this.player, input);
     for (const f of this.fighters) if (f.team !== 'player') this.think(f, dt);
     for (const f of this.fighters) this.physics(f, dt);
+    // bodies don't stand inside each other
+    const F = this.fighters;
+    for (let i = 0; i < F.length; i++) {
+      const a = F[i];
+      if (a.hp <= 0 || a.act === 'burrow') continue;
+      for (let j = i + 1; j < F.length; j++) {
+        const b = F[j];
+        if (b.hp <= 0 || b.act === 'burrow') continue;
+        const dx = b.pos[0] - a.pos[0];
+        if (dx > 0.9 || dx < -0.9) continue;
+        const dz = b.pos[2] - a.pos[2];
+        if (dz > 0.9 || dz < -0.9 || Math.abs(b.pos[1] - a.pos[1]) > 1.5) continue;
+        const d = Math.hypot(dx, dz);
+        if (d >= 0.9 || d < 1e-4) continue;
+        const push = (0.9 - d) / 2;
+        a.pos[0] -= (dx / d) * push;
+        a.pos[2] -= (dz / d) * push;
+        b.pos[0] += (dx / d) * push;
+        b.pos[2] += (dz / d) * push;
+      }
+    }
     for (const f of this.fighters) this.acts(f, dt);
     this.projectiles(dt);
     this.zoneStep(dt);
@@ -429,6 +464,7 @@ export class Sim {
     for (const k of Object.keys(f.cds)) f.cds[k] = Math.max(0, f.cds[k] - dt);
     if (f.hp > 0) f.mp = Math.min(f.maxMp, f.mp + dt * (f.team === 'player' ? 7 : 5));
     if (f.hp > 0 && f.team === 'player' && !this.enemiesOf(f).some((o) => o.aggro && this.dist(o, f) < 25)) f.hp = Math.min(f.maxHp, f.hp + f.maxHp * 0.02 * dt); // out of a fight: heal up
+    if (f.hp > 0 && f.act === 'dead') this.setAct(f, 'idle', 0, 'idle'); // never alive and lying dead
     if (f.respawn !== undefined && f.hp <= 0) {
       f.respawn -= dt;
       if (f.respawn <= 0) this.revive(f);
@@ -529,7 +565,9 @@ export class Sim {
     const fromHome = Math.hypot(f.pos[0] - home[0], f.pos[2] - home[1]);
     const d = this.dist(f, p);
     const pFromHome = Math.hypot(p.pos[0] - home[0], p.pos[2] - home[1]);
-    if (p.hp <= 0 || pFromHome > DEN_R + 40 || fromHome > 60) f.aggro = false;
+    // they give up when you leave their ground, and never follow you into the village
+    const pInVillage = Math.hypot(p.pos[0], p.pos[2]) < VILLAGE_R + 10;
+    if (p.hp <= 0 || pInVillage || pFromHome > DEN_R + 28 || fromHome > 38) f.aggro = false;
     else if (d < 15 && pFromHome < DEN_R + 16) f.aggro = true;
     let wx = 0;
     let wz = 0;
@@ -553,9 +591,9 @@ export class Sim {
     if (d > keep + (s.ranged ? 3 : 0.3)) {
       wx = dx;
       wz = dz;
-    } else if (s.ranged && d < 5) {
-      wx = -dx;
-      wz = -dz;
+    } else if (s.ranged && d < 4) {
+      // up close a thrower stands and fights (backing off made them impossible to catch)
+      wx = wz = 0;
     } else {
       // circle a little so they don't stack
       wx = -dz * 0.35 * Math.sin(f.id);
@@ -575,7 +613,7 @@ export class Sim {
       }
     }
     if (s.ranged ? d < 16 : d < MELEE_RANGE + 0.4) {
-      this.attack(f, s.ranged);
+      this.attack(f, s.ranged && d > 3);
       f.aiT = s.ranged ? 1.4 + Math.random() : 0.9 + Math.random() * 0.8;
     }
   }
@@ -584,10 +622,23 @@ export class Sim {
     const wish: [number, number] = (f as any).wish ?? [0, 0];
     const canWalk = f.hp > 0 && f.st.root <= 0 && f.st.stun <= 0 && f.st.kneel <= 0 && (f.act === 'idle' || f.act === 'run' || f.act === 'jump' || (f.act === 'attack' && f.team === 'player' && f.actT > f.actDur * 0.7));
     const sk = f.run && !SKILLS[f.run.id]?.parallel ? SKILLS[f.run.id] : null;
+    if ((f as any).lunge > 0) (f as any).lunge -= dt;
+    // a bandit walking into a tree trunk (or another bandit) steps round it instead of pushing on for ever
+    if (f.team === 'sect' && Math.hypot(wish[0], wish[1]) > 0.3 && f.grounded && (f.act === 'run' || f.act === 'idle')) {
+      const sp = Math.hypot(f.vel[0], f.vel[2]);
+      (f as any).blockT = sp < 1 ? ((f as any).blockT ?? 0) + dt : 0;
+      if ((f as any).blockT > 0.4) (f as any).sideT = 0.8;
+    }
+    if ((f as any).sideT > 0) {
+      (f as any).sideT -= dt;
+      const sgn = f.id % 2 ? 1 : -1;
+      wish[0] = wish[0] * 0.3 - wish[1] * sgn;
+      wish[1] = wish[1] * 0.3 + wish[0] * sgn;
+    }
     if (sk?.move) sk.move(this, f, wish, dt);
     else if (canWalk) {
       let spd = (f.team === 'player' ? RUN : NPC_RUN) * (f.st.slow > 0 ? 0.5 : 1) * (f.st.daze > 0 ? 0.5 : 1) * (f.st.rage > 0 ? 1.2 : 1) * (f.st.weak > 0 ? 0.8 : 1);
-      if (!f.aggro && f.team === 'sect') spd *= 0.6;
+      if (!f.aggro && f.team === 'sect' && Math.hypot(f.pos[0] - (f.home?.[0] ?? 0), f.pos[2] - (f.home?.[1] ?? 0)) < 6) spd *= 0.6; // strolling about at home
       const k = f.grounded ? 14 : 4;
       const tx = wish[0] * spd;
       const tz = wish[1] * spd;
@@ -599,7 +650,7 @@ export class Sim {
         if (moving && f.act === 'idle') this.setAct(f, 'run', 0, 'run');
         else if (!moving && f.act === 'run') this.setAct(f, 'idle', 0, 'idle');
       }
-    } else if (f.grounded && f.act !== 'dodge' && f.act !== 'dead' && f.act !== 'down' && !(f.act === 'hit' && f.actT < 0.15)) {
+    } else if (f.grounded && !((f as any).lunge > 0) && f.act !== 'dodge' && f.act !== 'dead' && f.act !== 'down' && !(f.act === 'hit' && f.actT < 0.15)) {
       f.vel[0] *= Math.max(0, 1 - 10 * dt);
       f.vel[2] *= Math.max(0, 1 - 10 * dt);
     }
@@ -730,7 +781,8 @@ export class Sim {
       z.t -= dt;
       const sk = SKILLS[z.skill];
       const owner = this.fighters[z.owner];
-      if (sk?.zoneTick && owner) sk.zoneTick(this, owner, z, dt);
+      // a fallen caster's zones do nothing (a heal zone used to bring the dead back to life without a respawn)
+      if (sk?.zoneTick && owner && owner.hp > 0) sk.zoneTick(this, owner, z, dt);
     }
     this.zones = this.zones.filter((z) => z.t > 0);
   }

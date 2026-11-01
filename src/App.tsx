@@ -59,7 +59,7 @@ export function App() {
             gl={{ antialias: true, powerPreference: 'high-performance' }}
             onCreated={({ gl }) => {
               gl.toneMapping = THREE.ACESFilmicToneMapping;
-              gl.shadowMap.type = THREE.PCFSoftShadowMap;
+              gl.shadowMap.type = THREE.PCFShadowMap;
             }}
           >
             <Scene sim={sim} version={version} />

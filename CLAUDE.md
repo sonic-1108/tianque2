@@ -22,6 +22,8 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
 - `npm ci`, `npm run dev`, `npx tsc --noEmit -p .`.
 - Headless (no GPU): `BASE=/ npx vite build --outDir /tmp/t2b`, `BASE=/ npx vite preview --outDir /tmp/t2b --port 4191`,
   `URL=http://localhost:4191/ node tools/tests/smoke.cjs` (every move) and `tools/tests/ai.cjs` (bandits fight, xp).
+  巡检 (all start choices x walks to every den, every move in 14 situations, den fights, rules, soak):
+  `npx tsx tools/sweep.ts` (~15 min, prints findings). Real software render screenshot: `tools/tests/shot.cjs` (SPOT=village|den|far).
   Hooks: `__T2` (sim), `__T2_PRESS(code)`, `__T2_HOLD(code, on)`, `__T2_TURBO`.
 - Deploy = push to `main` (GitHub Pages workflow). Site: https://sonic-1108.github.io/tianque2/
 - Don't `pkill -f` a pattern that is in your own command line.

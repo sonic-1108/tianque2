@@ -51,7 +51,7 @@ export function Fx({ sim }: { sim: Sim }) {
     const sealGeo = new THREE.BoxGeometry(1, 1, 1);
     const beamGeo = new THREE.CylinderGeometry(0.06, 0.06, 1, 6).rotateX(Math.PI / 2);
     const fx = Array.from({ length: N_FX }, () => {
-      const m = new THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>(ringGeo, new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, depthWrite: false, side: THREE.DoubleSide }));
+      const m = new THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>(ringGeo, new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
       m.visible = false;
       root.add(m);
       return m;
@@ -135,8 +135,9 @@ export function Fx({ sim }: { sim: Sim }) {
       } else if (x.kind === 'burst') {
         m.geometry = P.geos.burst;
         m.position.set(x.x, x.y, x.z);
-        m.scale.setScalar(x.r * (0.4 + a * 0.6));
-        mat.opacity = 0.7 * (1 - a);
+        // a quick flash that swells and fades (it was a big opaque ball)
+        m.scale.setScalar(x.r * (0.25 + a * 0.55));
+        mat.opacity = 0.45 * (1 - a) * (1 - a);
       } else if (x.kind === 'slash') {
         m.geometry = P.geos.slash;
         m.position.set(x.x, x.y, x.z);

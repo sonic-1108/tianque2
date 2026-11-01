@@ -1,4 +1,4 @@
-// The open map: rolling hills, a village in the middle, seven camps on a ring, paths between them.
+// The open map: rolling hills, a village in the middle, bandit dens on three rings, paths out from the village.
 // Height is a pure function so the sim, the renderer and the camera all agree on where the ground is.
 import { DENS, DEN_R } from './foes';
 
@@ -36,21 +36,18 @@ export function pathDist(x: number, z: number) {
 
 /** flat pads under the village and each camp, the hills everywhere else, a rim of mountains at the edge */
 export function groundHeight(x: number, z: number): number {
-  let h = hills(x, z);
-  let flat = 1 - smooth(VILLAGE_R, VILLAGE_R + 18, Math.hypot(x, z));
-  let padH = 0;
-  for (const [cx, cz] of CAMPS) {
-    const f = 1 - smooth(CAMP_R, CAMP_R + 16, Math.hypot(x - cx, z - cz));
-    if (f > flat) {
-      flat = f;
-      padH = hills(cx, cz);
-    }
-  }
-  h = h * (1 - flat) + padH * flat;
-  // paths are softened (half the hill)
-  const p = 1 - smooth(2, 7, pathDist(x, z));
-  h = h * (1 - p * 0.5) + padH * flat * p * 0.5;
   const r = Math.hypot(x, z);
+  // gentle near the village, full hills further out; paths are half as hilly
+  const amp = (0.3 + 0.7 * smooth(40, 130, r)) * (1 - 0.45 * (1 - smooth(2, 8, pathDist(x, z))));
+  let h = hills(x, z) * amp;
+  // flat pads under the village and each den, blended one after another (no seams where two pads meet)
+  h += (hills(0, 0) * 0.3 - h) * (1 - smooth(VILLAGE_R, VILLAGE_R + 30, r));
+  for (const [cx, cz] of CAMPS) {
+    const f = 1 - smooth(CAMP_R, CAMP_R + 22, Math.hypot(x - cx, z - cz));
+    if (f <= 0) continue;
+    const padH = hills(cx, cz) * (0.3 + 0.7 * smooth(40, 130, Math.hypot(cx, cz)));
+    h += (padH - h) * f;
+  }
   h += smooth(WORLD_R - 25, WORLD_R + 30, r) * 40;
   return h;
 }
@@ -66,7 +63,7 @@ export const TREES: Tree[] = (() => {
   const out: Tree[] = [];
   let seed = 7;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  for (let i = 0; i < 1400 && out.length < 520; i++) {
+  for (let i = 0; i < 3000 && out.length < 520; i++) {
     const a = rnd() * Math.PI * 2;
     const r = Math.sqrt(rnd()) * (WORLD_R + 10);
     const x = Math.cos(a) * r;
@@ -74,6 +71,8 @@ export const TREES: Tree[] = (() => {
     if (r < VILLAGE_R + 10) continue;
     if (CAMPS.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < CAMP_R + 6)) continue;
     if (pathDist(x, z) < 6) continue;
+    // trunks never so close that a pocket between them could trap someone
+    if (out.some((t) => Math.hypot(t.x - x, t.z - z) < 3.4)) continue;
     out.push({ x, z, s: 0.8 + rnd() * 0.9, kind: rnd() < 0.6 ? 0 : 1 });
   }
   return out;
