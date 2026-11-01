@@ -7,6 +7,7 @@ import { SKILLS } from '../game/skills';
 import { DENS, FOE_KINDS } from '../game/foes';
 import { WORLD_R } from '../game/world';
 import { ROADS } from '../game/layout';
+import { NPCS, QUESTS, questTarget } from '../game/quests';
 import { heroOf } from '../game/heroes';
 import { spFree } from '../game/progress';
 import { cam } from '../render/Scene';
@@ -57,6 +58,27 @@ function Minimap({ sim }: { sim: Sim }) {
         g.lineWidth = 1;
         g.stroke();
       }
+      const qt = questTarget(sim);
+      if (qt) {
+        // the quest target: a gold star (pinned to the edge when it's off this window)
+        let qx = X(qt[0]) - S / 2, qz = Z(qt[1]) - S / 2;
+        const ql = Math.hypot(qx, qz);
+        if (ql > S / 2 - 8) {
+          qx *= (S / 2 - 8) / ql;
+          qz *= (S / 2 - 8) / ql;
+        }
+        g.fillStyle = '#ffd36a';
+        g.strokeStyle = '#3a2400';
+        g.beginPath();
+        for (let k = 0; k < 10; k++) {
+          const r = k % 2 ? 3 : 7;
+          const a = (k / 10) * Math.PI * 2 - Math.PI / 2;
+          g.lineTo(S / 2 + qx + Math.cos(a) * r, S / 2 + qz + Math.sin(a) * r);
+        }
+        g.closePath();
+        g.fill();
+        g.stroke();
+      }
       for (const f of sim.fighters)
         if (f.team === 'sect' && f.hp > 0 && f.aggro) {
           g.fillStyle = '#ff5050';
@@ -81,6 +103,32 @@ function Minimap({ sim }: { sim: Sim }) {
     return () => clearInterval(id);
   }, [sim]);
   return <canvas ref={ref} className="minimap" width={180} height={180} />;
+}
+
+function QuestTracker({ sim }: { sim: Sim }) {
+  const Q = sim.progress.quest;
+  const q = QUESTS[Q.idx];
+  if (!q) return null;
+  const p = sim.player.pos;
+  const giver = NPCS.find((n) => n.role === q.giver)!;
+  const g = q.goal;
+  let what = '';
+  if (Q.state === 'offered') what = `回村找${giver.name}领任务`;
+  else if (Q.state === 'ready') what = `回村找${giver.name}交付`;
+  else if (g.type === 'learn') what = '按 K 学一招';
+  else if (g.type === 'talk') what = `去找${NPCS.find((n) => n.role === g.npc)!.name}`;
+  else if (g.type === 'kill') what = `打倒 ${FOE_KINDS[DENS[g.den].kind].name} ${Math.min(Q.count, g.count)} / ${g.count}`;
+  else if (g.type === 'boss') what = `打倒${FOE_KINDS[DENS[g.den].kind].boss ?? FOE_KINDS[DENS[g.den].kind].name + '头目'}`;
+  else if (g.type === 'level') what = `练到 ${g.level} 级（现在 ${sim.progress.level}）`;
+  const tgt = questTarget(sim);
+  const dist = tgt ? Math.round(Math.hypot(tgt[0] - p[0], tgt[1] - p[2])) : 0;
+  return (
+    <div className="quest">
+      <div className="quest-title">主线 · {q.title}</div>
+      <div className="quest-what">{what}</div>
+      {tgt && dist > 6 && <div className="quest-dist">距离 {dist} 米 · 跟着金色光柱走</div>}
+    </div>
+  );
 }
 
 export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
@@ -154,6 +202,8 @@ export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
         ))}
       </div>
       {p.hp <= 0 && <div className="dead">你倒下了</div>}
+      <QuestTracker sim={sim} />
+      {sim.near >= 0 && sim.dialog < 0 && <div className="talk-hint">F 与 {sim.fighters[sim.near].name} 对话</div>}
       <div className="help">WASD 移动 · 鼠标转视角 · 左键攻击 · Shift/右键 闪避 · 空格 跳 · 1-5 技能 · 按住 R 大招 · K 技能树 · 滚轮 远近</div>
       <Minimap sim={sim} />
     </div>

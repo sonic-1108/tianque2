@@ -12,6 +12,8 @@ export interface Progress {
   xp: number;
   skills: Record<string, number>;
   bar: string[]; // 1 2 3 4 5 R ('' = empty)
+  /** the main story: which quest, how far into it, and whether it's been taken / finished */
+  quest: { idx: number; count: number; state: 'offered' | 'active' | 'ready' };
 }
 
 const KEY = 'tq2_progress_v2';
@@ -29,12 +31,12 @@ export const spFree = (p: Progress) => spTotal(p) - spUsed(p);
 export const skillPower = (lvl: number) => (lvl <= 0 ? 0 : 0.85 + 0.04 * lvl);
 
 export function fresh(): Progress {
-  return { chosen: false, hero: null, level: 1, xp: 0, skills: {}, bar: ['', '', '', '', '', ''] };
+  return { chosen: false, hero: null, level: 1, xp: 0, skills: {}, bar: ['', '', '', '', '', ''], quest: { idx: 0, count: 0, state: 'offered' } };
 }
 export function load(): Progress {
   try {
     const p = JSON.parse(localStorage.getItem(KEY) || 'null');
-    if (p && typeof p.level === 'number') return { ...fresh(), ...p, bar: [...(p.bar || []), '', '', '', '', '', ''].slice(0, 6) };
+    if (p && typeof p.level === 'number') return { ...fresh(), ...p, quest: p.quest ?? fresh().quest, bar: [...(p.bar || []), '', '', '', '', '', ''].slice(0, 6) };
   } catch {
     /* private window */
   }

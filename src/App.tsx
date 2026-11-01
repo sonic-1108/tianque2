@@ -9,6 +9,7 @@ import { chooseHero } from './game/progress';
 import { Scene } from './render/Scene';
 import { Hud } from './ui/Hud';
 import { SkillTree, StartScreen } from './ui/Panels';
+import { Dialog } from './ui/Dialog';
 import { attachInput, ui } from './input';
 
 declare const __BUILD_TIME__: string;
@@ -35,14 +36,18 @@ export function App() {
     return () => clearInterval(id);
   }, []);
   useEffect(() => {
-    ui.open = tree || !started;
+    ui.open = tree || !started || sim.dialog >= 0;
     if (ui.open && document.pointerLockElement) document.exitPointerLock();
-  }, [tree, started]);
+  }, [tree, started, tick >= 0 && sim.dialog >= 0]);
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       if (!started) return;
       if (e.code === 'KeyK' || e.code === 'Tab') setTree((v) => !v);
-      if (e.code === 'Escape') setTree(false);
+      if (e.code === 'Escape') {
+        setTree(false);
+        sim.dialog = -1;
+      }
+      if (e.code === 'KeyF' && sim.dialog >= 0 && ui.open) sim.dialog = -1;
     };
     window.addEventListener('keydown', k);
     return () => window.removeEventListener('keydown', k);
@@ -65,6 +70,7 @@ export function App() {
             <Scene sim={sim} version={version} />
           </Canvas>
           <Hud sim={sim} tick={tick} />
+          {sim.dialog >= 0 && !tree && <Dialog sim={sim} onClose={() => (sim.dialog = -1)} onChange={() => setTick((n) => n + 1)} />}
           {tree && <SkillTree sim={sim} onClose={() => setTree(false)} onHero={() => setVersion((v) => v + 1)} />}
           {!document.pointerLockElement && !tree && <div className="lockhint">点击画面开始（锁定鼠标转视角）</div>}
           <div className="build">tianque2 · {new Date(__BUILD_TIME__).toLocaleString()}</div>

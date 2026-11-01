@@ -44,8 +44,8 @@ function tintAt(x: number, z: number, h: number, sl: number, out: THREE.Color): 
   if (h < WATER_Y + 1.2) add(C.sand, Math.min(1, (WATER_Y + 1.2 - h) / 1.2) * 0.8);
   const pd = pathDist(x, z);
   if (pd < 5) add(C.road, Math.min(1, (5 - pd) / 2.5) * 0.85);
-  if (Math.hypot(x, z) < VILLAGE_R) add(C.road, 0.5);
-  for (const d of DENS) if (Math.abs(d.x - x) < DEN_R && Math.abs(d.z - z) < DEN_R && Math.hypot(d.x - x, d.z - z) < DEN_R) add(C.dirt, 0.5);
+  if (Math.hypot(x, z) < VILLAGE_R + 8) add(C.road, 0.9 * Math.min(1, (VILLAGE_R + 8 - Math.hypot(x, z)) / 8));
+  for (const d of DENS) if (Math.abs(d.x - x) < DEN_R + 6 && Math.abs(d.z - z) < DEN_R + 6 && Math.hypot(d.x - x, d.z - z) < DEN_R + 6) add(C.dirt, 0.85);
   return w;
 }
 
@@ -146,7 +146,8 @@ float vn(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
 vec3 painted = texture2D(uMap, muv).rgb;
 // the painting has its own light and shade baked in: flatten it a little so the real sun does the shading
 float lum = dot(painted, vec3(0.299, 0.587, 0.114));
-painted = mix(painted, painted * (0.62 / max(lum, 0.05)), 0.45);
+painted = mix(painted, painted * (0.6 / max(lum, 0.05)), 0.8);
+painted = mix(vec3(dot(painted, vec3(0.333))), painted, 0.85);
 diffuseColor.rgb = mix(painted, vColor.rgb, vTw);
 float d1 = vn(vWP.xz*0.9), d2 = vn(vWP.xz*0.17), d3 = vn(vWP.xz*3.1);
 diffuseColor.rgb *= 0.8 + 0.2*d1 + 0.16*(d2-0.5) + 0.1*(d3-0.5);`,

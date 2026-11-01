@@ -9,6 +9,7 @@ const floorAt = (x: number, z: number) => Math.max(groundHeight(x, z), WATER_Y -
 import { Progress, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
 import { WANDERER, heroOf } from './heroes';
 import { SKILLS } from './skills';
+import { NPCS, QUESTS, type NpcRole } from './quests';
 
 /** an ultimate goes off only after R is held this long (the owner's rule); letting go or a hit throws it away */
 export const ULT_CHARGE = 0.8;
@@ -73,6 +74,9 @@ export class Sim {
   emit(e: SimEvent) {
     if (this.events.length < 200) this.events.push(e);
   }
+  /** the villager the player stands next to (F talks), and the one being talked to */
+  near = -1;
+  dialog = -1;
   /** the player holding R for an ultimate: seconds held (null = not charging) */
   ultCharge: number | null = null;
   private toastId = 0;
@@ -83,6 +87,13 @@ export class Sim {
     const h = heroOf(this.progress.hero);
     const p = this.make('player', null, h ? h.name : WANDERER.name, h ? h.model : WANDERER.model, this.progress.level, VILLAGE_SPAWN[0], VILLAGE_SPAWN[1]);
     p.maxHp = p.hp = playerMaxHp(p.level);
+    for (const n of NPCS) {
+      const f = this.make('npc', null, n.name, n.model, 30, n.x, n.z);
+      f.master = true;
+      f.st.invuln = 1e9;
+      (f as any).role = n.role;
+      f.yaw = Math.atan2(n.x, n.z);
+    }
     DENS.forEach((d, di) => {
       const kind = FOE_KINDS[d.kind];
       const n = d.count + (d.boss ? 1 : 0);
@@ -90,7 +101,7 @@ export class Sim {
         const boss = d.boss && k === n - 1;
         const a = (k / n) * Math.PI * 2;
         const r = boss ? 0 : 6;
-        const f = this.make('sect', kind.house, boss ? `${kind.name}头目` : kind.name, kind.model, d.level + (boss ? 3 : k % 3), d.x + Math.cos(a) * r, d.z + Math.sin(a) * r);
+        const f = this.make('sect', kind.house, boss ? kind.boss ?? `${kind.name}头目` : kind.name, kind.model, d.level + (boss ? 3 : k % 3), d.x + Math.cos(a) * r, d.z + Math.sin(a) * r);
         f.home = [f.pos[0], f.pos[2]];
         (f as any).den = di;
         if (boss) {
@@ -327,6 +338,7 @@ export class Sim {
     def.aggro = false;
     if (att.id === PLAYER) {
       const P = this.progress;
+      this.questKill(def);
       // a foe far below you is worth little
       const gap = Math.max(0, P.level - def.level - 3);
       const xp = Math.max(3, Math.round((18 + def.level * 10) * ((def as any).boss ? 5 : 1) * Math.pow(0.75, gap)));
@@ -355,6 +367,82 @@ export class Sim {
     if (was >= 0) P.bar[was] = P.bar[slot];
     P.bar[slot] = id;
     save(P);
+  }
+
+  // ------------------------------------------------------------------ the story
+  quest() {
+    return QUESTS[this.progress.quest.idx] ?? null;
+  }
+  private questKill(def: Fighter) {
+    const Q = this.progress.quest;
+    const q = this.quest();
+    if (!q || Q.state !== 'active') return;
+    const den = (def as any).den;
+    if (q.goal.type === 'kill' && den === q.goal.den) {
+      Q.count++;
+      this.toast(`${q.title}：${Math.min(Q.count, q.goal.count)} / ${q.goal.count}`);
+    }
+    if (q.goal.type === 'boss' && den === q.goal.den && (def as any).boss) Q.count = 1;
+  }
+  /** goals that are states of the world (learned a move, a level), and finished counts */
+  private questCheck() {
+    const Q = this.progress.quest;
+    const q = this.quest();
+    if (!q || Q.state !== 'active') return;
+    const g = q.goal;
+    const P = this.progress;
+    const done =
+      (g.type === 'learn' && Object.values(P.skills).some((l) => l > 0)) ||
+      (g.type === 'level' && P.level >= g.level) ||
+      (g.type === 'kill' && Q.count >= g.count) ||
+      (g.type === 'boss' && Q.count >= 1);
+    if (done) {
+      Q.state = 'ready';
+      this.toast(`任务完成：${q.title} · 回村找${NPCS.find((n) => n.role === q.giver)!.name}交付`);
+      this.emit({ k: 'level', x: this.player.pos[0], y: this.player.pos[1], z: this.player.pos[2], id: PLAYER });
+      save(P);
+    }
+  }
+  /** the player talks to a villager: quest offers, turn-ins and talk goals happen here */
+  talk(role: NpcRole) {
+    const Q = this.progress.quest;
+    const q = this.quest();
+    if (q && Q.state === 'active' && q.goal.type === 'talk' && q.goal.npc === role) {
+      Q.state = 'ready';
+      save(this.progress);
+    }
+  }
+  acceptQuest() {
+    const Q = this.progress.quest;
+    if (Q.state !== 'offered' || !this.quest()) return;
+    Q.state = 'active';
+    Q.count = 0;
+    this.toast(`接受任务：${this.quest()!.title}`);
+    save(this.progress);
+    this.questCheck();
+  }
+  turnInQuest() {
+    const Q = this.progress.quest;
+    const q = this.quest();
+    if (!q || Q.state !== 'ready') return;
+    const P = this.progress;
+    const ups = gainXp(P, q.xp);
+    this.text(this.player, `经验 +${q.xp}`, '#a5f3fc');
+    if (ups > 0) {
+      const p = this.player;
+      p.level = P.level;
+      p.maxHp = playerMaxHp(P.level);
+      p.hp = p.maxHp;
+      this.toast(`升级！${P.level} 级 · 技能点 +${ups * 2}，按 K 加点`);
+    }
+    this.emit({ k: 'level', x: this.player.pos[0], y: this.player.pos[1], z: this.player.pos[2], id: PLAYER });
+    P.quest = { idx: Q.idx + 1, count: 0, state: 'offered' };
+    save(P);
+  }
+  healFull() {
+    const p = this.player;
+    p.hp = p.maxHp;
+    p.mp = p.maxMp;
   }
 
   /** the player picked a hero (or 转职'd): new body, new name */
@@ -478,10 +566,12 @@ export class Sim {
         const d = Math.hypot(dx, dz);
         if (d >= 0.9 || d < 1e-4) continue;
         const push = (0.9 - d) / 2;
-        a.pos[0] -= (dx / d) * push;
-        a.pos[2] -= (dz / d) * push;
-        b.pos[0] += (dx / d) * push;
-        b.pos[2] += (dz / d) * push;
+        const ka = a.master ? 0 : b.master ? 2 : 1; // a villager stands his ground
+        const kb = b.master ? 0 : a.master ? 2 : 1;
+        a.pos[0] -= (dx / d) * push * ka;
+        a.pos[2] -= (dz / d) * push * ka;
+        b.pos[0] += (dx / d) * push * kb;
+        b.pos[2] += (dz / d) * push * kb;
       }
     }
     for (const f of this.fighters) this.acts(f, dt);
@@ -490,6 +580,13 @@ export class Sim {
     for (const x of this.fx) x.t -= dt;
     this.fx = this.fx.filter((x) => x.t > 0);
     for (const t of this.toasts) t.t -= dt;
+    // the villager the player stands next to
+    const pl = this.player;
+    this.near = -1;
+    for (const f of this.fighters)
+      if (f.master && pl.hp > 0 && this.dist(f, pl) < 3.6) this.near = f.id;
+    if (this.dialog >= 0 && this.near !== this.dialog) this.dialog = -1;
+    this.questCheck();
     this.toasts = this.toasts.filter((t) => t.t > 0);
   }
 
@@ -536,6 +633,10 @@ export class Sim {
       mz /= ml;
     }
     (f as any).wish = this.ultCharge !== null ? [0, 0] : [mx, mz];
+    if (inp.interact && this.near >= 0) {
+      this.dialog = this.dialog >= 0 ? -1 : this.near;
+      if (this.dialog >= 0) this.talk((this.fighters[this.dialog] as any).role);
+    }
     if (inp.dodge) this.dodge(f, mx, mz);
     if (inp.jump) this.jump(f);
     const aim = () => {
@@ -596,6 +697,11 @@ export class Sim {
   private think(f: Fighter, dt: number) {
     if (f.hp <= 0) return;
     const p = this.player;
+    if (f.master) {
+      (f as any).wish = [0, 0];
+      if (p.hp > 0 && this.dist(f, p) < 10) this.faceTo(f, p.pos[0], p.pos[2]);
+      return;
+    }
     const home = f.home!;
     const fromHome = Math.hypot(f.pos[0] - home[0], f.pos[2] - home[1]);
     const d = this.dist(f, p);
