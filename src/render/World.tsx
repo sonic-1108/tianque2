@@ -84,12 +84,12 @@ function Den({ i }: { i: number }) {
       ))}
       {[0, 1, 2].map((k) => {
         const a = k * 2.1 + i;
-        const x = d.x + Math.cos(a) * 9.5;
-        const z = d.z + Math.sin(a) * 9.5;
+        const x = d.x + Math.cos(a) * 11;
+        const z = d.z + Math.sin(a) * 11;
         return (
-          <mesh key={k} position={[x, groundHeight(x, z) + 1.1, z]} rotation={[0, a, 0]} castShadow receiveShadow>
-            <coneGeometry args={[2, 2.2, 4]} />
-            <meshStandardMaterial color={k === 0 ? kind.color : '#8a7a5c'} roughness={1} />
+          <mesh key={k} position={[x, groundHeight(x, z) + 0.95, z]} rotation={[0, a, 0]} castShadow receiveShadow>
+            <coneGeometry args={[1.6, 1.9, 6]} />
+            <meshStandardMaterial color={k === 0 ? '#7b6a52' : '#8a7a5c'} roughness={1} />
           </mesh>
         );
       })}

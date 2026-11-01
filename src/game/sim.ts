@@ -25,6 +25,20 @@ const CHAIN = [
 ];
 const MELEE_RANGE = 2.5;
 
+export interface SimEvent {
+  k: 'hit' | 'kill' | 'swing' | 'cast' | 'dodge' | 'jump' | 'land' | 'throw' | 'zone' | 'level' | 'step';
+  x: number;
+  y: number;
+  z: number;
+  id?: number; // who
+  to?: number; // whom (hits)
+  n?: number; // damage
+  heavy?: boolean;
+  crit?: boolean;
+  color?: string;
+  skill?: string;
+}
+
 export interface HitOpts {
   knock?: number; // push away (m/s)
   launch?: number; // up into the air and down
@@ -52,6 +66,13 @@ export class Sim {
   progress: Progress;
   toasts: { text: string; t: number; id: number }[] = [];
   lastTarget = -1;
+  /** what happened this frame, for sound, effects and the camera (the renderer empties it) */
+  events: SimEvent[] = [];
+  /** a moment's freeze when the player lands a blow (seconds) */
+  hitstop = 0;
+  emit(e: SimEvent) {
+    if (this.events.length < 200) this.events.push(e);
+  }
   /** the player holding R for an ultimate: seconds held (null = not charging) */
   ultCharge: number | null = null;
   private toastId = 0;
@@ -247,6 +268,11 @@ export class Sim {
     def.hp = Math.max(0, def.hp - dmg);
     if (att.st.rage > 0 && att.hp > 0) att.hp = Math.min(att.maxHp, att.hp + dmg * 0.12);
     if (att.id === PLAYER) this.lastTarget = def.id;
+    {
+      const heavy = !!(o.launch || (o.knock ?? 0) >= 6 || crit || dmg > def.maxHp * 0.12);
+      this.emit({ k: 'hit', x: def.pos[0], y: def.pos[1] + 1.1, z: def.pos[2], id: att.id, to: def.id, n: dmg, heavy, crit, color: o.color });
+      if (att.id === PLAYER && !o.noScale) this.hitstop = Math.max(this.hitstop, heavy ? 0.09 : 0.045);
+    }
     this.text(def, crit ? `暴击 ${dmg}` : `${dmg}`, crit ? '#ffcf3a' : def.id === PLAYER ? '#ff6b6b' : o.color ?? '#ffffff');
     if (def.team === 'sect') def.aggro = true;
     // statuses
@@ -288,6 +314,7 @@ export class Sim {
 
   private kill(att: Fighter, def: Fighter, nx: number, nz: number) {
     def.run = null;
+    this.emit({ k: 'kill', x: def.pos[0], y: def.pos[1] + 1, z: def.pos[2], id: att.id, to: def.id });
     def.vel = [nx * 6, 7, nz * 6];
     def.grounded = false;
     this.setAct(def, 'dead', 0, 'dead');
@@ -311,6 +338,7 @@ export class Sim {
         p.maxHp = playerMaxHp(P.level);
         p.hp = p.maxHp;
         this.toast(`升级！${P.level} 级 · 技能点 +${ups * 2}，按 K 加点`);
+        this.emit({ k: 'level', x: p.pos[0], y: p.pos[1], z: p.pos[2], id: PLAYER });
         if (P.level === 30) this.toast(P.hero ? '30 级：大招解锁了，按 K 学' : '30 级：可以转职了，按 K 打开技能树');
         if (P.level === 10 && P.hero) this.toast('10 级：第四招解锁了');
         this.addFx({ kind: 'ring', x: p.pos[0], y: p.pos[1] + 0.1, z: p.pos[2], max: 0.8, r: 4, color: '#ffe08a' });
@@ -351,6 +379,7 @@ export class Sim {
     else f.combo = 0;
     const slow = f.team === 'sect' ? 1.5 : 1; // disciples wind up slower: time to see it coming
     this.setAct(f, 'attack', CHAIN[f.combo].dur * slow, ranged ? 'throw' : `attack_${f.combo + 1}`);
+    this.emit({ k: 'swing', x: f.pos[0], y: f.pos[1] + 1, z: f.pos[2], id: f.id, heavy: f.combo === 2 });
     if (!(f.run && SKILLS[f.run.id]?.parallel)) f.run = ranged ? { id: '_throw', t: 0, data: {} } : null;
     if (f.id === PLAYER && !ranged) {
       // a swing steps in to the foe in front (within 4.5 m): no more swinging at air a step short
@@ -388,6 +417,7 @@ export class Sim {
     f.vel[2] = dz * 12;
     f.st.invuln = Math.max(f.st.invuln, 0.32);
     f.cds.dodge = 0.75;
+    this.emit({ k: 'dodge', x: f.pos[0], y: f.pos[1], z: f.pos[2], id: f.id });
     return true;
   }
 
@@ -396,6 +426,7 @@ export class Sim {
     f.vel[1] = 8.5;
     f.grounded = false;
     this.setAct(f, 'jump', 0, 'jump');
+    this.emit({ k: 'jump', x: f.pos[0], y: f.pos[1], z: f.pos[2], id: f.id });
     return true;
   }
 
@@ -419,6 +450,7 @@ export class Sim {
     if (!sk.cast(this, f)) return false;
     f.mp -= sk.mp;
     f.cds[id] = sk.cd;
+    this.emit({ k: 'cast', x: f.pos[0], y: f.pos[1] + 1, z: f.pos[2], id: f.id, skill: id });
     return true;
   }
 
@@ -700,9 +732,11 @@ export class Sim {
     const g = floorAt(f.pos[0], f.pos[2]);
     if (f.pos[1] <= g) {
       f.pos[1] = g;
+      const vy = f.vel[1];
       if (f.vel[1] < 0) f.vel[1] = 0;
       if (!f.grounded) {
         f.grounded = true;
+        if (f.id === PLAYER || vy < -12) this.emit({ k: 'land', x: f.pos[0], y: f.pos[1], z: f.pos[2], id: f.id, heavy: vy < -12 });
         if (f.act === 'jump') this.setAct(f, 'idle', 0, 'idle');
         if (f.run && SKILLS[f.run.id]?.land) SKILLS[f.run.id].land!(this, f);
       }

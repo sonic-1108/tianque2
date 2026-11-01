@@ -96,8 +96,11 @@ export function Fx({ sim }: { sim: Sim }) {
     let k = 0;
     let ti = 0;
     for (const x of sim.fx) {
+      // texts, rings, bursts and slashes go through the effect system (Juice.tsx)
+      if (!(x.kind === 'beam' || x.kind === 'seal')) continue;
+      const xk = x.kind as string;
       const a = 1 - x.t / x.max; // 0 -> 1 over its life
-      if (x.kind === 'text') {
+      if (xk === 'text') {
         const T = P.texts[ti++];
         if (!T) continue;
         if (T.tt.last !== x.text + x.color) {
@@ -127,18 +130,18 @@ export function Fx({ sim }: { sim: Sim }) {
       const mat = m.material as THREE.MeshBasicMaterial;
       mat.color.set(x.color);
       m.rotation.set(0, 0, 0);
-      if (x.kind === 'ring') {
+      if (xk === 'ring') {
         m.geometry = P.geos.ring;
         m.position.set(x.x, x.y, x.z);
         m.scale.setScalar(x.r * (0.3 + a * 0.7));
         mat.opacity = 1 - a;
-      } else if (x.kind === 'burst') {
+      } else if (xk === 'burst') {
         m.geometry = P.geos.burst;
         m.position.set(x.x, x.y, x.z);
         // a quick flash that swells and fades (it was a big opaque ball)
         m.scale.setScalar(x.r * (0.25 + a * 0.55));
         mat.opacity = 0.45 * (1 - a) * (1 - a);
-      } else if (x.kind === 'slash') {
+      } else if (xk === 'slash') {
         m.geometry = P.geos.slash;
         m.position.set(x.x, x.y, x.z);
         m.rotation.y = (x.yaw ?? 0) + Math.PI / 2;

@@ -222,7 +222,7 @@ function Trees() {
     const deadParts = [new THREE.CylinderGeometry(0.15, 0.32, 5, 5).translate(0, 2.5, 0), new THREE.CylinderGeometry(0.06, 0.12, 2.2, 4).rotateZ(0.9).translate(0.8, 3.6, 0), new THREE.CylinderGeometry(0.05, 0.1, 1.8, 4).rotateZ(-1).translate(-0.6, 4.2, 0.2)];
     const merge = (list: THREE.BufferGeometry[]) => {
       // tiny merge (no addon): concatenate non-indexed copies
-      const parts = list.map((g) => g.toNonIndexed());
+      const parts = list.map((g) => (g.index ? g.toNonIndexed() : g));
       const n = parts.reduce((a, g) => a + g.getAttribute('position').count, 0);
       const pos = new Float32Array(n * 3);
       const nor = new Float32Array(n * 3);

@@ -58,7 +58,7 @@ export function App() {
             camera={{ fov: 62, near: 0.1, far: 600 }}
             gl={{ antialias: true, powerPreference: 'high-performance' }}
             onCreated={({ gl }) => {
-              gl.toneMapping = THREE.ACESFilmicToneMapping;
+              gl.toneMapping = THREE.NoToneMapping; // the post pass does ACES
               gl.shadowMap.type = THREE.PCFShadowMap;
             }}
           >

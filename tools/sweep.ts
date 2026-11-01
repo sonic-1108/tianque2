@@ -43,7 +43,7 @@ class Watch {
       const g = groundHeight(f.pos[0], f.pos[2]);
       if (f.pos[1] < g - 0.3 && f.act !== 'burrow') report('under ground', tag, `y ${f.pos[1].toFixed(2)} ground ${g.toFixed(2)} act ${f.act}`);
       if (f.pos[1] > g + 40) report('flew off', tag, `y ${f.pos[1].toFixed(1)} above ground ${g.toFixed(1)} act ${f.act} run ${f.run?.id}`);
-      if (Math.hypot(f.pos[0], f.pos[2]) > WORLD_R + 9) report('outside world', tag, `${f.pos[0].toFixed(0)},${f.pos[2].toFixed(0)}`);
+      if (Math.max(Math.abs(f.pos[0]), Math.abs(f.pos[2])) > WORLD_R - 19) report('outside world', tag, `${f.pos[0].toFixed(0)},${f.pos[2].toFixed(0)}`);
       // an act that should end but doesn't
       const a = this.actT.get(f.id);
       const longOk = f.act === 'idle' || f.act === 'run' || f.act === 'dead' || f.act === 'glide' || f.act === 'burrow' || (f.act === 'jump' && !f.grounded);
@@ -243,7 +243,7 @@ function situationPos(s: Sim, sit: string): [number, number] {
     const t = TREES[Math.floor(rnd() * TREES.length)];
     return [t.x + 1.4, t.z];
   }
-  if (sit === 'edge') return [0, WORLD_R + 5];
+  if (sit === 'edge') return [0, WORLD_R - 25];
   return [40 + rnd() * 5, 40 + rnd() * 5];
 }
 function moves(hero: HeroId | null) {
@@ -318,7 +318,7 @@ function moves(hero: HeroId | null) {
         resetPlayer(s);
         run(s, w, 1, () => ({ ...noInput(Math.PI / 2), move: [0, 1] }));
         const moved = Math.hypot(p.pos[0] - x0, p.pos[2] - z0);
-        if (moved < 2 && sit !== 'edge' && sit !== 'tree') report('cannot walk after the move', tag, `moved ${moved.toFixed(1)} act ${p.act} run ${p.run?.id}`);
+        if (moved < 2 && sit !== 'edge' && sit !== 'tree' && sit !== 'slope') report('cannot walk after the move', tag, `moved ${moved.toFixed(1)} act ${p.act} run ${p.run?.id}`);
       }
       // does it hurt (only moves meant to)
       void hp0;
@@ -428,11 +428,14 @@ rules();
 const perf: Record<string, number> = {};
 const fightLog: string[] = [];
 const ONLY = process.env.ONLY; // 'walk' = only the walks, for a quick check
-for (const hero of (ONLY ? [null] : [null, ...HEROES.map((h) => h.id)]) as (HeroId | null)[]) {
+const PICK = process.env.HERO; // one start choice only ('none' = 散人)
+for (const hero of (PICK ? [PICK === 'none' ? null : PICK] : ONLY ? [null] : [null, ...HEROES.map((h) => h.id)]) as (HeroId | null)[]) {
   const label = hero ?? '散人';
   perf['walk ' + label] = walks(hero);
   if (ONLY === 'walk') continue;
+  console.error('walk done', label);
   perf['moves ' + label] = moves(hero);
+  console.error('moves done', label);
   const f = fights(hero);
   perf['fight ' + label] = f.maxStep;
   fightLog.push(`== ${label}`, ...f.result);

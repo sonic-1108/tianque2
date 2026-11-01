@@ -8,6 +8,8 @@ import { readInput, takeMouse } from '../input';
 import { World } from './World';
 import { Rig } from './Rig';
 import { Fx } from './Fx';
+import { Juice, juice } from './Juice';
+import { Post } from './Post';
 
 export const cam = { yaw: 0, pitch: 0.25, dist: 6 };
 
@@ -21,7 +23,13 @@ function Loop({ sim }: { sim: Sim }) {
     cam.pitch = Math.max(-0.35, Math.min(1.2, cam.pitch + m.dy * 0.0025));
     cam.dist = Math.max(2.5, Math.min(14, cam.dist + m.wheel * 0.004));
     const turbo = (globalThis as any).__T2_TURBO ?? 1;
-    for (let k = 0; k < turbo; k++) sim.step(dt, readInput(cam.yaw));
+    // hit-stop: the world all but freezes for a few hundredths when the player's blow lands
+    let sdt = dt;
+    if (sim.hitstop > 0) {
+      sim.hitstop -= dt;
+      sdt = dt * 0.08;
+    }
+    for (let k = 0; k < turbo; k++) sim.step(sdt, readInput(cam.yaw));
     // camera: over the right shoulder, the player in the left third
     const p = sim.player.pos;
     const sh = 0.8;
@@ -52,6 +60,18 @@ function Loop({ sim }: { sim: Sim }) {
     c.y = Math.max(c.y, groundHeight(c.x, c.z) + 0.5);
     camera.position.copy(c);
     camera.lookAt(tx, ty, tz);
+    if (juice.trauma > 0.001) {
+      const t = performance.now() * 0.045;
+      const k = juice.trauma * juice.trauma * 0.35;
+      camera.position.x += Math.sin(t * 1.3) * k;
+      camera.position.y += Math.cos(t * 1.7) * k;
+      camera.rotation.z += Math.sin(t * 1.1) * k * 0.08;
+    }
+    const fov = 62 + juice.kick;
+    if (Math.abs(camera.fov - fov) > 0.01) {
+      camera.fov = fov;
+      camera.updateProjectionMatrix();
+    }
   }, -1);
   return null;
 }
@@ -66,6 +86,8 @@ export function Scene({ sim, version }: { sim: Sim; version: number }) {
         <Rig key={`${f.id}:${f.model}`} sim={sim} id={f.id} />
       ))}
       <Fx sim={sim} />
+      <Juice sim={sim} />
+      <Post />
     </>
   );
 }

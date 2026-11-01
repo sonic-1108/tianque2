@@ -6,8 +6,12 @@ import { useFrame } from '@react-three/fiber';
 import { GLTFLoader, SkeletonUtils, MeshoptDecoder } from 'three-stdlib';
 import type { Fighter } from '../game/types';
 import type { Sim } from '../game/sim';
+import { weaponsFor } from './weapons';
+import { applyCharacterShading } from './characterShading';
 
 const BASE = import.meta.env.BASE_URL + 'models/';
+/** the player's blade, base and tip, for the ribbon trail (set when his model is in) */
+export const swordSockets: { base: THREE.Object3D | null; tip: THREE.Object3D | null } = { base: null, tip: null };
 const TARGET_H = 1.8;
 const FPS = 24;
 /** models whose own clips are few: fighting moves come from these */
@@ -51,6 +55,40 @@ const PLAN: Record<string, Spec> = {
   glide: { match: ['jump', 'fall'], start: 0.15, end: 0.25, loop: true, speed: 0.3 },
   burrow: { match: ['sit', 'jump_down', 'dive'], start: 0.3, end: 0.5, loop: true, speed: 0.2 },
 };
+
+/** each house fights its own way (the old game's per-hero clip choices) */
+const PLAN_BY_MODEL: Record<string, Record<string, Spec>> = {
+  'ranger.glb': {
+    attack_1: { match: ['box_01', 'throw', 'punch'], start: 0.08, end: 0.32, fit: true },
+    attack_2: { match: ['box_03', 'box_02', 'throw'], start: 0.12, end: 0.4, fit: true },
+    attack_3: { match: ['pitch_baseball', 'throw', 'slash'], start: 0.3, end: 0.54, fit: true },
+    dodge: { match: ['roll', 'dodge', 'dive', 'flip'], start: 0.36, end: 0.92, fit: true },
+  },
+  'monk.glb': {
+    attack_1: { match: ['box_01', 'punch'], start: 0.1, end: 0.48, fit: true },
+    attack_2: { match: ['box_03', 'box_02', 'punch'], start: 0.12, end: 0.47, fit: true },
+    attack_3: { match: ['cast_a_spell', 'box_02'], start: 0.28, end: 0.68, fit: true },
+    skill_palm: { match: ['cast_a_spell', 'box_02'], start: 0.3, end: 0.72, fit: true },
+    skill_spell: { match: ['clap', 'bow', 'agree'], start: 0.08, end: 0.85, loop: true, speed: 0.8 },
+  },
+  'shadowblade.glb': {
+    attack_1: { match: ['box_01', 'slash'], start: 0.08, end: 0.4, fit: true },
+    attack_2: { match: ['box_03', 'box_02', 'slash'], start: 0.12, end: 0.42, fit: true },
+    attack_3: { match: ['slash', 'chop'], start: 0.25, end: 0.52, fit: true },
+    burrow: { match: ['jump_down', 'dive'], start: 0.0, end: 0.35, loop: true, speed: 0.3 },
+  },
+  'emperor.glb': {
+    skill_point: { match: ['angry_02'], start: 0.42, end: 0.88, fit: true },
+    skill_raise: { match: ['cheer'], start: 0.0, end: 0.6, fit: true },
+    skill_stomp: { match: ['angry_03'], start: 0.3, end: 0.8, fit: true },
+  },
+  'dixian.glb': {
+    idle: { match: ['standing_relax', 'idle'], loop: true, speed: 0.7 },
+    skill_spell: { match: ['cheer'], start: 0.0, end: 0.5, loop: true, speed: 0.7 },
+    skill_stomp: { match: ['angry_03'], start: 0.3, end: 0.8, fit: true },
+  },
+};
+const planOf = (model: string) => ({ ...PLAN, ...(PLAN_BY_MODEL[model] ?? (model === 'wanderer_m.glb' ? PLAN_BY_MODEL['shadowblade.glb'] : {})) });
 
 const loader = new GLTFLoader();
 loader.setMeshoptDecoder(typeof MeshoptDecoder === 'function' ? (MeshoptDecoder as any)() : MeshoptDecoder);
@@ -106,10 +144,10 @@ function noRootMotion(c: THREE.AnimationClip) {
   return out;
 }
 
-function buildClips(raw: THREE.AnimationClip[]) {
+function buildClips(raw: THREE.AnimationClip[], plan: Record<string, Spec> = PLAN) {
   const clean = raw.map(noRootMotion);
   const out: Record<string, { clip: THREE.AnimationClip; spec: Spec }> = {};
-  for (const [key, spec] of Object.entries(PLAN)) {
+  for (const [key, spec] of Object.entries(plan)) {
     let src: THREE.AnimationClip | undefined;
     for (const m of spec.match) {
       src = clean.find((c) => c.name.toLowerCase().replace(/\.\d+$/, '') === m) ?? clean.find((c) => c.name.toLowerCase().includes(m));
@@ -128,21 +166,6 @@ function buildClips(raw: THREE.AnimationClip[]) {
   return out;
 }
 
-/** a plain 剑 for the 散人 */
-function buildSword() {
-  const g = new THREE.Group();
-  const steel = new THREE.MeshStandardMaterial({ color: '#dfe6ee', metalness: 0.9, roughness: 0.25 });
-  const wood = new THREE.MeshStandardMaterial({ color: '#4a2f1d', roughness: 0.8 });
-  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.85, 0.008), steel);
-  blade.position.y = 0.52;
-  const guard = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.025, 0.03), new THREE.MeshStandardMaterial({ color: '#b08d57', metalness: 0.7, roughness: 0.4 }));
-  guard.position.y = 0.09;
-  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.18, 8), wood);
-  grip.position.y = 0;
-  g.add(blade, guard, grip);
-  return g;
-}
-
 export function Rig({ sim, id }: { sim: Sim; id: number }) {
   const f = sim.fighters[id];
   const group = useRef<THREE.Group>(null);
@@ -157,19 +180,48 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
         const obj = SkeletonUtils.clone(m.scene);
         // own clips first, borrowed ones fill the gaps
         const raw = [...m.clips, ...more.flatMap((x) => x.clips.filter((c) => !m.clips.some((o) => o.name === c.name)))];
-        if (f.team === 'player') {
-          let hand: THREE.Object3D | null = null;
-          obj.traverse((o) => {
-            if (!hand && /righthand$/i.test(o.name.replace(/[^a-z]/gi, ''))) hand = o;
-          });
-          if (hand) {
-            const sw = buildSword();
-            sw.scale.setScalar(1 / m.scale);
-            sw.rotation.x = Math.PI / 2;
-            (hand as THREE.Object3D).add(sw);
-          }
+        // each body holds its own weapon(s) (the old game's builders), in the Mixamo hand frame
+        const bones: Record<string, THREE.Object3D> = {};
+        obj.traverse((o) => {
+          const n = o.name.toLowerCase().replace(/^mixamorig[:_]?/, '').replace(/[^a-z0-9]/g, '');
+          if ((o as any).isBone && !bones[n]) bones[n] = o;
+        });
+        const glow = new THREE.Color(f.team === 'player' ? '#ff3b1f' : '#7dd3fc');
+        const w = weaponsFor(f.model, glow);
+        const held: THREE.Object3D[] = [];
+        if (w.right && bones.righthand) {
+          w.right.rotation.set(0, 0, w.reverse ? -Math.PI / 2 : Math.PI / 2);
+          w.right.position.set(0, 0.075, 0.025);
+          bones.righthand.add(w.right);
+          held.push(w.right);
         }
-        setModel({ obj, clips: buildClips(raw), scale: m.scale, floor: m.floor });
+        if (w.left && bones.lefthand) {
+          w.left.rotation.set(Math.PI, 0, w.reverse ? Math.PI / 2 : -Math.PI / 2);
+          w.left.position.set(0, 0.075, 0.025);
+          bones.lefthand.add(w.left);
+          held.push(w.left);
+        }
+        if (w.staff && bones.righthand) {
+          w.staff.rotation.set(Math.PI, 0, 0);
+          w.staff.position.set(0, 0.36, 0.02);
+          bones.righthand.add(w.staff);
+          held.push(w.staff);
+        }
+        if (f.team === 'player') {
+          swordSockets.base = w.base;
+          swordSockets.tip = w.tip;
+        }
+        (obj as any).userData.held = held;
+        for (const h of held) h.traverse((o) => (o.userData.weapon = true));
+        // the old game's character look: a soft fill from the viewer (faces never black), a coloured rim
+        obj.traverse((o: any) => {
+          if (!o.isMesh || !(o.material as any)?.isMeshStandardMaterial || o.userData.weapon) return;
+          const mat = (o.material as THREE.MeshStandardMaterial).clone();
+          mat.emissive = new THREE.Color('#000000');
+          applyCharacterShading(mat, f.team === 'player', f.model === 'monk.glb');
+          o.material = mat;
+        });
+        setModel({ obj, clips: buildClips(raw, planOf(f.model)), scale: m.scale, floor: m.floor });
       })
       .catch((e) => console.warn('[tq2] model', f.model, e));
     return () => {
@@ -203,18 +255,29 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     g.position.set(f.pos[0], f.pos[1] - (f.act === 'burrow' ? 1.3 : 0), f.pos[2]);
     g.rotation.y = f.yaw + Math.PI;
     if (!mixer) return;
+    const held: THREE.Object3D[] | undefined = (model?.obj as any)?.userData.held;
+    if (held?.length && !(model!.obj as any).userData.scaled) {
+      // the hand bones carry the model's own scale: undo it so a weapon is its real size
+      model!.obj.updateMatrixWorld(true);
+      const sv = new THREE.Vector3();
+      for (const h of held) {
+        h.parent?.getWorldScale(sv);
+        if (sv.x > 1e-4) h.scale.setScalar(1 / sv.x);
+      }
+      (model!.obj as any).userData.scaled = true;
+    }
     // which clip: the anim key, falling back to something close
     let key = f.anim;
     if (!actions[key]) key = key.startsWith('skill') ? 'skill_slash' : key === 'channel' ? 'skill_spell' : 'idle';
     if (!actions[key]) key = 'idle';
     const restarted = f.act !== lastAct.current.act || f.anim !== lastAct.current.anim || f.actT < lastAct.current.t - 0.01;
     lastAct.current = { act: f.act, anim: f.anim, t: f.actT };
-    if (key !== cur.current || (restarted && !PLAN[key]?.loop)) {
+    if (key !== cur.current || (restarted && !planOf(f.model)[key]?.loop)) {
       const next = actions[key];
       const prev = actions[cur.current];
       if (next) {
         next.reset();
-        const spec = PLAN[key];
+        const spec = planOf(f.model)[key];
         let ts = spec?.speed ?? 1;
         if (spec?.fit && f.actDur > 0) ts = next.getClip().duration / f.actDur;
         next.setEffectiveTimeScale(ts);
