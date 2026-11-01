@@ -2,7 +2,10 @@
 // the ground and the little effects the renderer draws. Pure logic: no React, no three.js.
 import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } from './types';
 import { DENS, DEN_R, FOE_KINDS } from './foes';
-import { VILLAGE_R, VILLAGE_SPAWN, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
+import { MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
+
+/** what a body stands on: the ground, or the lake's surface (wading / swimming) */
+const floorAt = (x: number, z: number) => Math.max(groundHeight(x, z), WATER_Y - 1.1);
 import { Progress, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
 import { WANDERER, heroOf } from './heroes';
 import { SKILLS } from './skills';
@@ -637,7 +640,7 @@ export class Sim {
     }
     if (sk?.move) sk.move(this, f, wish, dt);
     else if (canWalk) {
-      let spd = (f.team === 'player' ? RUN : NPC_RUN) * (f.st.slow > 0 ? 0.5 : 1) * (f.st.daze > 0 ? 0.5 : 1) * (f.st.rage > 0 ? 1.2 : 1) * (f.st.weak > 0 ? 0.8 : 1);
+      let spd = (f.team === 'player' ? RUN : NPC_RUN) * (f.st.slow > 0 ? 0.5 : 1) * (f.st.daze > 0 ? 0.5 : 1) * (f.st.rage > 0 ? 1.2 : 1) * (f.st.weak > 0 ? 0.8 : 1) * (groundHeight(f.pos[0], f.pos[2]) < WATER_Y - 0.5 ? 0.55 : 1);
       if (!f.aggro && f.team === 'sect' && Math.hypot(f.pos[0] - (f.home?.[0] ?? 0), f.pos[2] - (f.home?.[1] ?? 0)) < 6) spd *= 0.6; // strolling about at home
       const k = f.grounded ? 14 : 4;
       const tx = wish[0] * spd;
@@ -662,6 +665,8 @@ export class Sim {
     // gravity
     const floating = sk?.float;
     if (!floating) f.vel[1] -= GRAVITY * dt;
+    const ox = f.pos[0], oz = f.pos[2];
+    const og = floorAt(ox, oz);
     f.pos[0] += f.vel[0] * dt;
     f.pos[1] += f.vel[1] * dt;
     f.pos[2] += f.vel[2] * dt;
@@ -670,7 +675,28 @@ export class Sim {
       pushOutOfBuildings(f.pos);
     }
     clampWorld(f.pos);
-    const g = groundHeight(f.pos[0], f.pos[2]);
+    // too steep to walk up: slide along the slope if one way is easier, otherwise stop (mountains are walls)
+    if (f.grounded) {
+      const steep = (x: number, z: number) => {
+        const step = Math.hypot(x - ox, z - oz);
+        const rise = floorAt(x, z) - og;
+        return step > 1e-4 && rise > 0.05 && rise / step > MAX_SLOPE;
+      };
+      if (steep(f.pos[0], f.pos[2])) {
+        if (!steep(f.pos[0], oz)) {
+          f.pos[2] = oz;
+          f.vel[2] = 0;
+        } else if (!steep(ox, f.pos[2])) {
+          f.pos[0] = ox;
+          f.vel[0] = 0;
+        } else {
+          f.pos[0] = ox;
+          f.pos[2] = oz;
+          f.vel[0] = f.vel[2] = 0;
+        }
+      }
+    }
+    const g = floorAt(f.pos[0], f.pos[2]);
     if (f.pos[1] <= g) {
       f.pos[1] = g;
       if (f.vel[1] < 0) f.vel[1] = 0;

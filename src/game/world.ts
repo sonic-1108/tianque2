@@ -1,58 +1,169 @@
-// The open map: rolling hills, a village in the middle, bandit dens on three rings, paths out from the village.
-// Height is a pure function so the sim, the renderer and the camera all agree on where the ground is.
+// The big map: 2 km of mountains. Ridged peaks and cliffs, roads along the valleys out of the village, lakes where the
+// ground dips under the water line, snow up high. Height is a pure function, so the sim, the renderer and the camera
+// all agree on where the ground is. Slopes steeper than MAX_SLOPE can't be walked up (the mountains are walls).
 import { DENS, DEN_R } from './foes';
+import { ROADS, VILLAGE_R, WORLD_R } from './layout';
+export { WORLD_R, VILLAGE_R } from './layout';
 
-export const WORLD_R = 220; // playable radius
-export const VILLAGE_R = 26;
+export const WATER_Y = -2; // lakes fill the ground below this
+export const SNOW_Y = 95;
+export const MAX_SLOPE = 1.1; // rise per metre a body can walk up (about 48 degrees)
 
 const smooth = (e0: number, e1: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
   return t * t * (3 - 2 * t);
 };
 
-function hills(x: number, z: number) {
-  return (
-    Math.sin(x * 0.021) * Math.cos(z * 0.017) * 6 +
-    Math.sin(x * 0.047 + 1.3) * Math.sin(z * 0.039 + 0.4) * 2.6 +
-    Math.cos((x + z) * 0.011) * 4 +
-    Math.sin(x * 0.11 + z * 0.07) * 0.7
-  );
+// ---------------------------------------------------------------- 2D gradient noise (deterministic)
+const PERM = (() => {
+  const p = new Uint8Array(512);
+  let s = 1337;
+  const a = Array.from({ length: 256 }, (_, i) => i);
+  for (let i = 255; i > 0; i--) {
+    s = (s * 16807) % 2147483647;
+    const j = s % (i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  for (let i = 0; i < 512; i++) p[i] = a[i & 255];
+  return p;
+})();
+const GX = [1, -1, 1, -1, 1, -1, 0, 0];
+const GZ = [1, 1, -1, -1, 0, 0, 1, -1];
+function grad(h: number, x: number, z: number) {
+  const g = h & 7;
+  return GX[g] * x + GZ[g] * z;
 }
+/** Perlin noise, about -1..1 */
+export function noise(x: number, z: number) {
+  const xi = Math.floor(x);
+  const zi = Math.floor(z);
+  const xf = x - xi;
+  const zf = z - zi;
+  const X = xi & 255;
+  const Z = zi & 255;
+  const u = xf * xf * xf * (xf * (xf * 6 - 15) + 10);
+  const v = zf * zf * zf * (zf * (zf * 6 - 15) + 10);
+  const aa = PERM[PERM[X] + Z], ab = PERM[PERM[X] + Z + 1], ba = PERM[PERM[X + 1] + Z], bb = PERM[PERM[X + 1] + Z + 1];
+  const x1 = grad(aa, xf, zf) + u * (grad(ba, xf - 1, zf) - grad(aa, xf, zf));
+  const x2 = grad(ab, xf, zf - 1) + u * (grad(bb, xf - 1, zf - 1) - grad(ab, xf, zf - 1));
+  return (x1 + v * (x2 - x1)) * 1.4;
+}
+
+/** the raw mountains: rolling ground plus ridged peaks that grow taller away from the village */
+function mountains(x: number, z: number) {
+  const r = Math.hypot(x, z);
+  // a slow warp so ridges bend instead of running in rows
+  const wx = x + noise(x * 0.002, z * 0.002) * 120;
+  const wz = z + noise(x * 0.002 + 40, z * 0.002 + 40) * 120;
+  const rolling = noise(wx * 0.004, wz * 0.004) * 14 + noise(wx * 0.012, wz * 0.012) * 4 + noise(wx * 0.05, wz * 0.05) * 0.8;
+  // ridged peaks: 1 - |noise| folded into sharp crests
+  let ridge = 0;
+  let amp = 1;
+  let f = 0.0028;
+  let wsum = 0;
+  for (let o = 0; o < 5; o++) {
+    const n = 1 - Math.abs(noise(wx * f + o * 17, wz * f - o * 31));
+    ridge += n * n * amp;
+    wsum += amp;
+    amp *= 0.5;
+    f *= 2.1;
+  }
+  ridge /= wsum; // 0..1, crests near 1
+  const tall = 40 + 150 * smooth(80, 900, r); // peaks reach ~190 m near the rim
+  const ridgeH = Math.max(0, ridge - 0.42) * tall * 2.2;
+  return rolling + ridgeH;
+}
+
+/** distance to the nearest road, precomputed on a 4 m grid out to 90 m (further than that is "far") */
+const G = 4;
+const GN = Math.ceil((WORLD_R * 2) / G) + 1;
+const g2w = (i: number) => i * G - WORLD_R;
+const ROAD_D = (() => {
+  const d = new Float32Array(GN * GN).fill(999);
+  const reach = 90;
+  for (const road of ROADS)
+    for (let k = 1; k < road.length; k++) {
+      const [ax, az] = road[k - 1];
+      const [bx, bz] = road[k];
+      const dx = bx - ax, dz = bz - az;
+      const L = dx * dx + dz * dz;
+      const i0 = Math.max(0, Math.floor((Math.min(ax, bx) - reach + WORLD_R) / G));
+      const i1 = Math.min(GN - 1, Math.ceil((Math.max(ax, bx) + reach + WORLD_R) / G));
+      const j0 = Math.max(0, Math.floor((Math.min(az, bz) - reach + WORLD_R) / G));
+      const j1 = Math.min(GN - 1, Math.ceil((Math.max(az, bz) + reach + WORLD_R) / G));
+      for (let i = i0; i <= i1; i++)
+        for (let j = j0; j <= j1; j++) {
+          const x = g2w(i), z = g2w(j);
+          const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L));
+          const e = Math.hypot(x - (ax + dx * t), z - (az + dz * t));
+          const idx = i * GN + j;
+          if (e < d[idx]) d[idx] = e;
+        }
+    }
+  return d;
+})();
+function bilinear(grid: Float32Array, x: number, z: number) {
+  const fx = Math.min(GN - 1.001, Math.max(0, (x + WORLD_R) / G));
+  const fz = Math.min(GN - 1.001, Math.max(0, (z + WORLD_R) / G));
+  const i = Math.floor(fx), j = Math.floor(fz);
+  const u = fx - i, v = fz - j;
+  const a = grid[i * GN + j], b = grid[(i + 1) * GN + j], c = grid[i * GN + j + 1], d = grid[(i + 1) * GN + j + 1];
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+export const pathDist = (x: number, z: number) => bilinear(ROAD_D, x, z);
 
 const CAMPS = DENS.map((d) => [d.x, d.z] as [number, number]);
-const CAMP_R = DEN_R;
 
-/** distance from (x, z) to the nearest path (the village to each inner-ring den, then out along spokes) */
-const SPOKES = DENS.slice(0, 5).map((d) => [d.x * 3.2, d.z * 3.2] as [number, number]);
-export function pathDist(x: number, z: number) {
-  let best = 1e9;
-  for (const [cx, cz] of SPOKES) {
-    const l2 = cx * cx + cz * cz;
-    const t = Math.max(0, Math.min(1, (x * cx + z * cz) / l2));
-    best = Math.min(best, Math.hypot(x - cx * t, z - cz * t));
-  }
-  return best;
-}
-
-/** flat pads under the village and each camp, the hills everywhere else, a rim of mountains at the edge */
-export function groundHeight(x: number, z: number): number {
+function rawHeight(x: number, z: number): number {
   const r = Math.hypot(x, z);
-  // gentle near the village, full hills further out; paths are half as hilly
-  const amp = (0.3 + 0.7 * smooth(40, 130, r)) * (1 - 0.45 * (1 - smooth(2, 8, pathDist(x, z))));
-  let h = hills(x, z) * amp;
-  // flat pads under the village and each den, blended one after another (no seams where two pads meet)
-  h += (hills(0, 0) * 0.3 - h) * (1 - smooth(VILLAGE_R, VILLAGE_R + 30, r));
+  let h = mountains(x, z);
+  // valleys along the roads: the mountains fall away to a gentle floor within ~70 m of a road
+  const pd = pathDist(x, z);
+  const valley = 1 - smooth(10, 70, pd);
+  const floor = noise(x * 0.004, z * 0.004) * 6 + noise(x * 0.02, z * 0.02) * 1.2;
+  h += (floor - h) * valley * 0.92;
+  // flat pads: the village, then each den (blended one after another, no seams)
+  h += (1.5 - h) * (1 - smooth(VILLAGE_R, VILLAGE_R + 50, r));
   for (const [cx, cz] of CAMPS) {
-    const f = 1 - smooth(CAMP_R, CAMP_R + 22, Math.hypot(x - cx, z - cz));
-    if (f <= 0) continue;
-    const padH = hills(cx, cz) * (0.3 + 0.7 * smooth(40, 130, Math.hypot(cx, cz)));
-    h += (padH - h) * f;
+    const dd = Math.hypot(x - cx, z - cz);
+    if (dd > DEN_R + 40) continue;
+    const f = 1 - smooth(DEN_R, DEN_R + 40, dd);
+    h += (padHeight(cx, cz) - h) * f;
   }
-  h += smooth(WORLD_R - 25, WORLD_R + 30, r) * 40;
+  // the rim: a wall of peaks
+  h += smooth(WORLD_R - 60, WORLD_R + 40, r) * 160;
   return h;
 }
+const padCache = new Map<string, number>();
+function padHeight(cx: number, cz: number) {
+  const k = cx + ',' + cz;
+  let v = padCache.get(k);
+  if (v === undefined) {
+    // the den sits on the valley floor height
+    v = Math.max(WATER_Y + 1, noise(cx * 0.004, cz * 0.004) * 6 + 1);
+    padCache.set(k, v);
+  }
+  return v;
+}
 
-/** buildings (Tripo models in public/props): a footprint box each, which nothing walks through */
+/** the ground, precomputed on the 4 m grid and read back smoothly (the full formula is far too slow per query) */
+const HEIGHT = (() => {
+  const h = new Float32Array(GN * GN);
+  for (let i = 0; i < GN; i++) for (let j = 0; j < GN; j++) h[i * GN + j] = rawHeight(g2w(i), g2w(j));
+  return h;
+})();
+export const groundHeight = (x: number, z: number) => bilinear(HEIGHT, x, z);
+
+/** how steep the ground is here (rise per metre) */
+export function slopeAt(x: number, z: number) {
+  const e = 0.75;
+  const hx = groundHeight(x + e, z) - groundHeight(x - e, z);
+  const hz = groundHeight(x, z + e) - groundHeight(x, z - e);
+  return Math.hypot(hx, hz) / (2 * e);
+}
+export const inWater = (x: number, y: number, z: number) => y < WATER_Y - 0.3 && groundHeight(x, z) < WATER_Y - 0.3;
+
+// ---------------------------------------------------------------- buildings (Tripo models in public/props)
 export interface Building {
   x: number;
   z: number;
@@ -64,69 +175,31 @@ export interface Building {
   scale: number;
 }
 export const BUILDINGS: Building[] = (() => {
-  // village houses round the square, in the gaps between the roads out (doors facing the well)
   const out: Building[] = [];
+  // village houses round the square, between the roads (doors facing the well)
   const S = 10; // house.glb is about 1 x 0.66 x 0.82 units
-  for (let k = 0; k < 5; k++) {
-    const a = ((k + 0.5) / 5) * Math.PI * 2;
-    const x = Math.cos(a) * 18;
-    const z = Math.sin(a) * 18;
+  for (let k = 0; k < ROADS.length; k++) {
+    const a0 = Math.atan2(ROADS[k][2][1], ROADS[k][2][0]);
+    let a1 = Math.atan2(ROADS[(k + 1) % ROADS.length][2][1], ROADS[(k + 1) % ROADS.length][2][0]);
+    if (a1 < a0) a1 += Math.PI * 2;
+    const a = (a0 + a1) / 2;
+    const x = Math.cos(a) * 20;
+    const z = Math.sin(a) * 20;
     out.push({ x, z, rot: Math.atan2(-x, -z), hx: 0.49 * S + 0.3, hz: 0.41 * S + 0.3, h: 0.66 * S, model: 'house.glb', scale: S });
   }
-  // a pavilion beside each road out, halfway to the second ring of dens: a landmark to steer by
+  // a pavilion beside each road, 230 m out: a landmark to steer by
   const P = 9; // pavilion.glb is about 1 x 0.96 x 0.92 units
-  for (const [sx, sz] of SPOKES) {
-    const l = Math.hypot(sx, sz);
-    const ux = sx / l, uz = sz / l;
-    const x = ux * 80 - uz * 11;
-    const z = uz * 80 + ux * 11;
+  for (const road of ROADS) {
+    const [x0, z0] = road[11];
+    const [x1, z1] = road[12];
+    const l = Math.hypot(x1 - x0, z1 - z0);
+    const ux = (x1 - x0) / l, uz = (z1 - z0) / l;
+    const x = x0 - uz * 12;
+    const z = z0 + ux * 12;
     out.push({ x, z, rot: Math.atan2(uz, -ux), hx: 0.46 * P, hz: 0.44 * P, h: 0.96 * P, model: 'pavilion.glb', scale: P });
   }
   return out;
 })();
-/** trees: deterministic scatter, kept off camps, the village and the paths */
-export interface Tree {
-  x: number;
-  z: number;
-  s: number;
-  kind: 0 | 1;
-}
-export const TREES: Tree[] = (() => {
-  const out: Tree[] = [];
-  let seed = 7;
-  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  for (let i = 0; i < 3000 && out.length < 520; i++) {
-    const a = rnd() * Math.PI * 2;
-    const r = Math.sqrt(rnd()) * (WORLD_R + 10);
-    const x = Math.cos(a) * r;
-    const z = Math.sin(a) * r;
-    if (r < VILLAGE_R + 10) continue;
-    if (CAMPS.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < CAMP_R + 6)) continue;
-    if (pathDist(x, z) < 6) continue;
-    if (BUILDINGS.some((b) => Math.hypot(b.x - x, b.z - z) < Math.max(b.hx, b.hz) + 7)) continue;
-    // trunks never so close that a pocket between them could trap someone
-    if (out.some((t) => Math.hypot(t.x - x, t.z - z) < 3.4)) continue;
-    out.push({ x, z, s: 0.8 + rnd() * 0.9, kind: rnd() < 0.6 ? 0 : 1 });
-  }
-  return out;
-})();
-
-/** trunks block movement (circle of radius 0.5 * scale) */
-export function pushOutOfTrees(p: [number, number, number]) {
-  for (const t of TREES) {
-    const dx = p[0] - t.x;
-    if (dx > 2 || dx < -2) continue;
-    const dz = p[2] - t.z;
-    if (dz > 2 || dz < -2) continue;
-    const r = 0.45 * t.s + 0.35;
-    const d = Math.hypot(dx, dz);
-    if (d < r && d > 1e-4) {
-      p[0] = t.x + (dx / d) * r;
-      p[2] = t.z + (dz / d) * r;
-    }
-  }
-}
-
 /** a point inside a building footprint (and below its roof)? */
 export function inBuilding(x: number, y: number, z: number, pad = 0) {
   for (const b of BUILDINGS) {
@@ -157,16 +230,79 @@ export function pushOutOfBuildings(p: [number, number, number]) {
     if (ox <= 0 || oz <= 0) continue;
     if (ox < oz) lx = Math.sign(lx || 1) * (b.hx + R);
     else lz = Math.sign(lz || 1) * (b.hz + R);
-    // back to world space (inverse rotation)
     p[0] = b.x + lx * c + lz * s;
     p[2] = b.z - lx * s + lz * c;
   }
 }
 
+// ---------------------------------------------------------------- trees (kept in a grid so a lookup is cheap)
+export interface Tree {
+  x: number;
+  z: number;
+  s: number;
+  kind: 0 | 1 | 2; // pine, broadleaf, dead
+}
+const CELL = 10;
+const grid = new Map<number, Tree[]>();
+const cellKey = (cx: number, cz: number) => (cx + 500) * 1000 + (cz + 500);
+export const TREES: Tree[] = (() => {
+  const out: Tree[] = [];
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 60000 && out.length < 7000; i++) {
+    const x = (rnd() * 2 - 1) * WORLD_R;
+    const z = (rnd() * 2 - 1) * WORLD_R;
+    const k1 = rnd(), k2 = rnd(), s1 = rnd();
+    const r = Math.hypot(x, z);
+    if (r > WORLD_R - 30 || r < VILLAGE_R + 15) continue;
+    // forests come in patches
+    if (noise(x * 0.008 + 9, z * 0.008 - 4) < -0.05) continue;
+    if (CAMPS.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < DEN_R + 8)) continue;
+    if (BUILDINGS.some((b) => Math.hypot(b.x - x, b.z - z) < Math.max(b.hx, b.hz) + 7)) continue;
+    if (pathDist(x, z) < 7) continue;
+    const h = groundHeight(x, z);
+    if (h < WATER_Y + 0.5 || h > SNOW_Y + 10) continue;
+    if (slopeAt(x, z) > 0.9) continue;
+    const cx = Math.floor(x / CELL), cz = Math.floor(z / CELL);
+    // trunks never so close that a pocket between them could trap someone
+    let close = false;
+    for (let gx = cx - 1; gx <= cx + 1 && !close; gx++)
+      for (let gz = cz - 1; gz <= cz + 1 && !close; gz++)
+        for (const t of grid.get(cellKey(gx, gz)) ?? []) if (Math.hypot(t.x - x, t.z - z) < 3.6) close = true;
+    if (close) continue;
+    const t: Tree = { x, z, s: 0.8 + s1 * 0.9, kind: h > SNOW_Y - 20 || k1 < 0.55 ? 0 : k2 < 0.85 ? 1 : 2 };
+    out.push(t);
+    const k = cellKey(cx, cz);
+    if (!grid.has(k)) grid.set(k, []);
+    grid.get(k)!.push(t);
+  }
+  return out;
+})();
+
+/** trunks block movement */
+export function pushOutOfTrees(p: [number, number, number]) {
+  const cx = Math.floor(p[0] / CELL), cz = Math.floor(p[2] / CELL);
+  for (let gx = cx - 1; gx <= cx + 1; gx++)
+    for (let gz = cz - 1; gz <= cz + 1; gz++) {
+      const list = grid.get(cellKey(gx, gz));
+      if (!list) continue;
+      for (const t of list) {
+        const dx = p[0] - t.x;
+        const dz = p[2] - t.z;
+        const r = 0.45 * t.s + 0.35;
+        const d = Math.hypot(dx, dz);
+        if (d < r && d > 1e-4) {
+          p[0] = t.x + (dx / d) * r;
+          p[2] = t.z + (dz / d) * r;
+        }
+      }
+    }
+}
+
 /** keep inside the world */
 export function clampWorld(p: [number, number, number]) {
   const r = Math.hypot(p[0], p[2]);
-  const max = WORLD_R + 8;
+  const max = WORLD_R - 20;
   if (r > max) {
     p[0] *= max / r;
     p[2] *= max / r;

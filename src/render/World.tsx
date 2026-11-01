@@ -3,103 +3,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { GLTFLoader, MeshoptDecoder } from 'three-stdlib';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import { BUILDINGS, TREES, VILLAGE_R, WORLD_R, groundHeight, pathDist } from '../game/world';
+import { BUILDINGS, groundHeight } from '../game/world';
+import { Landscape } from './Terrain';
 import { DENS, DEN_R, FOE_KINDS } from '../game/foes';
 import type { Sim } from '../game/sim';
-
-function Terrain() {
-  const geo = useMemo(() => {
-    const size = (WORLD_R + 60) * 2;
-    const seg = 260;
-    const g = new THREE.PlaneGeometry(size, size, seg, seg);
-    g.rotateX(-Math.PI / 2);
-    const pos = g.getAttribute('position') as THREE.BufferAttribute;
-    const col = new Float32Array(pos.count * 3);
-    const grass = new THREE.Color('#5d7d3a');
-    const grass2 = new THREE.Color('#7a9446');
-    const dirt = new THREE.Color('#a48a5c');
-    const rock = new THREE.Color('#7b7468');
-    const camp = new THREE.Color('#9c8a68');
-    const c = new THREE.Color();
-    const camps = DENS.map((d) => [d.x, d.z] as [number, number]);
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i);
-      const z = pos.getZ(i);
-      const h = groundHeight(x, z);
-      pos.setY(i, h);
-      const n = Math.sin(x * 0.3) * Math.cos(z * 0.27) * 0.5 + 0.5;
-      c.copy(grass).lerp(grass2, n * 0.6);
-      const p = pathDist(x, z);
-      if (p < 4) c.lerp(dirt, Math.min(1, (4 - p) / 2));
-      const r = Math.hypot(x, z);
-      if (r < VILLAGE_R) c.lerp(dirt, 0.55);
-      for (const [cx, cz] of camps) if (Math.hypot(x - cx, z - cz) < DEN_R) c.lerp(camp, 0.5);
-      if (h > 10) c.lerp(rock, Math.min(1, (h - 10) / 12));
-      col[i * 3] = c.r;
-      col[i * 3 + 1] = c.g;
-      col[i * 3 + 2] = c.b;
-    }
-    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    g.computeVertexNormals();
-    return g;
-  }, []);
-  return (
-    <mesh geometry={geo} receiveShadow>
-      <meshStandardMaterial vertexColors roughness={0.95} />
-    </mesh>
-  );
-}
-
-function Trees() {
-  const { trunks, crowns, crowns2 } = useMemo(() => {
-    const trunkGeo = new THREE.CylinderGeometry(0.25, 0.4, 3, 6);
-    trunkGeo.translate(0, 1.5, 0);
-    const pine = new THREE.ConeGeometry(1.8, 5, 7);
-    pine.translate(0, 5, 0);
-    const round = new THREE.IcosahedronGeometry(2.2, 0);
-    round.translate(0, 4.3, 0);
-    const trunks = new THREE.InstancedMesh(trunkGeo, new THREE.MeshStandardMaterial({ color: '#5a3d26', roughness: 1 }), TREES.length);
-    const pines = TREES.filter((t) => t.kind === 0);
-    const rounds = TREES.filter((t) => t.kind === 1);
-    const crowns = new THREE.InstancedMesh(pine, new THREE.MeshStandardMaterial({ color: '#2f5a2c', roughness: 0.9, flatShading: true }), pines.length);
-    const crowns2 = new THREE.InstancedMesh(round, new THREE.MeshStandardMaterial({ color: '#4f7a2f', roughness: 0.9, flatShading: true }), rounds.length);
-    const m = new THREE.Matrix4();
-    const q = new THREE.Quaternion();
-    const s = new THREE.Vector3();
-    const p = new THREE.Vector3();
-    TREES.forEach((t, i) => {
-      p.set(t.x, groundHeight(t.x, t.z) - 0.2, t.z);
-      s.setScalar(t.s);
-      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), t.x * 13.1);
-      m.compose(p, q, s);
-      trunks.setMatrixAt(i, m);
-    });
-    pines.forEach((t, i) => {
-      p.set(t.x, groundHeight(t.x, t.z) - 0.2, t.z);
-      s.setScalar(t.s);
-      m.compose(p, q.identity(), s);
-      crowns.setMatrixAt(i, m);
-    });
-    rounds.forEach((t, i) => {
-      p.set(t.x, groundHeight(t.x, t.z) - 0.2, t.z);
-      s.set(t.s, t.s * 0.9, t.s);
-      m.compose(p, q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), t.z), s);
-      crowns2.setMatrixAt(i, m);
-    });
-    for (const im of [trunks, crowns, crowns2]) {
-      im.castShadow = true;
-      im.receiveShadow = true;
-    }
-    return { trunks, crowns, crowns2 };
-  }, []);
-  return (
-    <>
-      <primitive object={trunks} />
-      <primitive object={crowns} />
-      <primitive object={crowns2} />
-    </>
-  );
-}
 
 /** a Tripo prop (public/props): loaded once, cloned per placement (geometry and textures shared) */
 const propCache = new Map<string, Promise<THREE.Group>>();
@@ -240,12 +147,10 @@ function Sun({ sim }: { sim: Sim }) {
 export function World({ sim }: { sim: Sim }) {
   return (
     <>
-      <color attach="background" args={['#a9c7de']} />
-      <fog attach="fog" args={['#b9d0e0', 70, 260]} />
-      <hemisphereLight args={['#dfeeff', '#4b5a33', 0.9]} />
+      <fog attach="fog" args={['#c3d3df', 180, 1500]} />
+      <hemisphereLight args={['#dfeeff', '#4b5a33', 0.85]} />
       <Sun sim={sim} />
-      <Terrain />
-      <Trees />
+      <Landscape sim={sim} />
       <Village />
       {DENS.map((_, i) => (
         <Den key={i} i={i} />

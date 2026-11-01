@@ -1,6 +1,7 @@
 // What lives out there: bandit dens scattered over the map, tougher the further from the village. Each den is one
 // kind of outlaw, fighting with one house's moves (the models are the old heroes' bodies).
 import type { SectId } from './types';
+import { ROAD_N, roadAngle, roadPoint } from './layout';
 
 export interface FoeKind {
   name: string;
@@ -30,19 +31,24 @@ export interface Den {
 }
 export const DEN_R = 14;
 
-/** fixed layout: three rings of dens round the village; one boss den per ring */
+/** three rings of dens out along the roads (just off them), tougher further out; one boss den per ring */
 export const DENS: Den[] = (() => {
   const out: Den[] = [];
   const rings = [
-    { r: 55, n: 5, lvl: 1 },
-    { r: 105, n: 7, lvl: 8 },
-    { r: 160, n: 9, lvl: 18 },
+    { r: 150, n: 7, lvl: 1, span: 6 },
+    { r: 420, n: 7, lvl: 9, span: 8 },
+    { r: 720, n: 7, lvl: 18, span: 11 },
   ];
-  let k = 0;
+  let kind = 0;
   rings.forEach((ring, ri) => {
     for (let i = 0; i < ring.n; i++) {
-      const a = (i / ring.n) * Math.PI * 2 + ri * 0.7;
-      out.push({ x: Math.cos(a) * ring.r, z: Math.sin(a) * ring.r, kind: k++ % FOE_KINDS.length, level: ring.lvl + Math.floor((i / ring.n) * (ri === 2 ? 12 : 6)), count: 3 + (i % 2), boss: i === ring.n - 1 });
+      const road = (i + ri * 3) % ROAD_N;
+      const r = ring.r + ((i * 37) % 60) - 30;
+      const [x, z] = roadPoint(road, r);
+      const a = roadAngle(road, r);
+      const side = i % 2 ? 1 : -1;
+      const off = 34; // beside the road, not on it
+      out.push({ x: x - Math.sin(a) * off * side, z: z + Math.cos(a) * off * side, kind: kind++ % FOE_KINDS.length, level: ring.lvl + Math.floor((i / ring.n) * ring.span), count: 3 + (i % 2), boss: i === ring.n - 1 });
     }
   });
   return out;
