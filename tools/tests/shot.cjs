@@ -14,6 +14,7 @@ const { chromium } = require(process.env.PW || '/opt/npm-tools/node_modules/play
     const me = S.player;
     if (spot === 'den') { const f = S.fighters.find((f) => f.team === 'sect'); me.pos = [f.home[0] + 7, me.pos[1], f.home[1] + 3]; me.st.invuln = 999; }
     if (spot === 'far') { me.pos = [120, me.pos[1], 60]; }
+    if (spot === 'pav') { me.pos = [79, me.pos[1], 25]; }
     me.pos[1] = globalThis.__T2_GROUND(me.pos[0], me.pos[2]);
   }, process.env.SPOT || 'village');
   await new Promise((r) => setTimeout(r, +(process.env.WAIT || 60000)));

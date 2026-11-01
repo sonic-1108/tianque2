@@ -52,6 +52,38 @@ export function groundHeight(x: number, z: number): number {
   return h;
 }
 
+/** buildings (Tripo models in public/props): a footprint box each, which nothing walks through */
+export interface Building {
+  x: number;
+  z: number;
+  rot: number; // the door (model +Z) turned to face this way
+  hx: number; // half width / half depth of the footprint, metres
+  hz: number;
+  h: number; // roof height (the camera keeps out below it)
+  model: string;
+  scale: number;
+}
+export const BUILDINGS: Building[] = (() => {
+  // village houses round the square, in the gaps between the roads out (doors facing the well)
+  const out: Building[] = [];
+  const S = 10; // house.glb is about 1 x 0.66 x 0.82 units
+  for (let k = 0; k < 5; k++) {
+    const a = ((k + 0.5) / 5) * Math.PI * 2;
+    const x = Math.cos(a) * 18;
+    const z = Math.sin(a) * 18;
+    out.push({ x, z, rot: Math.atan2(-x, -z), hx: 0.49 * S + 0.3, hz: 0.41 * S + 0.3, h: 0.66 * S, model: 'house.glb', scale: S });
+  }
+  // a pavilion beside each road out, halfway to the second ring of dens: a landmark to steer by
+  const P = 9; // pavilion.glb is about 1 x 0.96 x 0.92 units
+  for (const [sx, sz] of SPOKES) {
+    const l = Math.hypot(sx, sz);
+    const ux = sx / l, uz = sz / l;
+    const x = ux * 80 - uz * 11;
+    const z = uz * 80 + ux * 11;
+    out.push({ x, z, rot: Math.atan2(uz, -ux), hx: 0.46 * P, hz: 0.44 * P, h: 0.96 * P, model: 'pavilion.glb', scale: P });
+  }
+  return out;
+})();
 /** trees: deterministic scatter, kept off camps, the village and the paths */
 export interface Tree {
   x: number;
@@ -71,6 +103,7 @@ export const TREES: Tree[] = (() => {
     if (r < VILLAGE_R + 10) continue;
     if (CAMPS.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < CAMP_R + 6)) continue;
     if (pathDist(x, z) < 6) continue;
+    if (BUILDINGS.some((b) => Math.hypot(b.x - x, b.z - z) < Math.max(b.hx, b.hz) + 7)) continue;
     // trunks never so close that a pocket between them could trap someone
     if (out.some((t) => Math.hypot(t.x - x, t.z - z) < 3.4)) continue;
     out.push({ x, z, s: 0.8 + rnd() * 0.9, kind: rnd() < 0.6 ? 0 : 1 });
@@ -94,29 +127,6 @@ export function pushOutOfTrees(p: [number, number, number]) {
   }
 }
 
-/** buildings (Tripo models in public/props): a footprint box each, which nothing walks through */
-export interface Building {
-  x: number;
-  z: number;
-  rot: number; // the door (model +Z) turned to face this way
-  hx: number; // half width / half depth of the footprint, metres
-  hz: number;
-  h: number; // roof height (the camera keeps out below it)
-  model: string;
-  scale: number;
-}
-export const BUILDINGS: Building[] = (() => {
-  // village houses round the square, in the gaps between the roads out (doors facing the well)
-  const out: Building[] = [];
-  const S = 10; // house.glb is about 1 x 0.66 x 0.82 units
-  for (let k = 0; k < 5; k++) {
-    const a = ((k + 0.5) / 5) * Math.PI * 2;
-    const x = Math.cos(a) * 18;
-    const z = Math.sin(a) * 18;
-    out.push({ x, z, rot: Math.atan2(-x, -z), hx: 0.49 * S + 0.3, hz: 0.41 * S + 0.3, h: 0.66 * S, model: 'house.glb', scale: S });
-  }
-  return out;
-})();
 /** a point inside a building footprint (and below its roof)? */
 export function inBuilding(x: number, y: number, z: number, pad = 0) {
   for (const b of BUILDINGS) {

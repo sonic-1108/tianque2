@@ -133,7 +133,7 @@ function Prop({ file, x, z, rot, scale }: { file: string; x: number; z: number; 
     };
   }, [file]);
   if (!obj) return null;
-  return <primitive object={obj} position={[x, groundHeight(x, z) - 0.05, z]} rotation={[0, rot, 0]} scale={scale} />;
+  return <primitive object={obj} position={[x, groundHeight(x, z) - 0.25, z]} rotation={[0, rot, 0]} scale={scale} />;
 }
 
 function Village() {
