@@ -1,13 +1,14 @@
-// The big map: 2 km of mountains. Ridged peaks and cliffs, roads along the valleys out of the village, lakes where the
-// ground dips under the water line, snow up high. Height is a pure function, so the sim, the renderer and the camera
+// The big map: 2 km square, laid out by the owner's Gemini maps (src/game/mapdata.ts): mountains and snow in the west,
+// rivers and plains in the east, the village in the middle; noise adds the ridges and cliffs. Height is a pure function, so the sim, the renderer and the camera
 // all agree on where the ground is. Slopes steeper than MAX_SLOPE can't be walked up (the mountains are walls).
 import { DENS, DEN_R } from './foes';
 import { ROADS, VILLAGE_R, WORLD_R } from './layout';
+import { mapBig, mapRough, mapSnow, mapWater } from './mapsample';
 export { WORLD_R, VILLAGE_R } from './layout';
 
 export const WATER_Y = -2; // lakes fill the ground below this
 export const SNOW_Y = 95;
-export const MAX_SLOPE = 1.1; // rise per metre a body can walk up (about 48 degrees)
+export const MAX_SLOPE = 1.25; // rise per metre a body can walk up (about 51 degrees)
 
 const smooth = (e0: number, e1: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
@@ -69,7 +70,8 @@ function mountains(x: number, z: number) {
     f *= 2.1;
   }
   ridge /= wsum; // 0..1, crests near 1
-  const tall = 40 + 150 * smooth(80, 900, r); // peaks reach ~190 m near the rim
+  void r;
+  const tall = 115; // the owner's map decides where they rise (see rawHeight)
   const ridgeH = Math.max(0, ridge - 0.42) * tall * 2.2;
   return rolling + ridgeH;
 }
@@ -116,12 +118,16 @@ const CAMPS = DENS.map((d) => [d.x, d.z] as [number, number]);
 
 function rawHeight(x: number, z: number): number {
   const r = Math.hypot(x, z);
-  let h = mountains(x, z);
-  // valleys along the roads: the mountains fall away to a gentle floor within ~70 m of a road
-  const pd = pathDist(x, z);
-  const valley = 1 - smooth(10, 70, pd);
-  const floor = noise(x * 0.004, z * 0.004) * 6 + noise(x * 0.02, z * 0.02) * 1.2;
-  h += (floor - h) * valley * 0.92;
+  // the owner's map: its broad shape, its rugged parts (mountains in the west, the rim) and its painted snow
+  const rough = smooth(0.16, 0.55, mapRough(x, z));
+  const floor = (mapBig(x, z) - 0.45) * 30 + noise(x * 0.004, z * 0.004) * 4 + noise(x * 0.02, z * 0.02) * 1;
+  let h = Math.max(WATER_Y + 0.8, floor + rough * mountains(x, z) + mapSnow(x, z) * 45); // only the painted rivers hold water
+  // trails: a road through the mountains is cut down near the floor
+  const trail = 1 - smooth(5, 28, pathDist(x, z));
+  h += (Math.max(floor + 1, WATER_Y + 0.8) - h) * trail * 0.88;
+  // the painted rivers
+  const w = smooth(0.08, 0.55, mapWater(x, z));
+  h += (Math.min(h, WATER_Y - 2.6) - h) * w;
   // flat pads: the village, then each den (blended one after another, no seams)
   h += (1.5 - h) * (1 - smooth(VILLAGE_R, VILLAGE_R + 50, r));
   for (const [cx, cz] of CAMPS) {
@@ -130,8 +136,9 @@ function rawHeight(x: number, z: number): number {
     const f = 1 - smooth(DEN_R, DEN_R + 40, dd);
     h += (padHeight(cx, cz) - h) * f;
   }
-  // the rim: a wall of peaks
-  h += smooth(WORLD_R - 60, WORLD_R + 40, r) * 160;
+  // the edge of the map: a wall of peaks
+  const e = Math.max(Math.abs(x), Math.abs(z));
+  h += smooth(WORLD_R - 70, WORLD_R + 10, e) * 150;
   return h;
 }
 const padCache = new Map<string, number>();
@@ -140,7 +147,7 @@ function padHeight(cx: number, cz: number) {
   let v = padCache.get(k);
   if (v === undefined) {
     // the den sits on the valley floor height
-    v = Math.max(WATER_Y + 1, noise(cx * 0.004, cz * 0.004) * 6 + 1);
+    v = Math.max(WATER_Y + 1.5, (mapBig(cx, cz) - 0.45) * 30 + noise(cx * 0.004, cz * 0.004) * 4 + 1);
     padCache.set(k, v);
   }
   return v;
@@ -254,7 +261,8 @@ export const TREES: Tree[] = (() => {
     const z = (rnd() * 2 - 1) * WORLD_R;
     const k1 = rnd(), k2 = rnd(), s1 = rnd();
     const r = Math.hypot(x, z);
-    if (r > WORLD_R - 30 || r < VILLAGE_R + 15) continue;
+    if (Math.max(Math.abs(x), Math.abs(z)) > WORLD_R - 30 || r < VILLAGE_R + 15) continue;
+    if (mapWater(x, z) > 0.02) continue;
     // forests come in patches
     if (noise(x * 0.008 + 9, z * 0.008 - 4) < -0.05) continue;
     if (CAMPS.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < DEN_R + 8)) continue;
@@ -301,12 +309,9 @@ export function pushOutOfTrees(p: [number, number, number]) {
 
 /** keep inside the world */
 export function clampWorld(p: [number, number, number]) {
-  const r = Math.hypot(p[0], p[2]);
   const max = WORLD_R - 20;
-  if (r > max) {
-    p[0] *= max / r;
-    p[2] *= max / r;
-  }
+  p[0] = Math.max(-max, Math.min(max, p[0]));
+  p[2] = Math.max(-max, Math.min(max, p[2]));
 }
 
 export const VILLAGE_SPAWN: [number, number] = [0, 6];

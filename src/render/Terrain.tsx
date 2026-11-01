@@ -27,26 +27,26 @@ const C = {
   mud: new THREE.Color('#4b4a36'),
 };
 const tmp = new THREE.Color();
-function colorAt(x: number, z: number, h: number, sl: number, out: THREE.Color) {
+/** what the shader lays over the owner's painted map here: a colour and how much of it (cliff rock, fresh snow,
+ *  roads, trampled den ground, wet shores) */
+function tintAt(x: number, z: number, h: number, sl: number, out: THREE.Color): number {
+  let w = 0;
+  out.setRGB(0, 0, 0);
+  const add = (c: THREE.Color, k: number) => {
+    if (k <= 0) return;
+    out.lerp(c, w + k > 0 ? k / (w + k) : 0);
+    w = Math.min(1, w + k);
+  };
   const n = Math.sin(x * 0.07 + Math.cos(z * 0.05) * 2) * 0.5 + 0.5;
-  out.copy(C.grass).lerp(C.grass2, n * 0.7);
-  if (h > 35) out.lerp(C.dry, Math.min(1, (h - 35) / 40));
-  // steep = bare rock
-  const rk = Math.min(1, Math.max(0, (sl - 0.55) / 0.45));
   tmp.copy(C.rock).lerp(C.rock2, n);
-  out.lerp(tmp, rk);
-  // snow on the heights (less on cliffs)
-  const sn = Math.min(1, Math.max(0, (h - SNOW_Y) / 25)) * (1 - rk * 0.7);
-  out.lerp(C.snow, sn);
-  // shores and lake beds
-  if (h < WATER_Y + 1.5) out.lerp(C.sand, Math.min(1, (WATER_Y + 1.5 - h) / 1.5));
-  if (h < WATER_Y - 0.5) out.lerp(C.mud, 0.6);
-  // roads, the village square, den grounds
+  add(tmp, Math.min(1, Math.max(0, (sl - 0.7) / 0.5)) * 0.85);
+  add(C.snow, Math.min(1, Math.max(0, (h - SNOW_Y) / 30)) * (sl < 1 ? 0.9 : 0.4));
+  if (h < WATER_Y + 1.2) add(C.sand, Math.min(1, (WATER_Y + 1.2 - h) / 1.2) * 0.8);
   const pd = pathDist(x, z);
-  if (pd < 5) out.lerp(C.road, Math.min(1, (5 - pd) / 2.5) * 0.9);
-  if (Math.hypot(x, z) < VILLAGE_R) out.lerp(C.road, 0.55);
-  for (const d of DENS) if (Math.abs(d.x - x) < DEN_R && Math.abs(d.z - z) < DEN_R && Math.hypot(d.x - x, d.z - z) < DEN_R) out.lerp(C.dirt, 0.5);
-  return out;
+  if (pd < 5) add(C.road, Math.min(1, (5 - pd) / 2.5) * 0.85);
+  if (Math.hypot(x, z) < VILLAGE_R) add(C.road, 0.5);
+  for (const d of DENS) if (Math.abs(d.x - x) < DEN_R && Math.abs(d.z - z) < DEN_R && Math.hypot(d.x - x, d.z - z) < DEN_R) add(C.dirt, 0.5);
+  return w;
 }
 
 function buildChunk(ci: number, cj: number, segs: number) {
@@ -58,6 +58,7 @@ function buildChunk(ci: number, cj: number, segs: number) {
   const pos = new Float32Array(verts * 3);
   const nor = new Float32Array(verts * 3);
   const col = new Float32Array(verts * 3);
+  const tw = new Float32Array(verts);
   const idx: number[] = [];
   const c = new THREE.Color();
   const e = 1.5;
@@ -73,7 +74,7 @@ function buildChunk(ci: number, cj: number, segs: number) {
       const nx = -hx, ny = 2 * e, nz = -hz;
       const l = Math.hypot(nx, ny, nz);
       nor.set([nx / l, ny / l, nz / l], k * 3);
-      colorAt(x, z, h, Math.hypot(hx, hz) / (2 * e), c);
+      tw[k] = tintAt(x, z, h, Math.hypot(hx, hz) / (2 * e), c);
       col.set([c.r, c.g, c.b], k * 3);
     }
   for (let i = 0; i < segs; i++)
@@ -93,6 +94,8 @@ function buildChunk(ci: number, cj: number, segs: number) {
       nor.set([nor[b * 3], nor[b * 3 + 1], nor[b * 3 + 2]], b2 * 3);
       col.set([col[a * 3], col[a * 3 + 1], col[a * 3 + 2]], a2 * 3);
       col.set([col[b * 3], col[b * 3 + 1], col[b * 3 + 2]], b2 * 3);
+      tw[a2] = tw[a];
+      tw[b2] = tw[b];
       idx.push(a, b, a2, b, b2, a2, a, a2, b, b, a2, b2);
     }
   };
@@ -106,32 +109,47 @@ function buildChunk(ci: number, cj: number, segs: number) {
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  g.setAttribute('tintw', new THREE.BufferAttribute(tw, 1));
   g.setIndex(idx);
   g.computeBoundingSphere();
   return g;
 }
 
-/** the ground material: vertex colours, broken up by two scales of noise so it never reads as flat paint */
+/** the ground material: the owner's painted map stretched over the whole land, cliff rock / snow / roads laid over
+ *  it, and two scales of noise so it never reads as flat paint up close */
 function groundMaterial() {
+  const tex = new THREE.TextureLoader().load(import.meta.env.BASE_URL + 'terrain_color.jpg');
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
   m.onBeforeCompile = (sh) => {
+    sh.uniforms.uMap = { value: tex };
+    sh.uniforms.uHalf = { value: WORLD_R };
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vWP;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      .replace('#include <common>', '#include <common>\nattribute float tintw;\nvarying float vTw;\nvarying vec3 vWP;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWP = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvTw = tintw;');
     sh.fragmentShader = sh.fragmentShader
       .replace(
         '#include <common>',
         `#include <common>
+uniform sampler2D uMap;
+uniform float uHalf;
 varying vec3 vWP;
+varying float vTw;
 float h21(vec2 p){ p = fract(p*vec2(123.34, 456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
 float vn(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
   return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }`,
       )
       .replace(
         '#include <color_fragment>',
-        `#include <color_fragment>
+        `vec2 muv = vec2((vWP.x + uHalf) / (2.0*uHalf), 1.0 - (vWP.z + uHalf) / (2.0*uHalf));
+vec3 painted = texture2D(uMap, muv).rgb;
+// the painting has its own light and shade baked in: flatten it a little so the real sun does the shading
+float lum = dot(painted, vec3(0.299, 0.587, 0.114));
+painted = mix(painted, painted * (0.62 / max(lum, 0.05)), 0.45);
+diffuseColor.rgb = mix(painted, vColor.rgb, vTw);
 float d1 = vn(vWP.xz*0.9), d2 = vn(vWP.xz*0.17), d3 = vn(vWP.xz*3.1);
-diffuseColor.rgb *= 0.78 + 0.22*d1 + 0.18*(d2-0.5) + 0.1*(d3-0.5);`,
+diffuseColor.rgb *= 0.8 + 0.2*d1 + 0.16*(d2-0.5) + 0.1*(d3-0.5);`,
       );
   };
   return m;

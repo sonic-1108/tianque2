@@ -2,6 +2,7 @@
 // kind of outlaw, fighting with one house's moves (the models are the old heroes' bodies).
 import type { SectId } from './types';
 import { ROAD_N, roadAngle, roadPoint } from './layout';
+import { mapWater } from './mapsample';
 
 export interface FoeKind {
   name: string;
@@ -46,9 +47,22 @@ export const DENS: Den[] = (() => {
       const r = ring.r + ((i * 37) % 60) - 30;
       const [x, z] = roadPoint(road, r);
       const a = roadAngle(road, r);
-      const side = i % 2 ? 1 : -1;
+      let side = i % 2 ? 1 : -1;
       const off = 34; // beside the road, not on it
-      out.push({ x: x - Math.sin(a) * off * side, z: z + Math.cos(a) * off * side, kind: kind++ % FOE_KINDS.length, level: ring.lvl + Math.floor((i / ring.n) * ring.span), count: 3 + (i % 2), boss: i === ring.n - 1 });
+      // never in (or right beside) the river: try the other side of the road, then further along
+      let dx = x - Math.sin(a) * off * side, dz = z + Math.cos(a) * off * side;
+      const wet = (px: number, pz: number) => [0, 1, 2, 3, 4, 5, 6, 7].some((k) => mapWater(px + Math.cos(k * 0.785) * 30, pz + Math.sin(k * 0.785) * 30) > 0.1) || mapWater(px, pz) > 0.05;
+      if (wet(dx, dz)) {
+        side = -side;
+        dx = x - Math.sin(a) * off * side;
+        dz = z + Math.cos(a) * off * side;
+      }
+      for (let k = 1; k < 8 && wet(dx, dz); k++) {
+        const [x2, z2] = roadPoint(road, r + k * 25);
+        dx = x2 - Math.sin(a) * off * side;
+        dz = z2 + Math.cos(a) * off * side;
+      }
+      out.push({ x: dx, z: dz, kind: kind++ % FOE_KINDS.length, level: ring.lvl + Math.floor((i / ring.n) * ring.span), count: 3 + (i % 2), boss: i === ring.n - 1 });
     }
   });
   return out;
