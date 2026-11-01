@@ -1,8 +1,9 @@
 // The land: terrain coloured by height and paths, scattered trees, the village in the middle and the seven camps.
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { GLTFLoader, MeshoptDecoder } from 'three-stdlib';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import { TREES, VILLAGE_R, WORLD_R, groundHeight, pathDist } from '../game/world';
+import { BUILDINGS, TREES, VILLAGE_R, WORLD_R, groundHeight, pathDist } from '../game/world';
 import { DENS, DEN_R, FOE_KINDS } from '../game/foes';
 import type { Sim } from '../game/sim';
 
@@ -100,52 +101,52 @@ function Trees() {
   );
 }
 
-/** a simple hall: walls, a curved-edge roof */
-function Hall({ x, z, rot = 0, w = 6, d = 5, roof = '#3b3f4a', wall = '#d8c9a8' }: { x: number; z: number; rot?: number; w?: number; d?: number; roof?: string; wall?: string }) {
-  const y = groundHeight(x, z);
-  return (
-    <group position={[x, y, z]} rotation={[0, rot, 0]}>
-      <mesh position={[0, 1.4, 0]} castShadow receiveShadow>
-        <boxGeometry args={[w, 2.8, d]} />
-        <meshStandardMaterial color={wall} roughness={0.9} />
-      </mesh>
-      <mesh position={[0, 3.4, 0]} castShadow>
-        <coneGeometry args={[Math.max(w, d) * 0.82, 1.8, 4]} />
-        <meshStandardMaterial color={roof} roughness={0.7} />
-      </mesh>
-      <mesh position={[0, 1, d / 2 + 0.01]}>
-        <planeGeometry args={[1.2, 2]} />
-        <meshStandardMaterial color="#3a2414" />
-      </mesh>
-    </group>
-  );
+/** a Tripo prop (public/props): loaded once, cloned per placement (geometry and textures shared) */
+const propCache = new Map<string, Promise<THREE.Group>>();
+const propLoader = new GLTFLoader();
+propLoader.setMeshoptDecoder(typeof MeshoptDecoder === 'function' ? (MeshoptDecoder as any)() : MeshoptDecoder);
+function loadProp(file: string) {
+  let p = propCache.get(file);
+  if (!p) {
+    p = propLoader.loadAsync(import.meta.env.BASE_URL + 'props/' + file).then((g) => {
+      g.scene.traverse((o: any) => {
+        if (o.isMesh) {
+          o.castShadow = true;
+          o.receiveShadow = true;
+        }
+      });
+      return g.scene;
+    });
+    propCache.set(file, p);
+  }
+  return p;
+}
+function Prop({ file, x, z, rot, scale }: { file: string; x: number; z: number; rot: number; scale: number }) {
+  const [obj, setObj] = useState<THREE.Object3D | null>(null);
+  useEffect(() => {
+    let alive = true;
+    loadProp(file)
+      .then((s) => alive && setObj(s.clone()))
+      .catch((e) => console.warn('[tq2] prop', file, e));
+    return () => {
+      alive = false;
+    };
+  }, [file]);
+  if (!obj) return null;
+  return <primitive object={obj} position={[x, groundHeight(x, z) - 0.05, z]} rotation={[0, rot, 0]} scale={scale} />;
 }
 
 function Village() {
-  const houses = useMemo(() => {
-    const out: { x: number; z: number; rot: number }[] = [];
-    for (let k = 0; k < 7; k++) {
-      const a = (k / 7) * Math.PI * 2 + 0.75;
-      const x = Math.cos(a) * 17;
-      const z = Math.sin(a) * 17;
-      out.push({ x, z, rot: Math.atan2(-x, -z) + Math.PI });
-    }
-    return out;
-  }, []);
   const y = groundHeight(0, 0);
   return (
     <group>
-      {houses.map((h, i) => (
-        <Hall key={i} x={h.x} z={h.z} rot={h.rot} roof="#5b3a2e" />
+      {BUILDINGS.map((b, i) => (
+        <Prop key={i} file={b.model} x={b.x} z={b.z} rot={b.rot} scale={b.scale} />
       ))}
       {/* the well in the square */}
       <mesh position={[0, y + 0.5, -3]} castShadow>
         <cylinderGeometry args={[1, 1.1, 1, 12]} />
         <meshStandardMaterial color="#8d8a82" roughness={1} />
-      </mesh>
-      <mesh position={[0, y + 2.2, -3]}>
-        <coneGeometry args={[1.5, 0.8, 4]} />
-        <meshStandardMaterial color="#5b3a2e" />
       </mesh>
     </group>
   );

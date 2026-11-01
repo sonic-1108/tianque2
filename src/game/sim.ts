@@ -2,7 +2,7 @@
 // the ground and the little effects the renderer draws. Pure logic: no React, no three.js.
 import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } from './types';
 import { DENS, DEN_R, FOE_KINDS } from './foes';
-import { VILLAGE_R, VILLAGE_SPAWN, clampWorld, groundHeight, pushOutOfTrees } from './world';
+import { VILLAGE_R, VILLAGE_SPAWN, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
 import { Progress, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
 import { WANDERER, heroOf } from './heroes';
 import { SKILLS } from './skills';
@@ -665,7 +665,10 @@ export class Sim {
     f.pos[0] += f.vel[0] * dt;
     f.pos[1] += f.vel[1] * dt;
     f.pos[2] += f.vel[2] * dt;
-    if (f.team === 'player' || f.act !== 'dead') pushOutOfTrees(f.pos);
+    if (f.team === 'player' || f.act !== 'dead') {
+      pushOutOfTrees(f.pos);
+      pushOutOfBuildings(f.pos);
+    }
     clampWorld(f.pos);
     const g = groundHeight(f.pos[0], f.pos[2]);
     if (f.pos[1] <= g) {

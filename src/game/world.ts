@@ -94,6 +94,65 @@ export function pushOutOfTrees(p: [number, number, number]) {
   }
 }
 
+/** buildings (Tripo models in public/props): a footprint box each, which nothing walks through */
+export interface Building {
+  x: number;
+  z: number;
+  rot: number; // the door (model +Z) turned to face this way
+  hx: number; // half width / half depth of the footprint, metres
+  hz: number;
+  h: number; // roof height (the camera keeps out below it)
+  model: string;
+  scale: number;
+}
+export const BUILDINGS: Building[] = (() => {
+  // village houses round the square, in the gaps between the roads out (doors facing the well)
+  const out: Building[] = [];
+  const S = 10; // house.glb is about 1 x 0.66 x 0.82 units
+  for (let k = 0; k < 5; k++) {
+    const a = ((k + 0.5) / 5) * Math.PI * 2;
+    const x = Math.cos(a) * 18;
+    const z = Math.sin(a) * 18;
+    out.push({ x, z, rot: Math.atan2(-x, -z), hx: 0.49 * S + 0.3, hz: 0.41 * S + 0.3, h: 0.66 * S, model: 'house.glb', scale: S });
+  }
+  return out;
+})();
+/** a point inside a building footprint (and below its roof)? */
+export function inBuilding(x: number, y: number, z: number, pad = 0) {
+  for (const b of BUILDINGS) {
+    const dx = x - b.x;
+    const dz = z - b.z;
+    if (dx * dx + dz * dz > 100) continue;
+    const c = Math.cos(b.rot);
+    const s = Math.sin(b.rot);
+    const lx = dx * c - dz * s;
+    const lz = dx * s + dz * c;
+    if (Math.abs(lx) < b.hx + pad && Math.abs(lz) < b.hz + pad && y < groundHeight(b.x, b.z) + b.h) return true;
+  }
+  return false;
+}
+/** push a body out of any building it walked into (out through the nearest wall) */
+export function pushOutOfBuildings(p: [number, number, number]) {
+  const R = 0.35;
+  for (const b of BUILDINGS) {
+    const dx = p[0] - b.x;
+    const dz = p[2] - b.z;
+    if (dx * dx + dz * dz > 64) continue;
+    const c = Math.cos(b.rot);
+    const s = Math.sin(b.rot);
+    let lx = dx * c - dz * s;
+    let lz = dx * s + dz * c;
+    const ox = b.hx + R - Math.abs(lx);
+    const oz = b.hz + R - Math.abs(lz);
+    if (ox <= 0 || oz <= 0) continue;
+    if (ox < oz) lx = Math.sign(lx || 1) * (b.hx + R);
+    else lz = Math.sign(lz || 1) * (b.hz + R);
+    // back to world space (inverse rotation)
+    p[0] = b.x + lx * c + lz * s;
+    p[2] = b.z - lx * s + lz * c;
+  }
+}
+
 /** keep inside the world */
 export function clampWorld(p: [number, number, number]) {
   const r = Math.hypot(p[0], p[2]);

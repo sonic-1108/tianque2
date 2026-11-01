@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import type { Sim } from '../game/sim';
-import { groundHeight } from '../game/world';
+import { groundHeight, inBuilding } from '../game/world';
 import { readInput, takeMouse } from '../input';
 import { World } from './World';
 import { Rig } from './Rig';
@@ -39,6 +39,16 @@ function Loop({ sim }: { sim: Sim }) {
     }
     smooth.current.lerp(want, 1 - Math.exp(-20 * dt));
     const c = smooth.current.clone();
+    // a wall between the camera and the player: come in along the boom until it's clear
+    for (let k = 1; k <= 12; k++) {
+      const t = k / 12;
+      const x = tx + (c.x - tx) * t, y = ty + (c.y - ty) * t, z = tz + (c.z - tz) * t;
+      if (inBuilding(x, y, z, 0.3)) {
+        const back = Math.max(0.15, (k - 1) / 12);
+        c.set(tx + (c.x - tx) * back, ty + (c.y - ty) * back, tz + (c.z - tz) * back);
+        break;
+      }
+    }
     c.y = Math.max(c.y, groundHeight(c.x, c.z) + 0.5);
     camera.position.copy(c);
     camera.lookAt(tx, ty, tz);

@@ -190,9 +190,18 @@ function walks(hero: HeroId | null) {
     while (t < limit && Math.hypot(d.x - s.player.pos[0], d.z - s.player.pos[2]) > 4) {
       const y = yawTo(s.player, d.x, d.z);
       const inp = { ...noInput(y), move: [0, 1] as [number, number] };
+      // like a player, step round whatever is in the way (a house, a trunk)
+      const W = w as any;
+      W.trail = W.trail ?? [];
+      W.trail.push([s.player.pos[0], s.player.pos[2]]);
+      if (W.trail.length > 60) W.trail.shift();
+      if (W.side > 0) {
+        W.side -= DT;
+        inp.move = [1, 0.4];
+      } else if (W.trail.length === 60 && Math.hypot(W.trail[0][0] - s.player.pos[0], W.trail[0][1] - s.player.pos[2]) < 2) W.side = 1;
       // hop now and then like a player would
       if (rnd() < 0.01) inp.jump = true;
-      step(s, w, inp, [0, 1]);
+      step(s, w, inp, inp.move);
       t += DT;
     }
     const left = Math.hypot(d.x - s.player.pos[0], d.z - s.player.pos[2]);
@@ -408,16 +417,18 @@ worldChecks();
 rules();
 const perf: Record<string, number> = {};
 const fightLog: string[] = [];
-for (const hero of [null, ...HEROES.map((h) => h.id)] as (HeroId | null)[]) {
+const ONLY = process.env.ONLY; // 'walk' = only the walks, for a quick check
+for (const hero of (ONLY ? [null] : [null, ...HEROES.map((h) => h.id)]) as (HeroId | null)[]) {
   const label = hero ?? '散人';
   perf['walk ' + label] = walks(hero);
+  if (ONLY === 'walk') continue;
   perf['moves ' + label] = moves(hero);
   const f = fights(hero);
   perf['fight ' + label] = f.maxStep;
   fightLog.push(`== ${label}`, ...f.result);
   console.error(`done ${label} (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
 }
-perf.soak = soak();
+if (!ONLY) perf.soak = soak();
 
 const byKind = new Map<string, Issue[]>();
 for (const i of issues) byKind.set(i.kind, [...(byKind.get(i.kind) ?? []), i]);
