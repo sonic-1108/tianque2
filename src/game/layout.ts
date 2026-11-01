@@ -6,7 +6,7 @@ export const ROAD_N = 7;
 export const ROAD_LEN = 920;
 /** each road wanders a little (a gentle S-curve) so it doesn't look ruled */
 export function roadAngle(k: number, r: number) {
-  return (k / ROAD_N) * Math.PI * 2 + 0.25 + Math.sin(r * 0.006 + k * 1.7) * 0.12;
+  return (k / ROAD_N) * Math.PI * 2 + 0.05 + Math.sin(r * 0.006 + k * 1.7) * 0.12; // 0.05: no road runs down a river
 }
 export function roadPoint(k: number, r: number): [number, number] {
   const a = roadAngle(k, r);

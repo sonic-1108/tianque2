@@ -29,6 +29,8 @@ export interface Den {
   level: number;
   count: number;
   boss: boolean;
+  road: number; // the road it sits beside
+  r: number; // how far along that road
 }
 export const DEN_R = 14;
 
@@ -62,7 +64,7 @@ export const DENS: Den[] = (() => {
         dx = x2 - Math.sin(a) * off * side;
         dz = z2 + Math.cos(a) * off * side;
       }
-      out.push({ x: dx, z: dz, kind: kind++ % FOE_KINDS.length, level: ring.lvl + Math.floor((i / ring.n) * ring.span), count: 3 + (i % 2), boss: i === ring.n - 1 });
+      out.push({ x: dx, z: dz, kind: kind++ % FOE_KINDS.length, level: ring.lvl + Math.floor((i / ring.n) * ring.span), count: 3 + (i % 2), boss: i === ring.n - 1, road, r });
     }
   });
   return out;

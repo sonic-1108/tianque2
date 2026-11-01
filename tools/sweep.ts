@@ -4,7 +4,8 @@ import { Sim, PLAYER } from '../src/game/sim';
 import { SKILLS } from '../src/game/skills';
 import { HEROES, HeroId, LOW_SKILLS } from '../src/game/heroes';
 import { DENS, DEN_R } from '../src/game/foes';
-import { TREES, WORLD_R, groundHeight, VILLAGE_SPAWN } from '../src/game/world';
+import { TREES, WORLD_R, groundHeight, VILLAGE_SPAWN, MAX_SLOPE } from '../src/game/world';
+import { ROADS, roadPoint } from '../src/game/layout';
 import { fresh, chooseHero, learn, capOf } from '../src/game/progress';
 import type { Fighter, InputState } from '../src/game/types';
 
@@ -151,13 +152,18 @@ function calm(s: Sim) {
 
 // ---------------------------------------------------------------- 1. the world itself
 function worldChecks() {
-  for (let x = -WORLD_R; x <= WORLD_R; x += 4)
-    for (let z = -WORLD_R; z <= WORLD_R; z += 4) {
-      const h = groundHeight(x, z);
-      if (!Number.isFinite(h)) report('terrain NaN', `${x},${z}`, '');
-      const sl = Math.max(Math.abs(groundHeight(x + 1, z) - h), Math.abs(groundHeight(x, z + 1) - h));
-      if (sl > 1.2 && Math.hypot(x, z) < WORLD_R - 30) report('steep slope', `${x},${z}`, `rise ${sl.toFixed(2)} per metre`);
+  // the big map is meant to have cliffs; what must be walkable is every road and every den
+  ROADS.forEach((road, k) => {
+    for (let i = 1; i < road.length; i++) {
+      const [ax, az] = road[i - 1], [bx, bz] = road[i];
+      for (let t = 0; t < 1; t += 0.1) {
+        const x = ax + (bx - ax) * t, z = az + (bz - az) * t;
+        if (!Number.isFinite(groundHeight(x, z))) report('terrain NaN', `${x},${z}`, '');
+        const sl = Math.abs(groundHeight(x + (bx - ax) * 0.005, z + (bz - az) * 0.005) - groundHeight(x, z)) / (Math.hypot(bx - ax, bz - az) * 0.005);
+        if (sl > MAX_SLOPE) report('road too steep', `road ${k} at ${x.toFixed(0)},${z.toFixed(0)}`, `rise ${sl.toFixed(2)} per metre`);
+      }
     }
+  });
   DENS.forEach((d, i) => {
     const trees = TREES.filter((t) => Math.hypot(t.x - d.x, t.z - d.z) < DEN_R).length;
     if (trees) report('trees in den', `den ${i}`, `${trees}`);
@@ -186,9 +192,13 @@ function walks(hero: HeroId | null) {
     place(s.player, VILLAGE_SPAWN[0], VILLAGE_SPAWN[1]);
     const dist0 = Math.hypot(d.x - s.player.pos[0], d.z - s.player.pos[2]);
     let t = 0;
-    const limit = dist0 / 6.8 * 1.6 + 5;
+    const limit = d.r / 6.8 * 1.8 + 20;
     while (t < limit && Math.hypot(d.x - s.player.pos[0], d.z - s.player.pos[2]) > 4) {
-      const y = yawTo(s.player, d.x, d.z);
+      // like a player: follow the den's road out, then turn off to the den
+      const pr = Math.hypot(s.player.pos[0], s.player.pos[2]);
+      const [rx, rz] = roadPoint(d.road, Math.min(pr + 18, d.r));
+      const near = Math.hypot(d.x - s.player.pos[0], d.z - s.player.pos[2]) < 60;
+      const y = near ? yawTo(s.player, d.x, d.z) : yawTo(s.player, rx, rz);
       const inp = { ...noInput(y), move: [0, 1] as [number, number] };
       // like a player, step round whatever is in the way (a house, a trunk)
       const W = w as any;

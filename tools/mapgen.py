@@ -3,7 +3,7 @@
   ground is rugged, not read literally; the fine ridges come from noise in world.ts.
   colour image: painted top-down map in the same layout: the ground colours (public/terrain_color.jpg) and the
   water mask (its blue).
-python3 tools/mapgen.py height.jpeg color.jpeg"""
+python3 tools/mapgen.py tools/maps/height.jpeg tools/maps/color.jpeg"""
 import sys, base64
 import numpy as np
 from PIL import Image, ImageFilter

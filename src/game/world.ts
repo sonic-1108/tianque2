@@ -123,11 +123,12 @@ function rawHeight(x: number, z: number): number {
   const floor = (mapBig(x, z) - 0.45) * 30 + noise(x * 0.004, z * 0.004) * 4 + noise(x * 0.02, z * 0.02) * 1;
   let h = Math.max(WATER_Y + 0.8, floor + rough * mountains(x, z) + mapSnow(x, z) * 45); // only the painted rivers hold water
   // trails: a road through the mountains is cut down near the floor
-  const trail = 1 - smooth(5, 28, pathDist(x, z));
-  h += (Math.max(floor + 1, WATER_Y + 0.8) - h) * trail * 0.88;
+  const trail = 1 - smooth(6, 34, pathDist(x, z));
+  h += (Math.max(floor + 1, WATER_Y + 0.8) - h) * trail * 0.96;
   // the painted rivers
   const w = smooth(0.08, 0.55, mapWater(x, z));
-  h += (Math.min(h, WATER_Y - 2.6) - h) * w;
+  // a road crossing a river becomes a shallow ford (you wade across instead of meeting a cliff)
+  h += (Math.min(h, WATER_Y - 2.6 + 1.9 * trail) - h) * w;
   // flat pads: the village, then each den (blended one after another, no seams)
   h += (1.5 - h) * (1 - smooth(VILLAGE_R, VILLAGE_R + 50, r));
   for (const [cx, cz] of CAMPS) {
@@ -180,6 +181,8 @@ export interface Building {
   h: number; // roof height (the camera keeps out below it)
   model: string;
   scale: number;
+  /** open structures (a gate): only these posts block, as circles [local x, local z, radius] */
+  posts?: [number, number, number][];
 }
 export const BUILDINGS: Building[] = (() => {
   const out: Building[] = [];
@@ -193,6 +196,14 @@ export const BUILDINGS: Building[] = (() => {
     const x = Math.cos(a) * 20;
     const z = Math.sin(a) * 20;
     out.push({ x, z, rot: Math.atan2(-x, -z), hx: 0.49 * S + 0.3, hz: 0.41 * S + 0.3, h: 0.66 * S, model: 'house.glb', scale: S });
+  }
+  // the stone gate (牌坊) over the road east out of the village
+  {
+    const PF = 14; // paifang.glb is about 1 x 0.82 x 0.22 units
+    const [x0, z0] = ROADS[0][2];
+    const [x1, z1] = ROADS[0][3];
+    const rot = Math.atan2(x1 - x0, z1 - z0);
+    out.push({ x: x0, z: z0, rot, hx: 0.49 * PF, hz: 0.11 * PF, h: 0.82 * PF, model: 'paifang.glb', scale: PF, posts: [-0.37, -0.15, 0.15, 0.37].map((u) => [u * PF, 0, 0.07 * PF] as [number, number, number]) });
   }
   // a pavilion beside each road, 230 m out: a landmark to steer by
   const P = 9; // pavilion.glb is about 1 x 0.96 x 0.92 units
@@ -217,6 +228,7 @@ export function inBuilding(x: number, y: number, z: number, pad = 0) {
     const s = Math.sin(b.rot);
     const lx = dx * c - dz * s;
     const lz = dx * s + dz * c;
+    if (b.posts) continue; // an open gate never hides the player
     if (Math.abs(lx) < b.hx + pad && Math.abs(lz) < b.hz + pad && y < groundHeight(b.x, b.z) + b.h) return true;
   }
   return false;
@@ -227,11 +239,24 @@ export function pushOutOfBuildings(p: [number, number, number]) {
   for (const b of BUILDINGS) {
     const dx = p[0] - b.x;
     const dz = p[2] - b.z;
-    if (dx * dx + dz * dz > 64) continue;
+    if (dx * dx + dz * dz > (b.posts ? 100 : 64)) continue;
     const c = Math.cos(b.rot);
     const s = Math.sin(b.rot);
     let lx = dx * c - dz * s;
     let lz = dx * s + dz * c;
+    if (b.posts) {
+      for (const [px, pz, pr] of b.posts) {
+        const ex = lx - px, ez = lz - pz;
+        const d = Math.hypot(ex, ez);
+        if (d < pr + R && d > 1e-4) {
+          lx = px + (ex / d) * (pr + R);
+          lz = pz + (ez / d) * (pr + R);
+          p[0] = b.x + lx * c + lz * s;
+          p[2] = b.z - lx * s + lz * c;
+        }
+      }
+      continue;
+    }
     const ox = b.hx + R - Math.abs(lx);
     const oz = b.hz + R - Math.abs(lz);
     if (ox <= 0 || oz <= 0) continue;
