@@ -728,7 +728,8 @@ def({
     f.st.armor = 2.6;
     f.vel[0] = f.vel[2] = 0;
     const [fx, fz] = s.fwd(f);
-    s.vfx('buddha', P(f.pos[0] - fx * 3.2, f.pos[1] + 4.6, f.pos[2] - fz * 3.2), 3);
+    // the Buddha rises over the field ahead (behind him it filled the whole view: the camera stands behind him)
+    s.vfx('buddha', P(f.pos[0] + fx * 8, f.pos[1] + 5.2, f.pos[2] + fz * 8), 3);
     s.vfx('ring', P(f.pos[0], f.pos[1] + 0.05, f.pos[2]), 3.2, col(f, 'fanyin'), 0.7, 0.16, 0.5);
     s.vfx('pillarAt', 2.6, '#ffc94a', s.slotOf(f));
     s.vfx('sound', 'ultRise');

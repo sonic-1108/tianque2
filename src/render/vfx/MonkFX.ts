@@ -361,7 +361,7 @@ export class MonkFX {
       root.add(mesh);
       this.palms.push({ mesh, glow, mat, glowMat, mode: 'drop', from: new THREE.Vector3(), to: new THREE.Vector3(), t: 0, dur: 1, hold: 0.3, scale: 1, active: false });
     }
-    this.buddhaSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: buddhaTexture(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: new THREE.Color(2.6, 1.9, 0.9), toneMapped: false }));
+    this.buddhaSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: buddhaTexture(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: new THREE.Color(1.7, 1.25, 0.6), toneMapped: false }));
     this.buddhaSprite.visible = false;
     this.buddhaSprite.renderOrder = 4;
     root.add(this.buddhaSprite);
