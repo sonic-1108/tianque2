@@ -20,7 +20,11 @@ export interface Status {
   buffAtk: number; // seconds of +10% atk/def (禅定结界 inside)
   rage: number; // 血怒: +30% damage, lifesteal, faster
   shield: number; // 金钟罩: 65% less damage, not staggered
-  weak: number; // 做空: -20% attack, defence and speed
+  weak: number; // 做空: -20% attack, +25% damage taken, -20% speed
+  silence: number; // 封印 / 跪: no moves at all
+  protect: number; // 人间不渡: can't be knocked down, launched or stunned
+  wardT: number; // 鹤羽护: the feather shield is up (amount in Fighter.ward)
+  exhaust: number; // 金钟罩 just broke: a half-second gasp
 }
 
 export interface Fighter {
@@ -49,6 +53,8 @@ export interface Fighter {
   /** a running skill's own state (whirlwind ticks, burrow, drain beam ...) */
   run: { id: string; t: number; data: Record<string, number> } | null;
   castMult?: number; // the level share of the move being cast
+  ward?: number; // 鹤羽护: damage the feather shield still soaks
+  pull?: { x: number; z: number; t: number }; // 锁链钩: dragged to this point over t seconds
   // NPC only
   home?: [number, number];
   respawn?: number;
@@ -66,7 +72,7 @@ export interface Projectile {
   radius: number;
   dmg: number;
   color: string;
-  shape: 'dart' | 'orb' | 'glyph' | 'blade' | 'guard' | 'watch' | 'boomerang';
+  shape: 'dart' | 'pin' | 'knife' | 'glyph' | 'watch' | 'boomerang';
   hit: number[]; // fighter ids already hit
   pierce: boolean;
   homing?: number; // turn rate toward target
@@ -74,7 +80,17 @@ export interface Projectile {
   returnAt?: number; // boomerang: life at which it turns round
   onHit?: string; // effect tag: root / knock / stagger / launch
   mult?: number; // the move's level share when it was thrown
-}
+  knock?: number; // push on a hit
+  hitDur?: number; // how long the hit staggers (0 = a flinch only)
+  root?: number; // 定身镖
+  noStop?: boolean; // goes on through bodies (暴雨梨花)
+  delay?: number; // held in the hand this long before it flies (劳力士)
+  stuck?: number; // in the ground or a wall: lies there this long, harmless
+  glyph?: number; // 六字真言: which syllable (0..5)
+  age?: number;
+  /** 回旋镖: the loop it flies (origin, forward, side, length, width, start height, target height, progress, time) */
+  path?: { ox: number; oz: number; fx: number; fz: number; sx: number; sz: number; L: number; W: number; y0: number; ty: number; u: number; T: number; back: boolean; hitOut: boolean; hitBack: boolean };
+  id?: number;
 
 export interface Zone {
   owner: number;
@@ -87,6 +103,8 @@ export interface Zone {
   max: number;
   color: string;
   touched: number[]; // ids already given the one-time effect
+  age: number; // seconds since it was laid
+  data: Record<string, any>; // the move's own state (a cage's prisoners, a candle's warning ...)
 }
 
 export interface Fx {

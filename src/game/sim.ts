@@ -42,6 +42,16 @@ export interface SimEvent {
 
 export interface HitOpts {
   knock?: number; // push away (m/s)
+  down?: number; // knocked down this long (with or without a launch)
+  dur?: number; // a stagger this long (default 0.3, 0.45 with a knock)
+  flinch?: boolean; // a twitch: interrupts nothing that has armour, staggers 0.2 s
+  crit?: boolean; // shown as a critical (big gold number)
+  heavy?: boolean; // the heavy hit effect and hit-stop
+  ranged?: boolean; // from afar: 金钟罩 doesn't throw it back
+  breakArmor?: boolean; // goes through 霸体 and 金钟罩's poise
+  silence?: number;
+  bury?: number; // 钉地斩: nailed into the ground
+  reflected?: boolean;
   launch?: number; // up into the air and down
   stun?: number;
   root?: number;
@@ -56,7 +66,16 @@ export interface HitOpts {
   noScale?: boolean; // a fixed amount (drain)
 }
 
-const noStatus = (): Status => ({ slow: 0, root: 0, stun: 0, kneel: 0, daze: 0, crit: 0, invuln: 0, armor: 0, buffAtk: 0, rage: 0, shield: 0, weak: 0 });
+const noStatus = (): Status => ({ slow: 0, root: 0, stun: 0, kneel: 0, daze: 0, crit: 0, invuln: 0, armor: 0, buffAtk: 0, rage: 0, shield: 0, weak: 0, silence: 0, protect: 0, wardT: 0, exhaust: 0 });
+
+/** 血怒: basic attacks play this much faster, hit this much harder, legs this much quicker (天阙 1's numbers) */
+export const RAGE = { t: 5, dmg: 1.2, lifesteal: 0.12, speed: 1.4, move: 1.15 };
+
+/** an effect for the renderer: a VFXSystem call by name with plain arguments ([x,y,z] arrays become vectors) */
+export interface VCmd {
+  n: string;
+  a: any[];
+}
 
 export class Sim {
   fighters: Fighter[] = [];
@@ -74,6 +93,24 @@ export class Sim {
   emit(e: SimEvent) {
     if (this.events.length < 200) this.events.push(e);
   }
+  /** effect commands for the renderer (the old game's vfx.* calls, made from the sim) */
+  vq: VCmd[] = [];
+  vfx(n: string, ...a: any[]) {
+    if (this.vq.length < 400) this.vq.push({ n, a });
+  }
+  /** a camera shake for whoever sees it: amount, and where (only felt near the player) */
+  shake(amount: number, x: number, z: number) {
+    const p = this.fighters[PLAYER];
+    if (!p) return;
+    const d = Math.hypot(p.pos[0] - x, p.pos[2] - z);
+    if (d < 30) this.vfx('shake', amount * Math.max(0, 1 - d / 30));
+  }
+  /** something to do a moment from now (sim time): a delayed blow, a column of fire */
+  private soon: { t: number; fn: () => void }[] = [];
+  later(t: number, fn: () => void) {
+    this.soon.push({ t, fn });
+  }
+  private projSeq = 0;
   /** the villager the player stands next to (F talks), and the one being talked to */
   near = -1;
   dialog = -1;
@@ -221,15 +258,14 @@ export class Sim {
     this.toasts.push({ text, t: 3.5, id: this.toastId++ });
     if (this.toasts.length > 4) this.toasts.shift();
   }
-  shoot(f: Fighter, p: Partial<Projectile> & { speed: number; yaw?: number; life: number; dmg: number }) {
+  shoot(f: Fighter, p: Partial<Projectile> & { speed: number; yaw?: number; life: number; dmg: number; dir?: [number, number, number] }) {
     const yaw = p.yaw ?? f.yaw;
-    const vx = -Math.sin(yaw) * p.speed;
-    const vz = -Math.cos(yaw) * p.speed;
+    const dir = p.dir ?? [-Math.sin(yaw), 0, -Math.cos(yaw)];
     const pr: Projectile = {
       owner: f.id,
       skill: p.skill ?? '',
       pos: p.pos ?? [f.pos[0] - Math.sin(yaw) * 0.6, f.pos[1] + 1.2, f.pos[2] - Math.cos(yaw) * 0.6],
-      vel: [vx, 0, vz],
+      vel: [dir[0] * p.speed, dir[1] * p.speed, dir[2] * p.speed],
       life: p.life,
       radius: p.radius ?? 0.5,
       dmg: p.dmg,
@@ -239,15 +275,53 @@ export class Sim {
       pierce: p.pierce ?? false,
       homing: p.homing,
       target: p.target,
-      returnAt: p.returnAt,
       onHit: p.onHit,
       mult: f.castMult ?? 1,
+      knock: p.knock,
+      hitDur: p.hitDur,
+      root: p.root,
+      noStop: p.noStop,
+      delay: p.delay,
+      glyph: p.glyph,
+      path: p.path,
+      age: 0,
+      id: this.projSeq++,
     };
     this.proj.push(pr);
     return pr;
   }
+  /** from the thrower's hand to the enemy's chest when they're roughly in front, else straight ahead (天阙 1's aimDir) */
+  aimDir(f: Fighter, from: [number, number, number], t: Fighter | null, spread = 0): [number, number, number] {
+    const [fx, fz] = this.fwd(f);
+    let dx = fx, dy = -0.02, dz = fz;
+    if (t && t.hp > 0) {
+      const tx = t.pos[0] - f.pos[0], tz = t.pos[2] - f.pos[2];
+      const d = Math.hypot(tx, tz);
+      if (d < 24 && (fx * tx + fz * tz) / Math.max(0.001, d) > 0.8) {
+        dx = t.pos[0] - from[0];
+        dy = t.pos[1] + 1.05 - from[1];
+        dz = t.pos[2] - from[2];
+      }
+    }
+    const l = Math.hypot(dx, dy, dz) || 1;
+    dx /= l; dy /= l; dz /= l;
+    if (spread) {
+      const c = Math.cos(spread), s = Math.sin(spread);
+      const x = dx * c + dz * s;
+      const z = -dx * s + dz * c;
+      dx = x;
+      dz = z;
+    }
+    return [dx, dy, dz];
+  }
+  /** where a thrown thing leaves the hand */
+  hand(f: Fighter): [number, number, number] {
+    const [fx, fz] = this.fwd(f);
+    const rx = Math.cos(f.yaw), rz = -Math.sin(f.yaw);
+    return [f.pos[0] + fx * 0.45 + rx * 0.18, f.pos[1] + 1.35, f.pos[2] + fz * 0.45 + rz * 0.18];
+  }
   zone(f: Fighter, skill: string, x: number, z: number, r: number, t: number, color: string) {
-    const zn: Zone = { owner: f.id, skill, x, y: groundHeight(x, z), z, r, t, max: t, color, touched: [] };
+    const zn: Zone = { owner: f.id, skill, x, y: groundHeight(x, z), z, r, t, max: t, color, touched: [], age: 0, data: {} };
     this.zones.push(zn);
     return zn;
   }
@@ -261,37 +335,55 @@ export class Sim {
 
   /** a blow lands. Returns the damage done (0 when it couldn't land) */
   hit(att: Fighter, def: Fighter, base: number, o: HitOpts = {}): number {
-    if (def.hp <= 0 || def.st.invuln > 0 || !this.isEnemy(att, def)) return 0;
+    if (def.hp <= 0 || def.st.invuln > 0 || def.act === 'burrow' || !this.isEnemy(att, def)) return 0;
     let dmg = o.noScale ? base : base * this.power(att) * (o.mult ?? att.castMult ?? 1);
-    let crit = false;
+    let crit = !!o.crit;
     if (!o.noScale && att.st.crit > 0) {
       dmg *= 2;
       crit = true;
       att.st.crit = 0;
     }
-    if (att.st.buffAtk > 0) dmg *= 1.1;
-    if (def.st.buffAtk > 0) dmg *= 0.9;
-    if (att.st.rage > 0) dmg *= 1.3;
-    if (att.st.weak > 0) dmg *= 0.8;
-    if (def.st.weak > 0) dmg *= 1.2;
+    if (!o.noScale) {
+      if (att.st.buffAtk > 0) dmg *= 1.1;
+      if (def.st.buffAtk > 0) dmg *= 0.9;
+      if (att.st.rage > 0) dmg *= RAGE.dmg;
+      if (att.st.weak > 0) dmg *= 0.8;
+      if (def.st.weak > 0) dmg *= 1.25;
+    }
     if (def.st.shield > 0) dmg *= 0.35;
+    // 鹤羽护 soaks what it can
+    if ((def.ward ?? 0) > 0 && def.st.wardT > 0) {
+      const soak = Math.min(def.ward!, dmg);
+      def.ward = def.ward! - soak;
+      dmg -= soak;
+      if (soak > 0) this.vfx('embers', [def.pos[0], def.pos[1] + 1.2, def.pos[2]], 8, '#f8fafc', 0.6, 0.8, 0.07);
+      if (dmg <= 0) {
+        this.text(def, '鹤羽护', '#f8fafc');
+        return 0;
+      }
+    }
     dmg = Math.max(1, Math.round(dmg));
     def.hp = Math.max(0, def.hp - dmg);
-    if (att.st.rage > 0 && att.hp > 0) att.hp = Math.min(att.maxHp, att.hp + dmg * 0.12);
+    if (att.st.rage > 0 && att.hp > 0) att.hp = Math.min(att.maxHp, att.hp + dmg * RAGE.lifesteal);
     if (att.id === PLAYER) this.lastTarget = def.id;
-    {
-      const heavy = !!(o.launch || (o.knock ?? 0) >= 6 || crit || dmg > def.maxHp * 0.12);
-      this.emit({ k: 'hit', x: def.pos[0], y: def.pos[1] + 1.1, z: def.pos[2], id: att.id, to: def.id, n: dmg, heavy, crit, color: o.color });
-      if (att.id === PLAYER && !o.noScale) this.hitstop = Math.max(this.hitstop, heavy ? 0.09 : 0.045);
-    }
+    const heavy = !!(o.heavy || o.launch || o.down || (o.knock ?? 0) >= 6 || crit || dmg > def.maxHp * 0.12);
+    this.emit({ k: 'hit', x: def.pos[0], y: def.pos[1] + 1.1, z: def.pos[2], id: att.id, to: def.id, n: dmg, heavy, crit, color: o.color });
+    if ((att.id === PLAYER || def.id === PLAYER) && !o.noScale) this.hitstop = Math.max(this.hitstop, heavy ? 0.09 : 0.045);
     this.text(def, crit ? `暴击 ${dmg}` : `${dmg}`, crit ? '#ffcf3a' : def.id === PLAYER ? '#ff6b6b' : o.color ?? '#ffffff');
     if (def.team === 'sect') def.aggro = true;
-    // statuses
+    // 金钟罩: whoever strikes it up close takes three tenths back
+    if (def.st.shield > 0 && !o.ranged && !o.reflected && !o.noScale && this.dist(att, def) < 3.5 && att.hp > 0) {
+      this.hit(def, att, dmg * 0.3, { noScale: true, reflected: true, ranged: true, stagger: false, color: '#fde68a' });
+      this.vfx('bellHit', this.slotOf(def));
+    }
+    // statuses (人间不渡 keeps you on your feet)
+    const prot = def.st.protect > 0;
     if (o.root) def.st.root = Math.max(def.st.root, o.root);
     if (o.kneel) def.st.kneel = Math.max(def.st.kneel, o.kneel);
     if (o.slow) def.st.slow = Math.max(def.st.slow, o.slow);
     if (o.daze) def.st.daze = Math.max(def.st.daze, o.daze);
-    if (o.stun) def.st.stun = Math.max(def.st.stun, o.stun);
+    if (o.stun && !prot) def.st.stun = Math.max(def.st.stun, o.stun);
+    if (o.silence) def.st.silence = Math.max(def.st.silence, o.silence);
     const ax = o.fromX ?? att.pos[0];
     const az = o.fromZ ?? att.pos[2];
     const dx = def.pos[0] - ax;
@@ -301,26 +393,38 @@ export class Sim {
       this.kill(att, def, dx / d, dz / d);
       return dmg;
     }
-    const armored = def.st.armor > 0 || def.st.shield > 0 || def.act === 'burrow' || def.act === 'glide';
-    if (!armored) {
+    const armored = !o.breakArmor && (def.st.armor > 0 || def.st.shield > 0 || def.act === 'glide');
+    if (armored) return dmg;
+    const stop = () => {
+      if (!(def.run && SKILLS[def.run.id]?.parallel)) def.run = null;
+      if (def.id === PLAYER) this.ultCharge = null;
+    };
+    if ((o.launch || o.down || o.bury) && !prot) {
+      stop();
       if (o.launch) {
         def.vel[1] = o.launch;
-        def.vel[0] = (dx / d) * (o.knock ?? 3);
-        def.vel[2] = (dz / d) * (o.knock ?? 3);
         def.grounded = false;
-        def.run = null;
-        this.setAct(def, 'down', 1.2, 'down');
-      } else if (o.knock) {
-        def.vel[0] = (dx / d) * o.knock;
-        def.vel[2] = (dz / d) * o.knock;
-        def.run = null;
-        this.setAct(def, 'hit', 0.45, 'hit');
-      } else if (o.stagger !== false) {
-        def.run = null;
-        this.setAct(def, 'hit', 0.3, 'hit');
       }
+      def.vel[0] = (dx / d) * (o.knock ?? (o.launch ? 3 : 0));
+      def.vel[2] = (dz / d) * (o.knock ?? (o.launch ? 3 : 0));
+      this.setAct(def, 'down', (o.down ?? o.bury ?? 0.9) + (o.launch ? 0.3 : 0), o.bury ? 'hit' : 'down');
+      if (o.bury) def.st.root = Math.max(def.st.root, o.bury);
+    } else if (o.knock && o.stagger !== false) {
+      stop();
+      def.vel[0] = (dx / d) * o.knock;
+      def.vel[2] = (dz / d) * o.knock;
+      this.setAct(def, 'hit', o.dur ?? 0.45, 'hit');
+    } else if (o.flinch) {
+      if (def.act === 'idle' || def.act === 'run' || def.act === 'attack') this.setAct(def, 'hit', 0.2, 'hit');
+    } else if (o.stagger !== false) {
+      stop();
+      this.setAct(def, 'hit', o.dur ?? 0.3, 'hit');
     }
     return dmg;
+  }
+  /** the effect slot a fighter's per-body effects use (vortex, bell, pillar) */
+  slotOf(f: Fighter) {
+    return f.id === PLAYER ? 0 : 1 + (f.id % 11);
   }
 
   private kill(att: Fighter, def: Fighter, nx: number, nz: number) {
@@ -455,7 +559,7 @@ export class Sim {
 
   // ------------------------------------------------------------------ actions
   free(f: Fighter) {
-    if (f.hp <= 0 || f.st.stun > 0 || f.st.daze > 0) return false;
+    if (f.hp <= 0 || f.st.stun > 0 || f.st.daze > 0 || f.st.exhaust > 0) return false;
     if (f.act === 'idle' || f.act === 'run' || f.act === 'jump') return true;
     // the end of a swing can be cut into
     return f.act === 'attack' && f.hitDone && f.actT > f.actDur * 0.6;
@@ -466,7 +570,7 @@ export class Sim {
     if (f.act === 'attack') f.combo = (f.combo + 1) % 3;
     else f.combo = 0;
     const slow = f.team === 'sect' ? 1.5 : 1; // disciples wind up slower: time to see it coming
-    this.setAct(f, 'attack', CHAIN[f.combo].dur * slow, ranged ? 'throw' : `attack_${f.combo + 1}`);
+    this.setAct(f, 'attack', (CHAIN[f.combo].dur * slow) / (f.st.rage > 0 ? RAGE.speed : 1), ranged ? 'throw' : `attack_${f.combo + 1}`);
     this.emit({ k: 'swing', x: f.pos[0], y: f.pos[1] + 1, z: f.pos[2], id: f.id, heavy: f.combo === 2 });
     if (!(f.run && SKILLS[f.run.id]?.parallel)) f.run = ranged ? { id: '_throw', t: 0, data: {} } : null;
     if (f.id === PLAYER && !ranged) {
@@ -487,7 +591,13 @@ export class Sim {
 
   dodge(f: Fighter, dx: number, dz: number) {
     if (f.hp <= 0 || f.st.stun > 0 || f.st.root > 0 || (f.cds.dodge ?? 0) > 0) return false;
-    if (!(this.free(f) || f.act === 'attack' || f.act === 'hit')) return false;
+    // a roll cuts out of most moves (not the ones that must play out: 暴雨梨花, 万佛朝宗, 千影杀)
+    const cutting = (f.act === 'cast' || f.act === 'channel') && !(f.run && SKILLS[f.run.id]?.noCancel);
+    if (!(this.free(f) || f.act === 'attack' || (f.act === 'hit' && f.actT > 0.12) || cutting)) return false;
+    if (f.run && SKILLS[f.run.id]?.parallel) {
+      // a beam or a tether stays on
+    } else if (f.run && SKILLS[f.run.id]?.again && f.act === 'burrow') return false;
+    f.st.armor = 0;
     const l = Math.hypot(dx, dz);
     if (l < 0.1) {
       const [fx, fz] = this.fwd(f);
@@ -524,6 +634,10 @@ export class Sim {
     // a running skill may take a second press (burrow out, fold the vest)
     if (f.run && f.run.id === id && sk.again) return sk.again(this, f);
     if (!this.free(f) || f.st.kneel > 0) return false;
+    if (f.st.silence > 0) {
+      if (f.id === PLAYER) this.text(f, '封印中', '#fbbf24');
+      return false;
+    }
     if ((f.cds[id] ?? 0) > 0) {
       if (f.id === PLAYER) this.text(f, `冷却 ${(f.cds[id] ?? 0).toFixed(1)}s`, '#9ca3af');
       return false;
@@ -532,12 +646,17 @@ export class Sim {
       if (f.id === PLAYER) this.text(f, '内力不足', '#60a5fa');
       return false;
     }
-    if (sk.ground && !f.grounded) return false;
+    if (sk.ground && !f.grounded) {
+      if (f.id === PLAYER) this.text(f, '落地才能施展', '#9ca3af');
+      return false;
+    }
     // the player's moves hit by their level; foes by a flat share
     f.castMult = f.id === PLAYER ? skillPower(this.progress.skills[id] ?? 1) : 1;
     if (!sk.cast(this, f)) return false;
-    f.mp -= sk.mp;
-    f.cds[id] = sk.cd;
+    if (!sk.payOnFire) {
+      f.mp -= sk.mp;
+      f.cds[id] = sk.cd;
+    }
     this.emit({ k: 'cast', x: f.pos[0], y: f.pos[1] + 1, z: f.pos[2], id: f.id, skill: id });
     return true;
   }
@@ -548,6 +667,13 @@ export class Sim {
     this.time += dt;
     (this as any).lastDt = dt;
     for (const f of this.fighters) this.timers(f, dt);
+    if (this.soon.length) {
+      const due = this.soon.filter((x) => (x.t -= dt) <= 0);
+      if (due.length) {
+        this.soon = this.soon.filter((x) => x.t > 0);
+        for (const x of due) x.fn();
+      }
+    }
     if (input) this.control(this.player, input);
     for (const f of this.fighters) if (f.team !== 'player') this.think(f, dt);
     for (const f of this.fighters) this.physics(f, dt);
@@ -592,8 +718,27 @@ export class Sim {
 
   private timers(f: Fighter, dt: number) {
     const s = f.st;
+    // 金钟罩 breaks: half a second to catch breath
+    if (s.shield > 0 && s.shield <= dt && f.hp > 0) {
+      s.exhaust = 0.5;
+      this.text(f, '气竭', '#a3a3a3');
+    }
+    // 做空: the price slides and the health with it; six tenths of it is the trader's profit
+    if (s.weak > 0 && f.hp > 1) {
+      const by = this.fighters[(f as any).shortBy ?? -1];
+      const d = Math.min(f.hp - 1, f.maxHp * 0.025 * dt);
+      f.hp -= d;
+      (f as any).shortAcc = ((f as any).shortAcc ?? 0) + d;
+      if (by && by.hp > 0) by.hp = Math.min(by.maxHp, by.hp + d * 0.6);
+      if ((f as any).shortAcc >= Math.max(12, f.maxHp * 0.03)) {
+        this.addFx({ kind: 'text', x: f.pos[0], y: f.pos[1] + 2.1, z: f.pos[2], max: 0.8, r: 1, color: '#ff3b3b', text: `▼${Math.round((f as any).shortAcc)}` });
+        if (by) this.addFx({ kind: 'text', x: by.pos[0], y: by.pos[1] + 2.1, z: by.pos[2], max: 0.8, r: 1, color: '#4ade80', text: `+${Math.round((f as any).shortAcc * 0.6)}` });
+        (f as any).shortAcc = 0;
+      }
+    }
     for (const k of Object.keys(s) as (keyof Status)[]) if (s[k] > 0) s[k] = Math.max(0, s[k] - dt);
     for (const k of Object.keys(f.cds)) f.cds[k] = Math.max(0, f.cds[k] - dt);
+    if (s.wardT <= 0) f.ward = 0;
     if (f.hp > 0) f.mp = Math.min(f.maxMp, f.mp + dt * (f.team === 'player' ? 7 : 5));
     if (f.hp > 0 && f.team === 'player' && !this.enemiesOf(f).some((o) => o.aggro && this.dist(o, f) < 25)) f.hp = Math.min(f.maxHp, f.hp + f.maxHp * 0.02 * dt); // out of a fight: heal up
     if (f.hp > 0 && f.act === 'dead') this.setAct(f, 'idle', 0, 'idle'); // never alive and lying dead
@@ -645,7 +790,10 @@ export class Sim {
       const t = this.nearestEnemy(f, 12, Math.cos(0.6));
       if (t) this.faceTo(f, t.pos[0], t.pos[2]);
     };
-    if (inp.attack && this.free(f) && this.ultCharge === null) {
+    const running = f.run ? SKILLS[f.run.id] : null;
+    if (running?.aim) f.yaw = cy; // 穿云狙: the scope turns with the camera
+    if (inp.attack && running?.fire) running.fire(this, f);
+    else if (inp.attack && this.free(f) && this.ultCharge === null) {
       const y = f.yaw;
       aim();
       if (!this.attack(f, !!heroOf(this.progress.hero)?.ranged)) f.yaw = y;
@@ -778,7 +926,7 @@ export class Sim {
     }
     if (sk?.move) sk.move(this, f, wish, dt);
     else if (canWalk) {
-      let spd = (f.team === 'player' ? RUN : NPC_RUN) * (f.st.slow > 0 ? 0.5 : 1) * (f.st.daze > 0 ? 0.5 : 1) * (f.st.rage > 0 ? 1.2 : 1) * (f.st.weak > 0 ? 0.8 : 1) * (groundHeight(f.pos[0], f.pos[2]) < WATER_Y - 0.5 ? 0.55 : 1);
+      let spd = (f.team === 'player' ? RUN : NPC_RUN) * (f.st.slow > 0 ? 0.5 : 1) * (f.st.daze > 0 ? 0.5 : 1) * (f.st.rage > 0 ? RAGE.move : 1) * (f.st.weak > 0 ? 0.8 : 1) * ((f as any).spdMul ?? 1) * (groundHeight(f.pos[0], f.pos[2]) < WATER_Y - 0.5 ? 0.55 : 1);
       if (!f.aggro && f.team === 'sect' && Math.hypot(f.pos[0] - (f.home?.[0] ?? 0), f.pos[2] - (f.home?.[1] ?? 0)) < 6) spd *= 0.6; // strolling about at home
       const k = f.grounded ? 14 : 4;
       const tx = wish[0] * spd;
@@ -800,9 +948,22 @@ export class Sim {
       f.vel[0] *= Math.max(0, 1 - k * dt);
       f.vel[2] *= Math.max(0, 1 - k * dt);
     }
+    (f as any).spdMul = 1; // zones set it again for the next frame
+    // 锁链钩: dragged in to the chain's end
+    if (f.pull) {
+      f.pull.t -= dt;
+      const k = Math.min(1, dt / Math.max(dt, f.pull.t + dt));
+      f.vel[0] = ((f.pull.x - f.pos[0]) * k) / dt;
+      f.vel[2] = ((f.pull.z - f.pos[2]) * k) / dt;
+      if (f.pull.t <= 0 || f.hp <= 0) {
+        f.pull = undefined;
+        f.vel[0] = f.vel[2] = 0;
+      }
+    }
     // gravity
-    const floating = sk?.float;
+    const floating = sk?.float && sk.float(this, f);
     if (!floating) f.vel[1] -= GRAVITY * dt;
+    if (sk?.fallCap !== undefined) f.vel[1] = Math.max(f.vel[1], -sk.fallCap);
     const ox = f.pos[0], oz = f.pos[2];
     const og = floorAt(ox, oz);
     f.pos[0] += f.vel[0] * dt;
@@ -859,7 +1020,7 @@ export class Sim {
     f.actT += dt;
     if (f.act === 'attack') {
       const c = CHAIN[f.combo];
-      const slow = f.team === 'sect' ? 1.5 : 1;
+      const slow = (f.team === 'sect' ? 1.5 : 1) / (f.st.rage > 0 ? RAGE.speed : 1);
       if (!f.hitDone && f.actT >= c.at * slow) {
         f.hitDone = true;
         if (f.run?.id === '_throw') {
@@ -895,60 +1056,174 @@ export class Sim {
   private projectiles(dt: number) {
     for (const pr of this.proj) {
       pr.life -= dt;
+      pr.age = (pr.age ?? 0) + dt;
       const owner = this.fighters[pr.owner];
-      if (pr.homing && pr.target !== undefined) {
-        const t = this.fighters[pr.target];
-        if (t && t.hp > 0) {
-          const sp = Math.hypot(pr.vel[0], pr.vel[2]);
-          const want = Math.atan2(t.pos[0] - pr.pos[0], t.pos[2] - pr.pos[2]);
-          const cur = Math.atan2(pr.vel[0], pr.vel[2]);
-          const a = turn(cur, want, pr.homing * dt);
-          pr.vel[0] = Math.sin(a) * sp;
-          pr.vel[2] = Math.cos(a) * sp;
-          pr.vel[1] = (t.pos[1] + 1.1 - pr.pos[1]) * 3;
-        }
+      if (!owner) {
+        pr.life = 0;
+        continue;
       }
-      if (pr.returnAt !== undefined && pr.life < pr.returnAt && owner) {
-        // the boomerang comes home
-        const sp = Math.hypot(pr.vel[0], pr.vel[2]);
-        const dx = owner.pos[0] - pr.pos[0];
-        const dz = owner.pos[2] - pr.pos[2];
-        const d = Math.hypot(dx, dz) || 1;
-        pr.vel[0] = (dx / d) * sp;
-        pr.vel[2] = (dz / d) * sp;
-        if (!(pr as any).back) {
-          (pr as any).back = true;
-          pr.hit = [];
-        }
-        if (d < 1) pr.life = 0;
+      // stuck in the ground: lies there a while, harmless
+      if (pr.stuck !== undefined) {
+        pr.stuck -= dt;
+        if (pr.stuck <= 0) pr.life = 0;
+        else pr.life = Math.max(pr.life, 0.01);
+        continue;
       }
-      pr.pos[0] += pr.vel[0] * dt;
-      pr.pos[1] += pr.vel[1] * dt;
-      pr.pos[2] += pr.vel[2] * dt;
-      if (!owner) continue;
-      for (const o of this.enemiesOf(owner)) {
-        if (pr.hit.includes(o.id) || (pr as any).shared?.has(o.id)) continue;
-        if (Math.hypot(o.pos[0] - pr.pos[0], o.pos[2] - pr.pos[2]) > pr.radius + 0.45) continue;
-        if (pr.pos[1] < o.pos[1] - 0.3 || pr.pos[1] > o.pos[1] + 2.3) continue;
-        pr.hit.push(o.id);
-        const opts: HitOpts = { color: pr.color, fromX: pr.pos[0] - pr.vel[0], fromZ: pr.pos[2] - pr.vel[2], mult: pr.mult ?? 1 };
-        if (pr.onHit === 'root') opts.root = 1.5;
-        if (pr.onHit === 'knock') opts.knock = 7;
-        if (pr.onHit === 'launch') opts.launch = 7;
-        if (pr.onHit === 'stagger') opts.stagger = true;
-        const done = this.hit(owner, o, pr.dmg, opts);
-        if (done && SKILLS[pr.skill]?.projHit) SKILLS[pr.skill].projHit!(this, owner, o, pr);
-        this.addFx({ kind: 'burst', x: pr.pos[0], y: pr.pos[1], z: pr.pos[2], max: 0.25, r: 0.8, color: pr.color });
-        if (!pr.pierce) pr.life = 0;
+      // held a beat in the hand (the Rolex comes off the wrist first)
+      if ((pr.delay ?? 0) > 0) {
+        pr.delay! -= dt;
+        const sp = Math.hypot(pr.vel[0], pr.vel[1], pr.vel[2]) || 1;
+        pr.pos = [owner.pos[0] + (pr.vel[0] / sp) * 0.6, owner.pos[1] + 1.35, owner.pos[2] + (pr.vel[2] / sp) * 0.6];
+        pr.life += dt;
+        continue;
       }
-      if (pr.pos[1] < groundHeight(pr.pos[0], pr.pos[2]) - 0.2 && !pr.homing && pr.returnAt === undefined) pr.life = 0;
+      for (let sub = 0; sub < 2 && pr.life > 0; sub++) this.projSub(pr, owner, dt / 2);
     }
     this.proj = this.proj.filter((p) => p.life > 0);
+  }
+
+  /** half a frame of one projectile: move it, then see whom it reached */
+  private projSub(pr: Projectile, owner: Fighter, h: number) {
+    if (pr.path) {
+      // 回旋镖: a loop out to the right, round the target, back on the left; the way home bends to the thrower
+      const P = pr.path;
+      P.u += h / P.T;
+      if (P.u >= 1 || owner.hp <= 0) return void (pr.life = 0);
+      const th = P.u * Math.PI * 2;
+      const hk = Math.max(0, P.u - 0.5) * 2;
+      const px = pr.pos[0], py = pr.pos[1], pz = pr.pos[2];
+      pr.pos[0] = P.ox + P.fx * (P.L / 2) * (1 - Math.cos(th)) + P.sx * (P.W / 2) * Math.sin(th) + (owner.pos[0] - P.ox) * hk;
+      pr.pos[2] = P.oz + P.fz * (P.L / 2) * (1 - Math.cos(th)) + P.sz * (P.W / 2) * Math.sin(th) + (owner.pos[2] - P.oz) * hk;
+      const baseY = P.u < 0.5 ? P.y0 : owner.pos[1] + 1.2;
+      pr.pos[1] = baseY + (P.ty - baseY) * Math.sin(P.u * Math.PI);
+      pr.vel = [(pr.pos[0] - px) / h, (pr.pos[1] - py) / h, (pr.pos[2] - pz) / h];
+      P.back = P.u >= 0.5;
+      if (P.u > 0.04 && pr.pos[1] < groundHeight(pr.pos[0], pr.pos[2]) - 0.1) {
+        this.vfx('sparkBurst', [...pr.pos], 12, '#e5e7eb', 4, 0.05);
+        return void (pr.life = 0);
+      }
+      if (P.back && P.u > 0.85 && Math.hypot(pr.pos[0] - owner.pos[0], pr.pos[1] - owner.pos[1] - 1.2, pr.pos[2] - owner.pos[2]) < 1) return void (pr.life = 0);
+    } else if (pr.shape === 'glyph') {
+      // 六字真言: drift out of the fan, then hunt harder and harder
+      const t = pr.target !== undefined ? this.fighters[pr.target] : null;
+      const age = pr.age ?? 0;
+      if (!t || t.hp <= 0) {
+        pr.pos[0] += pr.vel[0] * h;
+        pr.pos[1] += pr.vel[1] * h;
+        pr.pos[2] += pr.vel[2] * h;
+        pr.vel = pr.vel.map((v) => v * 0.985) as [number, number, number];
+        if (age > 1.1) {
+          this.vfx('sparkBurst', [...pr.pos], 6, '#ffe9a8', 2, 0.04);
+          pr.life = 0;
+        }
+        return;
+      }
+      const tx = t.pos[0], ty = t.pos[1] + 1.15, tz = t.pos[2];
+      glyphSteer(pr.pos, pr.vel, tx, ty, tz, age, h);
+      if (age > 2.4) return void (pr.life = 0);
+      if (Math.hypot(pr.pos[0] - tx, pr.pos[1] - ty, pr.pos[2] - tz) > 0.75) return;
+      pr.life = 0;
+      if (t.st.invuln > 0 || t.act === 'dodge') return void this.text(t, '闪', '#e5e7eb');
+      const last = pr.glyph === 5;
+      const done = last
+        ? this.hit(owner, t, 90, { knock: 5, dur: 0.5, breakArmor: true, ranged: true, crit: true, heavy: true, mult: pr.mult, color: '#fbbf24' })
+        : this.hit(owner, t, 32, { knock: 1, flinch: true, ranged: true, mult: pr.mult, color: '#ffe9a8' });
+      if (last) {
+        if (done && t.hp > 0) {
+          t.st.silence = Math.max(t.st.silence, 2.2);
+          this.addFx({ kind: 'text', x: t.pos[0], y: t.pos[1] + 2.6, z: t.pos[2], max: 1, r: 2, color: '#fbbf24', text: '封印' });
+          this.vfx('ring', [t.pos[0], t.pos[1] + 0.05, t.pos[2]], 1.6, '#fbbf24', 0.5, 0.14, 0.4);
+        }
+        this.vfx('flash', [tx, ty, tz], '#ffd36a', 50, 0.2, 9);
+        this.vfx('sparkBurst', [tx, ty, tz], 30, '#ffe9a8', 9, 0.08, 'up', 1.4);
+        this.vfx('sound', 'gong');
+      } else this.vfx('sparkBurst', [tx, ty, tz], 8, '#ffe9a8', 5, 0.05);
+      return;
+    } else {
+      // homing: a thrown knife curves in on its mark, a Rolex on whoever is near it
+      let t: Fighter | null = null;
+      if (pr.shape === 'watch') {
+        let bd = 12;
+        for (const o of this.enemiesOf(owner)) {
+          const d = Math.hypot(o.pos[0] - pr.pos[0], o.pos[2] - pr.pos[2]);
+          if (d < bd) {
+            bd = d;
+            t = o;
+          }
+        }
+      } else if (pr.homing && pr.target !== undefined) t = this.fighters[pr.target] ?? null;
+      if (pr.homing && t && t.hp > 0) {
+        const sp = Math.hypot(pr.vel[0], pr.vel[1], pr.vel[2]);
+        let wx = t.pos[0] - pr.pos[0], wy = t.pos[1] + 1.1 - pr.pos[1], wz = t.pos[2] - pr.pos[2];
+        const wl = Math.hypot(wx, wy, wz) || 1;
+        const k = Math.min(1, pr.shape === 'watch' ? pr.homing * h : (pr.homing * h) / 2);
+        let vx = pr.vel[0] / sp + (wx / wl - pr.vel[0] / sp) * k;
+        let vy = pr.vel[1] / sp + (wy / wl - pr.vel[1] / sp) * k;
+        let vz = pr.vel[2] / sp + (wz / wl - pr.vel[2] / sp) * k;
+        const vl = Math.hypot(vx, vy, vz) || 1;
+        pr.vel = [(vx / vl) * sp, (vy / vl) * sp, (vz / vl) * sp];
+      }
+      pr.pos[0] += pr.vel[0] * h;
+      pr.pos[1] += pr.vel[1] * h;
+      pr.pos[2] += pr.vel[2] * h;
+      // into the ground: a dart or a knife sticks there a while; a watch just drops
+      const gy = groundHeight(pr.pos[0], pr.pos[2]);
+      if (pr.pos[1] < gy + 0.02) {
+        if (pr.shape === 'watch') return void (pr.life = 0);
+        pr.pos[1] = Math.max(pr.pos[1], gy - 0.25);
+        pr.stuck = pr.noStop ? 1.0 : 2.5;
+        this.vfx('dustPuff', [pr.pos[0], gy + 0.05, pr.pos[2]], 2, 0.1, 0.8, 0.25);
+        return;
+      }
+    }
+    // whom it reached
+    const rad = pr.path ? 0.9 : pr.shape === 'watch' ? 0.85 : 0.55;
+    const P = pr.path;
+    const seen = P ? (P.back ? ((pr as any).hitB ??= []) : pr.hit) : pr.hit;
+    for (const o of this.enemiesOf(owner)) {
+      if (seen.includes(o.id)) continue;
+      if (Math.hypot(o.pos[0] - pr.pos[0], o.pos[2] - pr.pos[2]) > rad + 0.2) continue;
+      if (pr.pos[1] < o.pos[1] - 0.2 || pr.pos[1] > o.pos[1] + 2.1) continue;
+      if (o.act === 'burrow') continue;
+      seen.push(o.id);
+      if (o.st.invuln > 0) {
+        // through the roll: flies on
+        this.text(o, '闪', '#e5e7eb');
+        continue;
+      }
+      const opts: HitOpts = {
+        color: pr.color,
+        fromX: pr.pos[0] - pr.vel[0],
+        fromZ: pr.pos[2] - pr.vel[2],
+        mult: pr.mult ?? 1,
+        ranged: true,
+        knock: pr.knock ?? 1.2,
+        dur: pr.hitDur ?? 0.22,
+        heavy: pr.shape !== 'dart' && pr.shape !== 'knife',
+        crit: pr.shape === 'watch',
+      };
+      if (pr.noStop) opts.stagger = false;
+      else if (pr.onHit !== 'stagger' && (pr.shape === 'dart' || pr.shape === 'knife')) opts.flinch = true;
+      if (pr.noStop || opts.flinch) opts.knock = pr.noStop ? 0 : opts.knock;
+      const done = this.hit(owner, o, pr.dmg, opts);
+      if (done && pr.root && o.hp > 0) {
+        o.st.root = Math.max(o.st.root, pr.root);
+        this.vfx('ring', [o.pos[0], o.pos[1] + 0.05, o.pos[2]], 1.3, '#5eead4', 0.5, 0.12, 0.4);
+        this.addFx({ kind: 'text', x: o.pos[0], y: o.pos[1] + 2.4, z: o.pos[2], max: 0.9, r: 2, color: '#5eead4', text: '定身' });
+      }
+      if (done && pr.shape === 'watch') {
+        this.vfx('sparkBurst', [...pr.pos], 18, '#ffd36a', 3, 0.06, 'up', 0.7);
+        this.addFx({ kind: 'text', x: o.pos[0], y: o.pos[1] + 2.6, z: o.pos[2], max: 0.9, r: 2, color: '#ffd36a', text: 'Rolex!' });
+      }
+      if (done && SKILLS[pr.skill]?.projHit) SKILLS[pr.skill].projHit!(this, owner, o, pr);
+      if (!pr.pierce && !P) return void (pr.life = 0);
+    }
   }
 
   private zoneStep(dt: number) {
     for (const z of this.zones) {
       z.t -= dt;
+      z.age += dt;
       const sk = SKILLS[z.skill];
       const owner = this.fighters[z.owner];
       // a fallen caster's zones do nothing (a heal zone used to bring the dead back to life without a respawn)
@@ -961,6 +1236,30 @@ export class Sim {
   xpNeed() {
     return xpFor(this.progress.level);
   }
+}
+
+/** 六字真言's homing (the old game's glyphSteer, on plain numbers): drift out of the fan, then hunt harder and harder */
+export function glyphSteer(pos: number[], vel: number[], tx: number, ty: number, tz: number, age: number, dt: number) {
+  let wx = tx - pos[0], wy = ty - pos[1], wz = tz - pos[2];
+  const d = Math.hypot(wx, wy, wz);
+  if (age > 0.18 && d > 1e-3) {
+    const speed = Math.min(26, 11 + (age - 0.18) * 34);
+    wx *= speed / d;
+    wy *= speed / d;
+    wz *= speed / d;
+    const k = 1 - Math.exp(-dt * (4 + age * 10));
+    vel[0] += (wx - vel[0]) * k;
+    vel[1] += (wy - vel[1]) * k;
+    vel[2] += (wz - vel[2]) * k;
+  } else {
+    const k = Math.exp(-dt * 2.5);
+    vel[0] *= k;
+    vel[1] *= k;
+    vel[2] *= k;
+  }
+  pos[0] += vel[0] * dt;
+  pos[1] += vel[1] * dt;
+  pos[2] += vel[2] * dt;
 }
 
 /** turn angle a toward b by at most step */
