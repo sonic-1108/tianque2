@@ -7,6 +7,8 @@ import { GLTFLoader, SkeletonUtils, MeshoptDecoder } from 'three-stdlib';
 import type { Fighter } from '../game/types';
 import type { Sim } from '../game/sim';
 import { weaponsFor } from './weapons';
+import { buildUmbrella, type Umbrella } from './umbrella';
+import { applyGlidePose, collectLimbs, fistCentre, type Limbs } from './climbPose';
 import { applyCharacterShading } from './characterShading';
 
 const BASE = import.meta.env.BASE_URL + 'models/';
@@ -243,6 +245,20 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     return out;
   }, [mixer, model]);
   const cur = useRef('idle');
+  // gliding (Patagonia 起飞): arms up on the straps of an umbrella-glider that opens over the head
+  const glide = useMemo(() => {
+    const umb: Umbrella = buildUmbrella();
+    umb.group.visible = false;
+    return { umb, limbs: null as Limbs | null, blend: 0, t: 0, a: new THREE.Vector3(), b: new THREE.Vector3(), fwd: new THREE.Vector3() };
+  }, []);
+  useEffect(() => {
+    if (model) glide.limbs = collectLimbs(model.obj);
+    const g = group.current;
+    if (g) g.add(glide.umb.group);
+    return () => {
+      glide.umb.group.removeFromParent();
+    };
+  }, [model, glide]);
   const lastAct = useRef<{ act: string; anim: string; t: number }>({ act: '', anim: '', t: 0 });
 
   useFrame((_, dt) => {
@@ -292,6 +308,30 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
       actions.run?.setEffectiveTimeScale(Math.max(0.6, Math.min(1.6, sp / 6)));
     }
     mixer.update(dt);
+    // the glider: blend the arms up onto the straps, open the canopy above the fists
+    const gliding = f.act === 'glide' && f.hp > 0;
+    glide.blend += ((gliding ? 1 : 0) - glide.blend) * Math.min(1, dt * 8);
+    glide.t = gliding ? glide.t + dt : 0;
+    if (glide.limbs && glide.blend > 0.01) {
+      const lift = Math.min(1, glide.t / 0.5);
+      glide.fwd.set(-Math.sin(f.yaw), 0, -Math.cos(f.yaw));
+      g.updateMatrixWorld(true);
+      applyGlidePose(glide.limbs, glide.fwd, lift, glide.blend, performance.now() / 1000, 0.14);
+      g.updateMatrixWorld(true);
+      const u = glide.umb;
+      u.group.visible = glide.blend > 0.15;
+      fistCentre(glide.limbs, 0, glide.a);
+      fistCentre(glide.limbs, 1, glide.b);
+      g.worldToLocal(glide.a);
+      g.worldToLocal(glide.b);
+      const now = performance.now() / 1000;
+      u.group.position.copy(glide.a).add(glide.b).multiplyScalar(0.5);
+      u.group.position.y += 0.9;
+      u.group.rotation.set(Math.sin(now * 3.6) * 0.05 * lift, 0, Math.sin(now * 2.7) * 0.06 * lift);
+      // folded (a long narrow bundle) opening into the dome
+      u.canopy.scale.set(THREE.MathUtils.lerp(0.1, 1, lift), THREE.MathUtils.lerp(2.4, 1, lift), THREE.MathUtils.lerp(0.1, 1, lift));
+      u.shaft.scale.set(1, 1.08, 1);
+    } else glide.umb.group.visible = false;
   });
 
   return (
