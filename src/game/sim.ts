@@ -681,10 +681,10 @@ export class Sim {
     const F = this.fighters;
     for (let i = 0; i < F.length; i++) {
       const a = F[i];
-      if (a.hp <= 0 || a.act === 'burrow') continue;
+      if (a.hp <= 0 || a.act === 'burrow' || a.st.invuln > 0) continue; // a roll or a blink goes through bodies
       for (let j = i + 1; j < F.length; j++) {
         const b = F[j];
-        if (b.hp <= 0 || b.act === 'burrow') continue;
+        if (b.hp <= 0 || b.act === 'burrow' || (b.st.invuln > 0 && !b.master)) continue;
         const dx = b.pos[0] - a.pos[0];
         if (dx > 0.9 || dx < -0.9) continue;
         const dz = b.pos[2] - a.pos[2];
@@ -698,6 +698,9 @@ export class Sim {
         a.pos[2] -= (dz / d) * push * ka;
         b.pos[0] += (dx / d) * push * kb;
         b.pos[2] += (dz / d) * push * kb;
+        // shoved up a slope: onto the ground there, never left inside it
+        if (a.grounded) a.pos[1] = Math.max(a.pos[1], floorAt(a.pos[0], a.pos[2]));
+        if (b.grounded) b.pos[1] = Math.max(b.pos[1], floorAt(b.pos[0], b.pos[2]));
       }
     }
     for (const f of this.fighters) this.acts(f, dt);

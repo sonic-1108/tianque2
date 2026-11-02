@@ -968,11 +968,11 @@ export class VFXSystem {
     const pos = posIn.clone();
     for (let i = 0; i < 14; i++) {
       tmpV.set((Math.random() - 0.5) * 1.2, height * (3 + Math.random() * 4), (Math.random() - 0.5) * 1.2);
-      tmpV2.set(pos.x + (Math.random() - 0.5) * 0.4, 0.1, pos.z + (Math.random() - 0.5) * 0.4);
+      tmpV2.set(pos.x + (Math.random() - 0.5) * 0.4, pos.y + 0.1, pos.z + (Math.random() - 0.5) * 0.4);
       this.sparks.emit(tmpV2, tmpV, Math.random() < 0.3 ? '#fff1c9' : color, 0.12 + Math.random() * 0.12, 0.35 + Math.random() * 0.25, { drag: 2.5, gravity: 6 });
     }
     this.dustPuff(pos, 3, 0.3, 1.5, 0.6, '#5a4a40');
-    this.flash(new THREE.Vector3(pos.x, 0.8, pos.z), color, 10, 0.2, 5);
+    this.flash(new THREE.Vector3(pos.x, pos.y + 0.8, pos.z), color, 10, 0.2, 5);
   }
 
   /** Spiral of sparks thrown off a spinning body */
@@ -1029,7 +1029,7 @@ export class VFXSystem {
     d.life = life;
     d.maxLife = life;
     d.group.visible = true;
-    d.group.position.set(pos.x, 0, pos.z);
+    d.group.position.set(pos.x, pos.y, pos.z);
     d.group.rotation.y = Math.random() * Math.PI * 2;
     d.group.scale.set(size, 1, size);
   }
@@ -1193,7 +1193,7 @@ export class VFXSystem {
     this.monk.follow(slot, p);
     const sl = this.slots[slot];
     sl.vortex.group.position.set(p.x, p.y, p.z);
-    sl.pillar.group.position.set(p.x, 0, p.z);
+    sl.pillar.group.position.set(p.x, p.y - 1, p.z);
   }
 
   followPlayer(p: THREE.Vector3) {
@@ -1205,7 +1205,7 @@ export class VFXSystem {
     const pos = posIn.clone();
     this.sparkBurst(pos, heavy ? 34 : 18, color, heavy ? 9 : 6.5, heavy ? 0.12 : 0.09, dir, 0.9);
     this.flash(pos, heavy ? '#ffb46b' : '#ff8a4a', heavy ? 26 : 12, heavy ? 0.16 : 0.1, 6);
-    if (heavy) this.ring(new THREE.Vector3(pos.x, 0.04, pos.z), 1.3, color, 0.3, 0.18);
+    if (heavy) this.ring(new THREE.Vector3(pos.x, pos.y - 1.05, pos.z), 1.3, color, 0.3, 0.18);
   }
 
   groundSlam(posIn: THREE.Vector3, scale: number, color: THREE.ColorRepresentation = '#ff4a1c') {
@@ -1215,8 +1215,8 @@ export class VFXSystem {
     this.decal(pos, 3.6 * scale, 2.4);
     this.rocks(pos, Math.round(14 * scale), 6.5 * Math.sqrt(scale), 0.11 * Math.sqrt(scale));
     this.dustPuff(pos, Math.round(26 * scale), 1.0 * scale, 3.6 * scale, 0.8);
-    this.sparkBurst(new THREE.Vector3(pos.x, 0.3, pos.z), Math.round(30 * scale), color, 8, 0.11, UP, 1.4);
-    this.flash(tmpV.set(pos.x, 1.2, pos.z), '#ff9a4a', 40 * scale, 0.28, 10 * scale);
+    this.sparkBurst(new THREE.Vector3(pos.x, pos.y + 0.3, pos.z), Math.round(30 * scale), color, 8, 0.11, UP, 1.4);
+    this.flash(tmpV.set(pos.x, pos.y + 1.2, pos.z), '#ff9a4a', 40 * scale, 0.28, 10 * scale);
   }
 
   ultimateImpact(posIn: THREE.Vector3) {
@@ -1227,15 +1227,15 @@ export class VFXSystem {
     this.decal(pos, 7.0, 3.5);
     this.rocks(pos, 40, 10, 0.16);
     this.dustPuff(pos, 60, 2.2, 6.5, 1.2);
-    this.sparkBurst(new THREE.Vector3(pos.x, 0.4, pos.z), 110, '#ff6a1c', 13, 0.14, UP, 1.6);
+    this.sparkBurst(new THREE.Vector3(pos.x, pos.y + 0.4, pos.z), 110, '#ff6a1c', 13, 0.14, UP, 1.6);
     this.embers(pos, 50, '#ff8c3a', 2.5, 4, 0.08);
-    this.flash(tmpV.set(pos.x, 2, pos.z), '#ffd2a0', 120, 0.45, 18);
-    this.flash(tmpV.set(pos.x, 0.5, pos.z), '#ff5a1a', 60, 0.8, 14);
+    this.flash(tmpV.set(pos.x, pos.y + 2, pos.z), '#ffd2a0', 120, 0.45, 18);
+    this.flash(tmpV.set(pos.x, pos.y + 0.5, pos.z), '#ff5a1a', 60, 0.8, 14);
     this.later(0.14, () => this.ring(pos, 9.5, '#ffd08a', 0.8, 0.05));
     this.later(0.22, () => {
       for (let k = 0; k < 8; k++) {
         const a = (k / 8) * Math.PI * 2;
-        this.fireColumn(new THREE.Vector3(pos.x + Math.cos(a) * 3.6, 0, pos.z + Math.sin(a) * 3.6), 2.0);
+        this.fireColumn(new THREE.Vector3(pos.x + Math.cos(a) * 3.6, pos.y, pos.z + Math.sin(a) * 3.6), 2.0);
       }
     });
   }

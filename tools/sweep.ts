@@ -300,11 +300,11 @@ function moves(hero: HeroId | null) {
         if (sit === 'hit-mid' && Math.abs(t - (ult ? 0.5 : 0.25)) < DT / 2) s.hit(foe, p, 30, { knock: 5 });
         if (sit === 'die-mid' && Math.abs(t - 0.3) < DT / 2) s.hit(foe, p, 1e6, {});
         step(s, w, inp, null);
-        if ((p.cds[id] ?? 0) > 0) castSeen = true;
+        if ((p.cds[id] ?? 0) > 0 || p.run?.id === id) castSeen = true;
         foe.aiT = 99;
       }
       const tag = `${label} ${id} @${sit}`;
-      const blocked = ['rooted', 'stunned', 'kneel', 'daze', 'die-mid'].includes(sit) || (sit === 'air' && SKILLS[id].ground) || (sit === 'hit-mid' && ult) || (sit === 'no-foe' && ['drain_surplus', 'short_sell', 'thousand_shadows'].includes(id));
+      const blocked = ['rooted', 'stunned', 'kneel', 'daze', 'die-mid'].includes(sit) || (sit === 'air' && SKILLS[id].ground) || (sit === 'hit-mid' && ult) || (['no-foe', 'edge'].includes(sit) && ['drain_surplus', 'short_sell'].includes(id));
       if (!castSeen && !blocked && sit !== 'air') report('move did not go off', tag, `act ${p.act} hp ${p.hp.toFixed(0)} mp ${p.mp.toFixed(0)} bar ${s.progress.bar}`);
       if (castSeen && ['stunned', 'kneel', 'daze'].includes(sit) && !(id === 'patagonia' || id === 'burrow')) report('cast while disabled', tag, '');
       if (castSeen && sit === 'hit-mid' && ult) report('ultimate survived a hit while charging', tag, '');
@@ -364,6 +364,11 @@ function fights(hero: HeroId | null) {
       if (dd < 3 && rnd() < 0.2) inp.attack = true;
       if (rnd() < 0.03) inp.skills[Math.floor(rnd() * 5)] = true;
       if (rnd() < 0.01) inp.dodge = true;
+      // 穿云狙 raised: aim a moment, then fire (a human clicks)
+      if (p.run?.id === 'snipe') {
+        inp.move = [0, 0];
+        inp.attack = p.run.t > 1.6;
+      }
       if (s.progress.bar[5] && rnd() < 0.005) inp.skills[5] = true;
       inp.ultHeld = s.ultCharge !== null;
       step(s, w, inp, inp.move);

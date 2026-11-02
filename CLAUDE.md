@@ -12,9 +12,14 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
 - No sect camps or masters on the map (the owner said no).
 
 ## Code
-- `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks),
+- `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported
+  from 天阙 1: same timings, reach, damage, statuses; its `vfx.*` calls become `s.vfx(name, ...args)` commands in
+  `sim.vq`, run by `Juice.tsx`; emperor effects by key: `emp.dragon/charge/cage/seal/edict/fan`),
   `progress.ts` (levels, points, save in localStorage `tq2_progress_v2`), `heroes.ts`, `foes.ts`, `world.ts` (terrain).
-- `src/render/`: `Scene.tsx` (loop + camera), `Rig.tsx` (Mixamo models, clip plan), `World.tsx`, `Fx.tsx`.
+- `src/render/`: `Scene.tsx` (loop + camera, scope zoom), `Rig.tsx` (Mixamo models, clip plan: one key per move
+  `kr_* aq_* fy_* yr_* tz_* jy_* dx_*` with 天阙 1's clip choices, plus a pose layer for spins, flips, leans,
+  levitation), `World.tsx`, `Juice.tsx` (effects, sounds, shake, projectile meshes), `HouseFx.tsx` (地仙 / 交易员
+  world things drawn from zones), `vfx/` (天阙 1's VFXSystem, MonkFX, EmperorFX, ImperialFX, DragonFX; guard.glb).
 - `src/ui/`: `Hud.tsx`, `Panels.tsx` (start screen, skill tree). `src/input.ts`.
 - Models in `public/models` (Tripo + Mixamo rig); the 散人 borrows shadowblade.glb clips.
 
@@ -24,6 +29,9 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   `URL=http://localhost:4191/ node tools/tests/smoke.cjs` (every move) and `tools/tests/ai.cjs` (bandits fight, xp).
   巡检 (all start choices x walks to every den, every move in 14 situations, den fights, rules, soak):
   `npx tsx tools/sweep.ts` (~15 min, prints findings). Real software render screenshot: `tools/tests/shot.cjs` (SPOT=village|den|far).
-  Hooks: `__T2` (sim), `__T2_PRESS(code)`, `__T2_HOLD(code, on)`, `__T2_TURBO`.
+  Hooks: `__T2` (sim), `__T2_PRESS(code)`, `__T2_HOLD(code, on)`, `__T2_TURBO`, `__T2_VFX`.
+  Per move in plain node (dummy 5 m ahead, damage, first hit, statuses): `npx tsx tools/movecheck.ts [id ...]`.
+  One move's effect really rendered: `MOVE=true_dragon AT=0.4,1.2 OUT=/path/x node tools/tests/fxshot.cjs` (effects
+  run on sim time, so slow software frames still show the right moment).
 - Deploy = push to `main` (GitHub Pages workflow). Site: https://sonic-1108.github.io/tianque2/
 - Don't `pkill -f` a pattern that is in your own command line.

@@ -91,6 +91,7 @@ export interface Projectile {
   /** 回旋镖: the loop it flies (origin, forward, side, length, width, start height, target height, progress, time) */
   path?: { ox: number; oz: number; fx: number; fz: number; sx: number; sz: number; L: number; W: number; y0: number; ty: number; u: number; T: number; back: boolean; hitOut: boolean; hitBack: boolean };
   id?: number;
+}
 
 export interface Zone {
   owner: number;

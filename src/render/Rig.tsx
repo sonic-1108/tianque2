@@ -18,7 +18,7 @@ const TARGET_H = 1.8;
 const FPS = 24;
 /** models whose own clips are few: fighting moves come from these */
 const CLIP_SOURCE: Record<string, string[]> = {
-  'wanderer_m.glb': ['shadowblade.glb'],
+  'wanderer_m.glb': ['shadowblade.glb', 'monk.glb'], // the monk fills in the cheers, claps and stamps the 散人 borrows
   'trader.glb': ['berserker.glb'],
   'dixian.glb': ['berserker.glb'],
   'emperor.glb': ['berserker.glb'],
@@ -55,6 +55,41 @@ const PLAN: Record<string, Spec> = {
   skill_point: { match: ['angry_02', 'cast_a_spell', 'box_01'], start: 0.4, end: 0.85, fit: true },
   skill_raise: { match: ['cheer', 'agree', 'cast_a_spell'], start: 0, end: 0.6, fit: true },
   glide: { match: ['jump', 'fall'], start: 0.15, end: 0.25, loop: true, speed: 0.3 },
+  // ---- each move with the clip 天阙 1 gave it (its CharacterRig3D plans), whoever borrows it
+  kr_cleave: { match: ['slash', 'chop'], start: 0.25, end: 0.52, fit: true },
+  kr_spin: { match: ['box_03', 'box_02', 'slash'], start: 0.15, end: 0.45, loop: true, speed: 1.6 },
+  kr_charge: { match: ['run'], loop: true, speed: 1.9 },
+  kr_roar: { match: ['angry_01', 'angry_03', 'cheer'], start: 0.52, end: 0.82, fit: true },
+  kr_ult_air: { match: ['jump', 'flip'], start: 0.0, end: 0.17, speed: 0.35 },
+  kr_ult_slam: { match: ['slash', 'chop'], start: 0.27, end: 0.56 },
+  aq_boomerang: { match: ['slash', 'chop'], start: 0.22, end: 0.42, fit: true },
+  aq_pin: { match: ['pitch_baseball', 'chop', 'box_01'], start: 0.3, end: 0.54, fit: true },
+  aq_flip: { match: ['flip', 'jump', 'dive'], start: 0.0, end: 0.3, fit: true },
+  aq_aim: { match: ['angry_02', 'agree', 'shoot'], start: 0.0, end: 0.3, speed: 0.6 },
+  aq_shot: { match: ['shoot', 'pitch_baseball', 'box_01'], start: 0.3, end: 0.56, fit: true },
+  aq_rain: { match: ['box_01', 'box_03', 'pitch_baseball'], start: 0.08, end: 0.32, loop: true, speed: 2.2 },
+  fy_palm: { match: ['cast_a_spell', 'box_02'], start: 0.3, end: 0.72, fit: true },
+  fy_zen: { match: ['angry_01', 'angry_03'], start: 0.42, end: 0.8, fit: true },
+  fy_chant: { match: ['clap', 'bow', 'agree'], start: 0.08, end: 0.85, fit: true },
+  fy_bell: { match: ['angry_01', 'angry_03'], start: 0.3, end: 0.68, fit: true },
+  fy_ult: { match: ['sit', 'clap', 'standing_relax'], start: 0.3, end: 0.75, loop: true, speed: 0.3 },
+  yr_step: { match: ['slash', 'chop'], start: 0.28, end: 0.5, fit: true },
+  yr_knives: { match: ['pitch_baseball', 'shoot'], start: 0.3, end: 0.56, fit: true },
+  yr_chain: { match: ['cast_a_spell', 'agree'], start: 0.25, end: 0.6, fit: true },
+  yr_ult: { match: ['slash', 'chop'], start: 0.25, end: 0.5, loop: true, speed: 2.2 },
+  tz_edict: { match: ['angry_02', 'cast_a_spell'], start: 0.42, end: 0.88, fit: true },
+  tz_guard: { match: ['cheer', 'agree'], start: 0.0, end: 0.6, fit: true },
+  tz_seal: { match: ['angry_03', 'angry_01'], start: 0.3, end: 0.8, fit: true },
+  tz_cage: { match: ['slash', 'chop'], start: 0.22, end: 0.56, fit: true },
+  tz_dragon: { match: ['angry_01', 'cheer'], start: 0.3, end: 0.78, fit: true },
+  jy_throw: { match: ['box_02', 'box_03', 'pitch_baseball', 'angry_02'], start: 0.12, end: 0.47, fit: true },
+  jy_cash: { match: ['angry_01', 'agree'], start: 0.52, end: 0.82, fit: true },
+  jy_point: { match: ['angry_02', 'angry_01'], start: 0.4, end: 0.85, fit: true },
+  dx_breeze: { match: ['cheer', 'agree'], start: 0.0, end: 0.5, fit: true },
+  dx_drain: { match: ['agree', 'cast_a_spell'], start: 0.0, end: 0.6, fit: true },
+  dx_spring: { match: ['angry_03', 'angry_01'], start: 0.3, end: 0.8, fit: true },
+  dx_fold: { match: ['run'], loop: true, speed: 1.8 },
+  dx_ult: { match: ['cheer', 'agree'], start: 0.0, end: 0.6, fit: true },
   burrow: { match: ['sit', 'jump_down', 'dive'], start: 0.3, end: 0.5, loop: true, speed: 0.2 },
 };
 
@@ -92,6 +127,8 @@ const PLAN_BY_MODEL: Record<string, Record<string, Spec>> = {
 };
 const planOf = (model: string) => ({ ...PLAN, ...(PLAN_BY_MODEL[model] ?? (model === 'wanderer_m.glb' ? PLAN_BY_MODEL['shadowblade.glb'] : {})) });
 
+/** flips and spins turn about the hips, not the feet */
+const PIVOT = 0.95;
 const loader = new GLTFLoader();
 loader.setMeshoptDecoder(typeof MeshoptDecoder === 'function' ? (MeshoptDecoder as any)() : MeshoptDecoder);
 interface Loaded {
@@ -260,13 +297,15 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     };
   }, [model, glide]);
   const lastAct = useRef<{ act: string; anim: string; t: number }>({ act: '', anim: '', t: 0 });
+  const pose = useRef<THREE.Group>(null);
+  const body = useMemo(() => ({ spin: 0, lean: 0, lev: 0 }), []);
 
   useFrame((_, dt) => {
     const g = group.current;
     if (!g) return;
     const p = sim.player;
     const far = Math.hypot(f.pos[0] - p.pos[0], f.pos[2] - p.pos[2]) > 95;
-    g.visible = !far && !(f.team !== 'player' && f.hp <= 0 && f.actT > 3); // the fallen fade from the field until they come back
+    g.visible = !far && !(f.team !== 'player' && f.hp <= 0 && f.actT > 3) && !(f.team === 'player' && f.run?.id === 'snipe'); // the fallen fade from the field until they come back; down your own scope your body would block it
     if (!g.visible) return;
     g.position.set(f.pos[0], f.pos[1] - (f.act === 'burrow' ? 1.3 : 0), f.pos[2]);
     g.rotation.y = f.yaw + Math.PI;
@@ -284,7 +323,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     }
     // which clip: the anim key, falling back to something close
     let key = f.anim;
-    if (!actions[key]) key = key.startsWith('skill') ? 'skill_slash' : key === 'channel' ? 'skill_spell' : 'idle';
+    if (!actions[key]) key = /^(skill|kr_|aq_|fy_|yr_|tz_|jy_|dx_)/.test(key) ? 'skill_slash' : key === 'channel' ? 'skill_spell' : 'idle';
     if (!actions[key]) key = 'idle';
     const restarted = f.act !== lastAct.current.act || f.anim !== lastAct.current.anim || f.actT < lastAct.current.t - 0.01;
     lastAct.current = { act: f.act, anim: f.anim, t: f.actT };
@@ -308,6 +347,26 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
       actions.run?.setEffectiveTimeScale(Math.max(0.6, Math.min(1.6, sp / 6)));
     }
     mixer.update(dt);
+    // the whole-body layer 天阙 1 laid over the clips: the whirlwind's spin, somersaults, leaning into a charge,
+    // the monk floating while he meditates
+    const ps = pose.current;
+    if (ps) {
+      const rt = f.run?.t ?? 0;
+      if (f.anim === 'kr_spin') body.spin -= dt * 15;
+      else body.spin += (Math.round(body.spin / (Math.PI * 2)) * Math.PI * 2 - body.spin) * Math.min(1, dt * 14);
+      let flip = 0;
+      if (f.anim === 'kr_ult_air') flip = -Math.min(1, rt / 0.55) * Math.PI * 2;
+      else if (f.anim === 'aq_flip') flip = Math.min(1, rt / 0.5) * Math.PI * 2;
+      let lean = 0;
+      if (f.anim === 'kr_charge') lean = 0.32;
+      else if (f.anim === 'dx_fold') lean = 0.34;
+      else if (f.act === 'hit') lean = -0.12;
+      body.lean += (lean - body.lean) * Math.min(1, dt * 10);
+      const lev = f.anim === 'fy_ult' ? 0.45 + Math.sin(performance.now() * 0.003) * 0.05 : 0;
+      body.lev += (lev - body.lev) * Math.min(1, dt * 6);
+      ps.rotation.set(body.lean + flip, body.spin, 0, 'YXZ');
+      ps.position.y = PIVOT + body.lev;
+    }
     // the glider: blend the arms up onto the straps, open the canopy above the fists
     const gliding = f.act === 'glide' && f.hp > 0;
     glide.blend += ((gliding ? 1 : 0) - glide.blend) * Math.min(1, dt * 8);
@@ -336,7 +395,9 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
 
   return (
     <group ref={group}>
-      {model && <primitive object={model.obj} scale={model.scale} position={[0, model.floor, 0]} />}
+      <group ref={pose} position={[0, PIVOT, 0]}>
+        {model && <primitive object={model.obj} scale={model.scale} position={[0, model.floor - PIVOT, 0]} />}
+      </group>
       {!model && (
         <mesh position={[0, 0.9, 0]} castShadow>
           <capsuleGeometry args={[0.35, 1.1, 4, 8]} />

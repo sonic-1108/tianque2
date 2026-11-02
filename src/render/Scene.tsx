@@ -7,7 +7,7 @@ import { groundHeight, inBuilding } from '../game/world';
 import { readInput, takeMouse } from '../input';
 import { World } from './World';
 import { Rig } from './Rig';
-import { Fx } from './Fx';
+import { HouseFx } from './HouseFx';
 import { Juice, juice } from './Juice';
 import { Post } from './Post';
 
@@ -17,6 +17,7 @@ function Loop({ sim }: { sim: Sim }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const smooth = useRef(new THREE.Vector3());
   const init = useRef(false);
+  const scope = useRef(0);
   useFrame((_, dt) => {
     const m = takeMouse();
     cam.yaw -= m.dx * 0.0025;
@@ -67,7 +68,16 @@ function Loop({ sim }: { sim: Sim }) {
       camera.position.y += Math.cos(t * 1.7) * k;
       camera.rotation.z += Math.sin(t * 1.1) * k * 0.08;
     }
-    const fov = 62 + juice.kick;
+    // 穿云狙: down the scope, the view closes in
+    const scoped = sim.player.run?.id === 'snipe';
+    scope.current += ((scoped ? 1 : 0) - scope.current) * Math.min(1, dt * 10);
+    if (scope.current > 0.01) {
+      const fx = -Math.sin(cam.yaw), fz = -Math.cos(cam.yaw);
+      const eye = new THREE.Vector3(p[0] + fx * 0.25, p[1] + 1.62, p[2] + fz * 0.25);
+      camera.position.lerp(eye, scope.current);
+      camera.lookAt(eye.x + fx * 20, eye.y - Math.sin(cam.pitch - 0.25) * 6, eye.z + fz * 20);
+    }
+    const fov = 62 + juice.kick - scope.current * 40;
     if (Math.abs(camera.fov - fov) > 0.01) {
       camera.fov = fov;
       camera.updateProjectionMatrix();
@@ -85,7 +95,7 @@ export function Scene({ sim, version }: { sim: Sim; version: number }) {
       {sim.fighters.map((f) => (
         <Rig key={`${f.id}:${f.model}`} sim={sim} id={f.id} />
       ))}
-      <Fx sim={sim} />
+      <HouseFx sim={sim} />
       <Juice sim={sim} />
       <Post />
     </>
