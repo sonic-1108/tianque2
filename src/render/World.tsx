@@ -78,26 +78,61 @@ function Den({ i }: { i: number }) {
     <group>
       {stakes.map(([x, z], k) => (
         <mesh key={k} position={[x, groundHeight(x, z) + 0.7, z]} rotation={[0.15, k, 0]} castShadow>
-          <coneGeometry args={[0.18, 1.6, 5]} />
-          <meshStandardMaterial color="#5b3b22" />
+          <cylinderGeometry args={[0.07, 0.11, 1.6, 6]} />
+          <meshStandardMaterial color="#5b3b22" roughness={1} />
         </mesh>
       ))}
       {[0, 1, 2].map((k) => {
+        // a round canvas tent: low wall, a peaked roof, a dark door
         const a = k * 2.1 + i;
-        const x = d.x + Math.cos(a) * 11;
-        const z = d.z + Math.sin(a) * 11;
+        const x = d.x + Math.cos(a) * 10.5;
+        const z = d.z + Math.sin(a) * 10.5;
+        const ty = groundHeight(x, z);
+        const cloth = k === 0 ? '#8c7b5e' : k === 1 ? '#9b8a68' : '#7d6c52';
         return (
-          <mesh key={k} position={[x, groundHeight(x, z) + 0.95, z]} rotation={[0, a, 0]} castShadow receiveShadow>
-            <coneGeometry args={[1.6, 1.9, 6]} />
-            <meshStandardMaterial color={k === 0 ? '#7b6a52' : '#8a7a5c'} roughness={1} />
-          </mesh>
+          <group key={k} position={[x, ty, z]} rotation={[0, -a + Math.PI / 2, 0]}>
+            <mesh position={[0, 0.55, 0]} castShadow receiveShadow>
+              <cylinderGeometry args={[1.9, 2.0, 1.1, 18, 1, true]} />
+              <meshStandardMaterial color={cloth} roughness={1} side={THREE.DoubleSide} />
+            </mesh>
+            <mesh position={[0, 1.75, 0]} castShadow receiveShadow>
+              <coneGeometry args={[2.25, 1.4, 18, 1, true]} />
+              <meshStandardMaterial color={cloth} roughness={1} side={THREE.DoubleSide} />
+            </mesh>
+            <mesh position={[0, 2.55, 0]}>
+              <cylinderGeometry args={[0.05, 0.05, 0.5, 6]} />
+              <meshStandardMaterial color="#3a2a1a" />
+            </mesh>
+            <mesh position={[0, 0.5, -1.96]}>
+              <planeGeometry args={[0.8, 1]} />
+              <meshStandardMaterial color="#2a2118" side={THREE.DoubleSide} />
+            </mesh>
+          </group>
         );
       })}
-      {/* campfire */}
-      <mesh position={[d.x + 2.5, y + 0.25, d.z]}>
-        <coneGeometry args={[0.5, 0.8, 6]} />
-        <meshBasicMaterial color="#ff8a2a" />
-      </mesh>
+      {/* campfire: a ring of stones, crossed logs, the flame */}
+      <group position={[d.x + 2.5, y, d.z]}>
+        {Array.from({ length: 8 }, (_, k) => (
+          <mesh key={k} position={[Math.cos((k / 8) * Math.PI * 2) * 0.7, 0.1, Math.sin((k / 8) * Math.PI * 2) * 0.7]}>
+            <dodecahedronGeometry args={[0.18, 0]} />
+            <meshStandardMaterial color="#6f6a62" roughness={1} />
+          </mesh>
+        ))}
+        {[0, 1, 2].map((k) => (
+          <mesh key={k} position={[0, 0.15, 0]} rotation={[0, (k / 3) * Math.PI, Math.PI / 2]}>
+            <cylinderGeometry args={[0.07, 0.08, 1, 6]} />
+            <meshStandardMaterial color="#3b2a1c" roughness={1} />
+          </mesh>
+        ))}
+        <mesh position={[0, 0.45, 0]}>
+          <coneGeometry args={[0.32, 0.8, 8]} />
+          <meshBasicMaterial color="#ff9a3a" />
+        </mesh>
+        <mesh position={[0, 0.35, 0]}>
+          <coneGeometry args={[0.2, 0.5, 8]} />
+          <meshBasicMaterial color="#ffe08a" />
+        </mesh>
+      </group>
       <group position={[d.x - 3, y, d.z - 3]}>
         <mesh position={[0, d.boss ? 4 : 2.5, 0]} castShadow>
           <cylinderGeometry args={[0.08, 0.08, d.boss ? 8 : 5, 6]} />
@@ -147,7 +182,7 @@ function Sun({ sim }: { sim: Sim }) {
 export function World({ sim }: { sim: Sim }) {
   return (
     <>
-      <fog attach="fog" args={['#c3d3df', 180, 1500]} />
+      <fog attach="fog" args={['#bcccd8', 140, 1250]} />
       <hemisphereLight args={['#dfeeff', '#4b5a33', 0.85]} />
       <Sun sim={sim} />
       <Landscape sim={sim} />
