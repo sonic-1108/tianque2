@@ -10,6 +10,7 @@ import { Progress, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpF
 import { WANDERER, heroOf } from './heroes';
 import { SKILLS } from './skills';
 import { NPCS, QUESTS, type NpcRole } from './quests';
+import { FOLK } from './places';
 
 /** an ultimate goes off only after R is held this long (the owner's rule); letting go or a hit throws it away */
 export const ULT_CHARGE = 0.8;
@@ -131,6 +132,15 @@ export class Sim {
       (f as any).role = n.role;
       f.yaw = Math.atan2(n.x, n.z);
     }
+    // the folk of the village and the waystations
+    FOLK.forEach((n, i) => {
+      const f = this.make('npc', null, n.name, n.model, 10, n.x, n.z);
+      f.master = true;
+      f.st.invuln = 1e9;
+      (f as any).folk = i;
+      f.home = [n.x, n.z];
+      f.yaw = Math.atan2(n.x, n.z);
+    });
     DENS.forEach((d, di) => {
       const kind = FOE_KINDS[d.kind];
       const n = d.count + (d.boss ? 1 : 0);
@@ -850,7 +860,32 @@ export class Sim {
     const p = this.player;
     if (f.master) {
       (f as any).wish = [0, 0];
-      if (p.hp > 0 && this.dist(f, p) < 10) this.faceTo(f, p.pos[0], p.pos[2]);
+      const folk = (f as any).folk !== undefined ? FOLK[(f as any).folk] : null;
+      const talking = p.hp > 0 && this.dist(f, p) < (folk?.walk ? 4 : 10);
+      if (talking || this.fighters[this.dialog] === f) {
+        this.faceTo(f, p.pos[0], p.pos[2]);
+        return;
+      }
+      // a stroller: walks to a spot near home, stands a while, picks another
+      if (folk?.walk && f.home) {
+        const a = f as any;
+        if (!a.goal || (a.wait ?? 0) > 0) {
+          a.wait = (a.wait ?? 0) - dt;
+          if (a.wait <= 0 || !a.goal) {
+            const r = Math.random() * folk.walk, t = Math.random() * Math.PI * 2;
+            a.goal = [f.home[0] + Math.cos(t) * r, f.home[1] + Math.sin(t) * r];
+            a.wait = 0;
+          }
+          if (a.wait > 0) return;
+        }
+        const dx = a.goal[0] - f.pos[0], dz = a.goal[1] - f.pos[2];
+        const d = Math.hypot(dx, dz);
+        if (d < 0.6) {
+          a.wait = 2 + Math.random() * 5;
+          return;
+        }
+        a.wish = [(dx / d) * 0.3, (dz / d) * 0.3];
+      }
       return;
     }
     const home = f.home!;

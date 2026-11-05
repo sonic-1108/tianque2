@@ -3,12 +3,37 @@ import { useState } from 'react';
 import type { Sim } from '../game/sim';
 import { NPCS, QUESTS, TELLER_LINES } from '../game/quests';
 import { save } from '../game/progress';
+import { FOLK } from '../game/places';
 
 export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => void; onChange: () => void }) {
   const f = sim.fighters[sim.dialog];
   const role = (f as any)?.role as 'elder' | 'doctor' | 'teller' | undefined;
   const npc = NPCS.find((n) => n.role === role);
   const [line] = useState(() => TELLER_LINES[Math.floor(Math.random() * TELLER_LINES.length)]);
+  const folk = f && (f as any).folk !== undefined ? FOLK[(f as any).folk] : null;
+  const [pick] = useState(() => Math.random());
+  if (f && folk) {
+    const said = folk.lines[Math.floor(pick * folk.lines.length)];
+    return (
+      <div className="dialog">
+        <div className="dialog-name">{folk.name}</div>
+        <div className="dialog-body">{said}</div>
+        <div className="dialog-btns">
+          {folk.heal && (
+            <button
+              onClick={() => {
+                sim.healFull();
+                onChange();
+              }}
+            >
+              {folk.heal}
+            </button>
+          )}
+          <button onClick={onClose}>离开 (F)</button>
+        </div>
+      </div>
+    );
+  }
   if (!f || !npc) return null;
   const Q = sim.progress.quest;
   const q = QUESTS[Q.idx];

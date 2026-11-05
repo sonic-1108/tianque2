@@ -2,8 +2,9 @@
 // rivers and plains in the east, the village in the middle; noise adds the ridges and cliffs. Height is a pure function, so the sim, the renderer and the camera
 // all agree on where the ground is. Slopes steeper than MAX_SLOPE can't be walked up (the mountains are walls).
 import { DENS, DEN_R } from './foes';
-import { ROADS, nearTq, TQ_POS, TQ_ROT, TQ_TOP, tqWorld, TQ_Y, VILLAGE_R, WORLD_R } from './layout';
+import { ROADS, nearTq, TQ_POS, TQ_ROT, TQ_TOP, tqWorld, TQ_Y, VILLAGE_R, WORLD_R, TQ_ROAD, GD_ARCH_R, GD_PAV, GD_PAV_R, onGudao, roadFrame, roadPoint } from './layout';
 import { mapBig, mapRough, mapSnow, mapWater } from './mapsample';
+import { PLACES, PLACE_BOX, innHouses, nearPlace } from './places';
 export { WORLD_R, VILLAGE_R } from './layout';
 
 export const WATER_Y = -2; // lakes fill the ground below this
@@ -137,6 +138,13 @@ function rawHeight(x: number, z: number): number {
     const f = 1 - smooth(DEN_R, DEN_R + 40, dd);
     h += (padHeight(cx, cz) - h) * f;
   }
+  // the workshops and waystations stand on levelled yards
+  for (const p of PLACES) {
+    const dd = Math.hypot(x - p.x, z - p.z);
+    if (dd > p.pad + 26) continue;
+    const ph = p.kind === 'inn' ? padHeight(p.x, p.z) : 1.5;
+    h += (ph - h) * (1 - smooth(p.pad, p.pad + 26, dd));
+  }
   // 天阙: a mesa walled by cliffs; the road climbs to it along a ridge (the only way up)
   {
     const dd = Math.hypot(x - TQ_POS[0], z - TQ_POS[1]);
@@ -145,6 +153,13 @@ function rawHeight(x: number, z: number): number {
       const ramp = TQ_Y * (1 - smooth(TQ_TOP - 4, 210, dd)); // the climb: steepest about 0.6
       const tr = 1 - smooth(5, 16, pathDist(x, z));
       h = Math.max(h, mesa, ramp * tr);
+    }
+    // 望阙台: a flat lookout beside the climb, level with the road there
+    const dp = Math.hypot(x - GD_PAV[0], z - GD_PAV[1]);
+    if (dp < 24) {
+      const [rx, rz] = roadPoint(TQ_ROAD, GD_PAV_R);
+      const top = TQ_Y * (1 - smooth(TQ_TOP - 4, 210, Math.hypot(rx - TQ_POS[0], rz - TQ_POS[1])));
+      h = Math.max(h, top * (1 - smooth(9, 22, dp)) + (h * smooth(9, 22, dp)));
     }
   }
   // the edge of the map: a wall of peaks
@@ -248,10 +263,23 @@ export const BUILDINGS: Building[] = (() => {
     const z = z0 + ux * 12;
     out.push({ x, z, rot: Math.atan2(uz, -ux), hx: 0.46 * P, hz: 0.44 * P, h: 0.96 * P, model: 'pavilion.glb', scale: P });
   }
+  // the workshops and inns (drawn by render/Places.tsx), and the two houses at each waystation
+  for (const p of PLACES) {
+    const b = PLACE_BOX[p.kind];
+    out.push({ x: p.x, z: p.z, rot: p.rot, hx: b.hx, hz: b.hz, h: b.h, model: '', scale: 1 });
+    if (p.kind === 'inn') for (const hs of innHouses(p)) out.push({ x: hs.x, z: hs.z, rot: hs.rot, hx: 0.49 * S + 0.3, hz: 0.41 * S + 0.3, h: 0.66 * S, model: 'house.glb', scale: S });
+  }
   // 天阙 (drawn by render/Tianque.tsx; these are only the solid footprints, in its frame, see TQ_PARTS)
   for (const t of TQ_PARTS) {
     const [x, z] = tqWorld(t.x, t.z);
     out.push({ x, z, rot: TQ_ROT, hx: t.hx, hz: t.hz, h: t.h, model: '', scale: 1, posts: t.posts });
+  }
+  // 天阙古道: the stone arch at the foot of the climb (two pillars each side of the road) and the lookout pavilion
+  {
+    const f = roadFrame(TQ_ROAD, GD_ARCH_R);
+    out.push({ x: f.x, z: f.z, rot: f.rot, hx: 7, hz: 1, h: 9, model: '', scale: 1, posts: [[-6.2, 0, 0.75], [-3.4, 0, 0.6], [3.4, 0, 0.6], [6.2, 0, 0.75]] });
+    const g = roadFrame(TQ_ROAD, GD_PAV_R);
+    out.push({ x: GD_PAV[0], z: GD_PAV[1], rot: g.rot, hx: 4, hz: 4, h: 6, model: '', scale: 1, posts: [[-3.4, -3.4, 0.4], [3.4, -3.4, 0.4], [-3.4, 3.4, 0.4], [3.4, 3.4, 0.4]] });
   }
   // the low wall round the mesa's top (keeps bodies from walking off the cliff), open at the gate
   for (const w of tqWall()) {
@@ -336,7 +364,7 @@ export const TREES: Tree[] = (() => {
     if (noise(x * 0.008 + 9, z * 0.008 - 4) < -0.05) continue;
     if (CAMPS.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < DEN_R + 8)) continue;
     if (nearTq(x, z, 52) || BUILDINGS.some((b) => Math.hypot(b.x - x, b.z - z) < Math.max(b.hx, b.hz) + 7)) continue;
-    if (pathDist(x, z) < 7) continue;
+    if (pathDist(x, z) < 7 || onGudao(x, z, pathDist(x, z)) || nearPlace(x, z, 4)) continue;
     const h = groundHeight(x, z);
     if (h < WATER_Y + 0.5 || h > SNOW_Y + 10) continue;
     if (slopeAt(x, z) > 0.9) continue;

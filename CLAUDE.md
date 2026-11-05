@@ -10,6 +10,11 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
 - Ultimates must be held on R for 0.8 s (ULT_CHARGE); letting go or a hit cancels with nothing spent.
 - Open map: village in the middle, bandit dens on three rings (src/game/foes.ts), harder further out, a boss den per ring.
 - No sect camps or masters on the map (the owner said no).
+- Places (`src/game/places.ts`, drawn by `render/Places.tsx`): beyond the village fence 张记铁铺, 杏花酒肆, 土地庙; a
+  驿站 on every road (inn, two house.glb, fenced yard, 驿 on the minimap). `FOLK`: unarmed, unhurtable villagers and
+  travellers who stand or stroll (`walk`), talk on F; innkeepers and 杏娘 heal (`heal`). Yards are levelled in rawHeight.
+- 天阙古道 (`render/Gudao.tsx`, `GD_*` / `roadFrame` / `onGudao` in layout.ts): the last climb of road 4, tilted
+  flagstones, a stone arch (天阙 board) and stele at its foot, stone lanterns, 望阙台 terrace with a pavilion.
 - The story (`src/game/quests.ts`, the owner asked for one): 序章 青石村, 第一章 山雨欲来, 第二章 七家散落, 第三章 雪线之下,
   终章 天阙. You are the lost child of 天阙's keeper; ring bosses 雷彪, 玄阴真人, 无面; the last boss 伪帝 · 萧承乾 waits on
   天阙, a palace on a cliff mesa at the end of road 4 (`TQ_*` in layout.ts, mesa in world.ts rawHeight, footprints

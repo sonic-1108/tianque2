@@ -6,6 +6,8 @@ import { useFrame } from '@react-three/fiber';
 import { BUILDINGS, groundHeight } from '../game/world';
 import { Landscape } from './Terrain';
 import { Tianque } from './Tianque';
+import { Gudao } from './Gudao';
+import { Places } from './Places';
 import { Builder, Built } from './build';
 import { ROADS } from '../game/layout';
 import { DENS, DEN_R, FOE_KINDS } from '../game/foes';
@@ -353,6 +355,8 @@ export function World({ sim }: { sim: Sim }) {
       <Landscape sim={sim} />
       <Village />
       <Tianque />
+      <Gudao />
+      <Places />
       <Dens />
     </>
   );

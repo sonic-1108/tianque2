@@ -46,15 +46,15 @@ export class Builder {
     this.add(m, new THREE.CylinderGeometry(r, r * 1.05, h, seg), x, y + h / 2, z);
   }
   /** a hip roof with flared eaves: a wide shallow skirt under a steeper top, both four sided */
-  roof(x: number, y: number, z: number, w: number, d: number, h: number, o = 2.2) {
+  roof(x: number, y: number, z: number, w: number, d: number, h: number, o = 2.2, m: Mat = 'roof') {
     const skirt = new THREE.CylinderGeometry(0.62, 1, 1, 4, 1, true);
     skirt.rotateY(Math.PI / 4);
     skirt.scale((w + 2 * o) / Math.SQRT2, h * 0.32, (d + 2 * o) / Math.SQRT2);
-    this.add('roof', skirt, x, y + h * 0.16, z);
+    this.add(m, skirt, x, y + h * 0.16, z);
     const top = new THREE.CylinderGeometry(0.08, 1, 1, 4, 1);
     top.rotateY(Math.PI / 4);
     top.scale(((w + 2 * o) * 0.62) / Math.SQRT2, h * 0.72, ((d + 2 * o) * 0.62) / Math.SQRT2);
-    this.add('roof', top, x, y + h * 0.32 + h * 0.36, z);
+    this.add(m, top, x, y + h * 0.32 + h * 0.36, z);
     // the ridge and its two end ornaments
     this.box('ridge', x, y + h * 0.98, z, Math.max(1, (w - d) * 0.6), 0.5, 0.5);
     for (const s of [-1, 1]) this.box('ridge', x + s * Math.max(0.5, (w - d) * 0.3), y + h * 0.98, z, 0.5, 1.4, 0.5);
@@ -113,6 +113,16 @@ export class Builder {
     this.box('stone', x, y + 1.4, z, 0.7, 0.2, 0.7);
     this.box('paper', x, y + 1.6, z, 0.45, 0.5, 0.45);
     this.box('stone', x, y + 2.1, z, 0.85, 0.22, 0.85);
+  }
+  /** another builder's shapes (made round its own origin), turned and moved into this one */
+  merge(o: Builder, x: number, y: number, z: number, ry = 0) {
+    for (const [m, gs] of Object.entries(o.parts))
+      for (const g of gs) {
+        const c = g.clone();
+        c.rotateY(ry);
+        c.translate(x, y, z);
+        (this.parts[m] ||= []).push(c);
+      }
   }
   build() {
     const out: { m: Mat; g: THREE.BufferGeometry }[] = [];

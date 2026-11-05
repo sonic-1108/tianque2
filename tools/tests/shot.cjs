@@ -4,7 +4,7 @@ const { chromium } = require(process.env.PW || '/opt/npm-tools/node_modules/play
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-dev-shm-usage'] });
   const p = await b.newPage({ viewport: { width: 960, height: 540 } });
   p.on('pageerror', (e) => console.log('PE', e.message.slice(0, 200)));
-  await p.addInitScript(() => { localStorage.clear(); globalThis.__T2_NOCARD = true; });
+  await p.addInitScript((at) => { localStorage.clear(); globalThis.__T2_NOCARD = true; globalThis.__AT = at; }, (process.env.AT || '0,0,0,0').split(',').map(Number));
   await p.goto((process.env.URL || 'http://localhost:4192/') + '?silent=1');
   await p.waitForSelector('.pick');
   await p.click(`.pick:nth-child(${+(process.env.PICK || 1)})`);
@@ -22,6 +22,7 @@ const { chromium } = require(process.env.PW || '/opt/npm-tools/node_modules/play
     if (spot === 'tqfar') { me.pos = [tq.far[0], 0, tq.far[1]]; }
     if (spot === 'tqroad') { me.pos = [tq.road[0], 0, tq.road[1]]; }
     if (spot.startsWith('tq')) setTimeout(() => look(tq.c[0], tq.c[1]), 0);
+    if (spot === 'at') { const [x, z, lx, lz] = globalThis.__AT; me.pos = [x, 0, z]; me.st.invuln = 999; setTimeout(() => look(lx, lz), 0); }
     if (spot === 'village2') { me.pos = [6, 0, 26]; setTimeout(() => look(0, 0), 0); }
     me.pos[1] = globalThis.__T2_GROUND(me.pos[0], me.pos[2]);
   }, process.env.SPOT || 'village');

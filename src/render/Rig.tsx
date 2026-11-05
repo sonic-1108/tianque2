@@ -227,6 +227,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
         });
         const glow = new THREE.Color(f.team === 'player' ? '#ff3b1f' : '#7dd3fc');
         const w = weaponsFor(f.model, glow);
+        if ((f as any).folk !== undefined) w.right = w.left = w.staff = undefined as any; // villagers go unarmed
         const held: THREE.Object3D[] = [];
         if (w.right && bones.righthand) {
           w.right.rotation.set(0, 0, w.reverse ? -Math.PI / 2 : Math.PI / 2);
@@ -391,6 +392,9 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
       u.canopy.scale.set(THREE.MathUtils.lerp(0.1, 1, lift), THREE.MathUtils.lerp(2.4, 1, lift), THREE.MathUtils.lerp(0.1, 1, lift));
       u.shaft.scale.set(1, 1.08, 1);
     } else glide.umb.group.visible = false;
+    // both hands are on the umbrella's shaft while gliding: the weapon they hold is put away (it used to poke out of the canopy)
+    const stow = glide.umb.group.visible;
+    if (held) for (const h of held) if (h.visible === stow) h.visible = !stow;
   });
 
   return (

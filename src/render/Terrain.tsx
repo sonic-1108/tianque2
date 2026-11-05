@@ -6,7 +6,8 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { Sky, mergeVertices } from 'three-stdlib';
 import { SNOW_Y, TREES, VILLAGE_R, WATER_Y, WORLD_R, groundHeight, noise, pathDist, slopeAt } from '../game/world';
 import { DENS, DEN_R } from '../game/foes';
-import { nearTq } from '../game/layout';
+import { nearTq, onGudao } from '../game/layout';
+import { PLACES, nearPlace } from '../game/places';
 import type { Sim } from '../game/sim';
 
 const CH = 125;
@@ -27,6 +28,11 @@ function maskAt(x: number, z: number, h: number, out: THREE.Color) {
     if (Math.abs(d.x - x) > DEN_R + 8 || Math.abs(d.z - z) > DEN_R + 8) continue;
     const dd = Math.hypot(d.x - x, d.z - z);
     if (dd < DEN_R + 8) bare = Math.max(bare, Math.min(1, (DEN_R + 8 - dd) / 8));
+  }
+  for (const p of PLACES) {
+    if (Math.abs(p.x - x) > p.pad + 6 || Math.abs(p.z - z) > p.pad + 6) continue;
+    const dd = Math.hypot(p.x - x, p.z - z);
+    if (dd < p.pad + 6) bare = Math.max(bare, Math.min(1, (p.pad + 6 - dd) / 8) * 0.8);
   }
   const shore = h < WATER_Y + 1.4 ? Math.min(1, (WATER_Y + 1.4 - h) / 1.2) : 0;
   out.setRGB(road, bare, shore);
@@ -141,10 +147,16 @@ grass = mix(grass, mix(vec3(0.85, 0.82, 0.55), vec3(0.75, 0.55, 0.75), step(0.5,
 vec3 earth = mix(vec3(0.360, 0.290, 0.200), vec3(0.480, 0.400, 0.290), mid);
 earth *= 0.85 + 0.25 * mix(0.5, small, fine) + 0.12 * (tiny - 0.5) * fine;
 // rock: grey with darker bands along the strata and lichen patches
-float strata = sin(vWP.y * 1.3 + mid * 6.0 + vWP.x * 0.05) * 0.5 + 0.5;
-vec3 rock = mix(vec3(0.330, 0.320, 0.300), vec3(0.520, 0.500, 0.470), mid);
-rock *= 0.78 + 0.22 * strata + 0.15 * (small - 0.5);
-rock = mix(rock, vec3(0.40, 0.42, 0.28), smoothstep(0.62, 0.8, fbm(vWP.xz * 0.3)) * 0.35);
+// on a steep face the ground's xz noise stretches into streaks: there it's read across the face instead
+vec2 tng = normalize(vec2(-vWN.z, vWN.x) + vec2(1e-4, 0.0));
+vec2 face = mix(vWP.xz, vec2(dot(vWP.xz, tng), vWP.y), smoothstep(0.35, 0.7, slope));
+float rmid = fbm(face * 0.045);
+float rsmall = vn(face * 0.6);
+float rtiny = vn(face * 3.7);
+float strata = sin(vWP.y * 1.3 + rmid * 6.0 + face.x * 0.05) * 0.5 + 0.5;
+vec3 rock = mix(vec3(0.330, 0.320, 0.300), vec3(0.520, 0.500, 0.470), rmid);
+rock *= 0.78 + 0.22 * strata + 0.15 * (rsmall - 0.5) + 0.1 * (rtiny - 0.5) * fine;
+rock = mix(rock, vec3(0.40, 0.42, 0.28), smoothstep(0.62, 0.8, fbm(face * 0.3)) * 0.35 * (1.0 - smoothstep(0.5, 0.8, slope)));
 // snow, bluish where it faces away from the sun
 vec3 snow = mix(vec3(0.80, 0.85, 0.92), vec3(0.96, 0.97, 0.99), smoothstep(-0.2, 0.6, vWN.x * 0.6 + vWN.y * 0.4));
 // sand at the water
@@ -377,7 +389,7 @@ function Rocks() {
       const z = (hash(k * 1.3, 9.1) * 2 - 1) * R;
       const h = groundHeight(x, z);
       if (h < WATER_Y + 0.5 || Math.hypot(x, z) < VILLAGE_R + 15 || pathDist(x, z) < 3.5) continue;
-      if (nearTq(x, z, 47) || DENS.some((d) => Math.hypot(d.x - x, d.z - z) < DEN_R + 4)) continue;
+      if (nearTq(x, z, 47) || onGudao(x, z, pathDist(x, z)) || nearPlace(x, z, 2) || DENS.some((d) => Math.hypot(d.x - x, d.z - z) < DEN_R + 4)) continue;
       const sl = slopeAt(x, z);
       const want = sl > 0.35 ? 0.9 : h > 40 ? 0.6 : pathDist(x, z) < 12 ? 0.5 : 0.18;
       if (hash(x, z) > want) continue;
@@ -497,6 +509,9 @@ transformed.z += sway * 0.08 * uv.y;`,
     const Y = new THREE.Vector3(0, 1, 0);
     const S = 0.92;
     let n = 0;
+    const near = DENS.filter((d) => Math.abs(d.x - cx) < GRASS_R + DEN_R + 4 && Math.abs(d.z - cz) < GRASS_R + DEN_R + 4);
+    const town = Math.hypot(cx, cz) < GRASS_R + VILLAGE_R + 8;
+    const tq = nearTq(cx, cz, 300);
     for (let gx = Math.floor((cx - GRASS_R) / S); gx <= Math.ceil((cx + GRASS_R) / S) && n < GRASS_N; gx++)
       for (let gz = Math.floor((cz - GRASS_R) / S); gz <= Math.ceil((cz + GRASS_R) / S) && n < GRASS_N; gz++) {
         const x = (gx + hash(gx, gz)) * S, z = (gz + hash(gz, gx)) * S;
@@ -505,13 +520,15 @@ transformed.z += sway * 0.08 * uv.y;`,
         // thinner towards the edge of the patch, and in the dry places
         const dens = hash(gx * 1.7, gz * 2.3);
         if (dens > 1 - dd / GRASS_R * 0.55) continue;
+        if (town && Math.hypot(x, z) < VILLAGE_R + 6) continue;
+        let skip = false;
+        for (const d of near) if (Math.hypot(d.x - x, d.z - z) < DEN_R + 3) skip = true;
+        if (skip) continue;
         const h = groundHeight(x, z);
         if (h < WATER_Y + 0.4 || h > SNOW_Y - 20) continue;
-        if (pathDist(x, z) < 3.2 || Math.hypot(x, z) < VILLAGE_R + 6) continue;
-        if (slopeAt(x, z) > 0.55 || nearTq(x, z, 46)) continue;
-        let skip = false;
-        for (const d of DENS) if (Math.abs(d.x - x) < DEN_R + 3 && Math.abs(d.z - z) < DEN_R + 3 && Math.hypot(d.x - x, d.z - z) < DEN_R + 3) skip = true;
-        if (skip) continue;
+        const pd = pathDist(x, z);
+        if (pd < 3.2 || (tq && (nearTq(x, z, 46) || onGudao(x, z, pd)))) continue;
+        if (slopeAt(x, z) > 0.55 || nearPlace(x, z, -3)) continue;
         q.setFromAxisAngle(Y, hash(x, z) * 6.28);
         // smaller toward the patch's rim, so it ends softly instead of in a ring
         const s = (0.6 + hash(z, x) * 0.75) * (1 - smoothstep(GRASS_R * 0.6, GRASS_R, dd) * 0.7);

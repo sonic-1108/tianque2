@@ -7,6 +7,7 @@ import { SKILLS } from '../game/skills';
 import { DENS, FOE_KINDS, bossNameOf, menNameOf } from '../game/foes';
 import { WORLD_R } from '../game/world';
 import { ROADS } from '../game/layout';
+import { PLACES } from '../game/places';
 import { NPCS, QUESTS, questTarget } from '../game/quests';
 import { heroOf } from '../game/heroes';
 import { spFree } from '../game/progress';
@@ -69,6 +70,18 @@ function Minimap({ sim }: { sim: Sim }) {
         g.strokeStyle = d.boss ? '#ff4040' : '#000';
         g.lineWidth = 1;
         g.stroke();
+      }
+      // waystations: a small house mark (rest there)
+      g.font = 'bold 9px serif';
+      for (const pl of PLACES) {
+        if (pl.kind !== 'inn') continue;
+        g.fillStyle = '#f1e2bd';
+        g.strokeStyle = '#3a2a10';
+        g.lineWidth = 1;
+        g.fillRect(X(pl.x) - 5, Z(pl.z) - 5, 10, 10);
+        g.strokeRect(X(pl.x) - 5, Z(pl.z) - 5, 10, 10);
+        g.fillStyle = '#5a2a10';
+        g.fillText('驿', X(pl.x) - 4.5, Z(pl.z) + 3.5);
       }
       const qt = questTarget(sim);
       if (qt) {
