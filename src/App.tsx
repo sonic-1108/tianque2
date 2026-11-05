@@ -9,7 +9,8 @@ import { chooseHero } from './game/progress';
 import { Scene } from './render/Scene';
 import { Hud } from './ui/Hud';
 import { SkillTree, StartScreen } from './ui/Panels';
-import { Dialog } from './ui/Dialog';
+import { TQ_POS, TQ_ROAD, roadPoint, tqWorld } from './game/layout';
+import { Dialog, ChapterCard, chapterDue } from './ui/Dialog';
 import { attachInput, ui } from './input';
 
 declare const __BUILD_TIME__: string;
@@ -24,6 +25,8 @@ export function App() {
   (globalThis as any).__T2 = sim;
   (globalThis as any).__T2_SKILLS = SKILLS;
   (globalThis as any).__T2_GROUND = groundHeight;
+  (globalThis as any).__T2_TQ = { c: TQ_POS, gate: tqWorld(0, 30), far: roadPoint(TQ_ROAD, 560), road: roadPoint(TQ_ROAD, 735) };
+  const card = started && !tree && chapterDue(sim);
 
   useEffect(() => {
     if (!started || !wrap.current) return;
@@ -36,9 +39,9 @@ export function App() {
     return () => clearInterval(id);
   }, []);
   useEffect(() => {
-    ui.open = tree || !started || sim.dialog >= 0;
+    ui.open = tree || !started || sim.dialog >= 0 || card;
     if (ui.open && document.pointerLockElement) document.exitPointerLock();
-  }, [tree, started, tick >= 0 && sim.dialog >= 0]);
+  }, [tree, started, tick >= 0 && sim.dialog >= 0, card]);
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       if (!started) return;
@@ -71,6 +74,7 @@ export function App() {
           </Canvas>
           <Hud sim={sim} tick={tick} />
           {sim.dialog >= 0 && !tree && <Dialog sim={sim} onClose={() => (sim.dialog = -1)} onChange={() => setTick((n) => n + 1)} />}
+          {card && <ChapterCard sim={sim} onClose={() => setTick((n) => n + 1)} />}
           {tree && <SkillTree sim={sim} onClose={() => setTree(false)} onHero={() => setVersion((v) => v + 1)} />}
           {!document.pointerLockElement && !tree && <div className="lockhint">点击画面开始（锁定鼠标转视角）</div>}
           <div className="build">tianque2 · {new Date(__BUILD_TIME__).toLocaleString()}</div>

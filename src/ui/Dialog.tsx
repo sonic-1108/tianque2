@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import type { Sim } from '../game/sim';
 import { NPCS, QUESTS, TELLER_LINES } from '../game/quests';
+import { save } from '../game/progress';
 
 export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => void; onChange: () => void }) {
   const f = sim.fighters[sim.dialog];
@@ -23,10 +24,18 @@ export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => vo
     buttons.push({ label: `交付任务（经验 +${q.xp}）`, go: () => sim.turnInQuest() });
   } else if (!q && role === 'elder') body = '青石村的山贼都清干净了。江湖还大，往后的路你自己走。';
   if (role === 'doctor') {
-    if (Q.state === 'ready' && q?.goal.type === 'talk' && q.goal.npc === 'doctor') body = '村长让你来的吧？以后受了伤就来，我给你治。';
+    if (Q.state === 'ready' && q?.goal.type === 'talk' && q.goal.npc === 'doctor')
+      body =
+        q.title === '玉佩'
+          ? '你看这本旧医书，这一页画的就是它：天阙守阙人的信物。\n守阙人一家，二十年前那一夜全死了，只有一个婴儿下落不明。\n……石伯捡到你，也是那年冬天。'
+          : '石伯让你来的？这些伤药你带着。\n你这块玉佩……我好像在哪本旧医书里见过。等我翻翻。\n以后受了伤就来，我给你治。';
     buttons.push({ label: '请郎中治伤（回满生命和内力）', go: () => sim.healFull() });
   }
-  if (role === 'teller') body = (q?.goal.type === 'talk' && q.goal.npc === 'teller' ? '村长让你来打听消息？好，听着：\n\n' : '') + line;
+  if (role === 'teller')
+    body =
+      q?.goal.type === 'talk' && q.goal.npc === 'teller'
+        ? '石伯让你来听天阙的事？好，听着。\n\n' + TELLER_LINES.slice(0, 3).join('\n\n') + '\n\n雷彪那封信上的印？那是天阙的金印。可盖印的人，不该还活着。'
+        : line;
   return (
     <div className="dialog">
       <div className="dialog-name">{npc.name}</div>
@@ -45,6 +54,40 @@ export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => vo
         ))}
         <button onClick={onClose}>离开 (F)</button>
       </div>
+    </div>
+  );
+}
+
+/** a chapter's opening card is due: its first quest is up and the card hasn't been shown */
+export function chapterDue(sim: Sim) {
+  if ((globalThis as any).__T2_NOCARD) return false; // headless tests
+  const P = sim.progress;
+  const q = QUESTS[P.quest.idx];
+  return !!q?.chapter && P.quest.state === 'offered' && P.chapterSeen !== P.quest.idx;
+}
+/** the chapter card: its name, then the narration line by line */
+export function ChapterCard({ sim, onClose }: { sim: Sim; onClose: () => void }) {
+  const P = sim.progress;
+  const q = QUESTS[P.quest.idx];
+  if (!q?.chapter) return null;
+  const close = () => {
+    P.chapterSeen = P.quest.idx;
+    save(P);
+    onClose();
+  };
+  return (
+    <div className="chapter" onClick={close}>
+      <div className="chapter-name">{q.chapter.name}</div>
+      <div className="chapter-text">
+        {q.chapter.text.split('\n').map((l, i) => (
+          <p key={i} style={{ animationDelay: `${0.6 + i * 1.1}s` }}>
+            {l}
+          </p>
+        ))}
+      </div>
+      <button className="chapter-go" style={{ animationDelay: `${0.8 + q.chapter.text.split('\n').length * 1.1}s` }}>
+        继续
+      </button>
     </div>
   );
 }

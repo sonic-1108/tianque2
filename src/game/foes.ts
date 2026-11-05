@@ -1,7 +1,7 @@
 // What lives out there: bandit dens scattered over the map, tougher the further from the village. Each den is one
 // kind of outlaw, fighting with one house's moves (the models are the old heroes' bodies).
 import type { SectId } from './types';
-import { ROAD_N, roadAngle, roadPoint } from './layout';
+import { ROAD_N, roadAngle, roadPoint, tqWorld } from './layout';
 import { mapWater } from './mapsample';
 
 export interface FoeKind {
@@ -18,7 +18,7 @@ export const FOE_KINDS: FoeKind[] = [
   { name: '飞镖客', model: 'ranger.glb', house: 'anqi', ranged: true, color: '#2dd4bf', skills: ['pin_dart', 'boomerang', 'swallow_flip'] },
   { name: '野和尚', model: 'monk.glb', house: 'fanyin', ranged: false, color: '#f5b942', skills: ['vajra_palm', 'zen_domain', 'six_syllable_mantra'] },
   { name: '刺客', model: 'shadowblade.glb', house: 'yingren', ranged: false, color: '#a78bfa', skills: ['shadow_step', 'fan_knives', 'burrow'] },
-  { name: '伪帝', boss: '伪帝 · 称孤道寡', model: 'emperor.glb', house: 'tianzi', ranged: false, color: '#ffd36a', skills: ['edict', 'jade_seal', 'phantom_guard'] },
+  { name: '伪朝兵', model: 'emperor.glb', house: 'tianzi', ranged: false, color: '#ffd36a', skills: ['edict', 'jade_seal', 'phantom_guard'] },
   { name: '骗子', model: 'trader.glb', house: 'jiaoyi', ranged: true, color: '#4ade80', skills: ['rolex_throw', 'make_it_rain'] },
   { name: '妖道', model: 'dixian.glb', house: 'dixian', ranged: false, color: '#86efac', skills: ['drain_surplus', 'earth_spring', 'qingfeng'] },
 ];
@@ -32,7 +32,21 @@ export interface Den {
   boss: boolean;
   road: number; // the road it sits beside
   r: number; // how far along that road
+  ring: number; // 0, 1, 2 out from the village; 3 = 天阙
+  name?: string; // the men's name when it isn't the kind's
+  bossName?: string;
+  peak?: boolean; // 天阙: on the mesa (the ground isn't flattened to the valley floor)
 }
+/** the story's bosses: one per ring (the ring's last den), then the false emperor on 天阙 */
+const RING_BOSS: { kind: number; bossName: string }[] = [
+  { kind: 0, bossName: '黑风寨主 · 雷彪' },
+  { kind: 6, bossName: '玄阴真人' },
+  { kind: 3, bossName: '影阁主 · 无面' },
+];
+export const TQ_DEN = 21;
+/** the name a den's boss goes by */
+export const bossNameOf = (d: Den) => d.bossName ?? FOE_KINDS[d.kind].boss ?? FOE_KINDS[d.kind].name + '头目';
+export const menNameOf = (d: Den) => d.name ?? FOE_KINDS[d.kind].name;
 export const DEN_R = 14;
 
 /** three rings of dens out along the roads (just off them), tougher further out; one boss den per ring */
@@ -65,8 +79,13 @@ export const DENS: Den[] = (() => {
         dx = x2 - Math.sin(a) * off * side;
         dz = z2 + Math.cos(a) * off * side;
       }
-      out.push({ x: dx, z: dz, kind: kind++ % FOE_KINDS.length, level: ring.lvl + Math.floor((i / ring.n) * ring.span), count: 3 + (i % 2), boss: i === ring.n - 1, road, r });
+      const boss = i === ring.n - 1;
+      const k = kind++ % FOE_KINDS.length;
+      out.push({ x: dx, z: dz, kind: boss ? RING_BOSS[ri].kind : k, level: ring.lvl + Math.floor((i / ring.n) * ring.span), count: 3 + (i % 2), boss, road, r, ring: ri, bossName: boss ? RING_BOSS[ri].bossName : undefined });
     }
   });
+  // 天阙: the false emperor and his gold-armoured guard
+  const [tx, tz] = tqWorld(0, 16); // in the courtyard before the hall
+  out.push({ x: tx, z: tz, kind: 4, level: 30, count: 4, boss: true, road: 4, r: 872, ring: 3, name: '金甲卫', bossName: '伪帝 · 萧承乾', peak: true });
   return out;
 })();

@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import type { Sim } from '../game/sim';
 import { ULT_CHARGE } from '../game/sim';
 import { SKILLS } from '../game/skills';
-import { DENS, FOE_KINDS } from '../game/foes';
+import { DENS, FOE_KINDS, bossNameOf, menNameOf } from '../game/foes';
 import { WORLD_R } from '../game/world';
 import { ROADS } from '../game/layout';
 import { NPCS, QUESTS, questTarget } from '../game/quests';
@@ -50,6 +50,18 @@ function Minimap({ sim }: { sim: Sim }) {
         g.stroke();
       }
       for (const d of DENS) {
+        if (d.peak) {
+          // 天阙: a gold palace mark
+          g.fillStyle = '#e8b54a';
+          g.strokeStyle = '#3a2a10';
+          g.lineWidth = 1.5;
+          g.fillRect(X(d.x) - 6, Z(d.z) - 5, 12, 10);
+          g.strokeRect(X(d.x) - 6, Z(d.z) - 5, 12, 10);
+          g.fillStyle = '#3a2a10';
+          g.font = 'bold 9px serif';
+          g.fillText('阙', X(d.x) - 4.5, Z(d.z) + 3.5);
+          continue;
+        }
         g.fillStyle = d.boss ? '#111' : FOE_KINDS[d.kind].color;
         g.beginPath();
         g.arc(X(d.x), Z(d.z), d.boss ? 5 : 3.5, 0, Math.PI * 2);
@@ -117,8 +129,8 @@ function QuestTracker({ sim }: { sim: Sim }) {
   else if (Q.state === 'ready') what = `回村找${giver.name}交付`;
   else if (g.type === 'learn') what = '按 K 学一招';
   else if (g.type === 'talk') what = `去找${NPCS.find((n) => n.role === g.npc)!.name}`;
-  else if (g.type === 'kill') what = `打倒 ${FOE_KINDS[DENS[g.den].kind].name} ${Math.min(Q.count, g.count)} / ${g.count}`;
-  else if (g.type === 'boss') what = `打倒${FOE_KINDS[DENS[g.den].kind].boss ?? FOE_KINDS[DENS[g.den].kind].name + '头目'}`;
+  else if (g.type === 'kill') what = `打倒 ${menNameOf(DENS[g.den])} ${Math.min(Q.count, g.count)} / ${g.count}`;
+  else if (g.type === 'boss') what = `打倒${bossNameOf(DENS[g.den])}`;
   else if (g.type === 'level') what = `练到 ${g.level} 级（现在 ${sim.progress.level}）`;
   const tgt = questTarget(sim);
   const dist = tgt ? Math.round(Math.hypot(tgt[0] - p[0], tgt[1] - p[2])) : 0;

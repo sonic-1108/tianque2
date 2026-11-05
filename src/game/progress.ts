@@ -14,7 +14,12 @@ export interface Progress {
   bar: string[]; // 1 2 3 4 5 R ('' = empty)
   /** the main story: which quest, how far into it, and whether it's been taken / finished */
   quest: { idx: number; count: number; state: 'offered' | 'active' | 'ready' };
+  /** the last chapter card shown (a quest index) */
+  chapterSeen?: number;
+  /** which story the quest index belongs to (the story was rewritten: older saves start it over) */
+  storyV?: number;
 }
+export const STORY_V = 2;
 
 const KEY = 'tq2_progress_v2';
 export const MAX_LEVEL = 30;
@@ -31,12 +36,20 @@ export const spFree = (p: Progress) => spTotal(p) - spUsed(p);
 export const skillPower = (lvl: number) => (lvl <= 0 ? 0 : 0.85 + 0.04 * lvl);
 
 export function fresh(): Progress {
-  return { chosen: false, hero: null, level: 1, xp: 0, skills: {}, bar: ['', '', '', '', '', ''], quest: { idx: 0, count: 0, state: 'offered' } };
+  return { chosen: false, hero: null, level: 1, xp: 0, skills: {}, bar: ['', '', '', '', '', ''], quest: { idx: 0, count: 0, state: 'offered' }, storyV: STORY_V };
 }
 export function load(): Progress {
   try {
     const p = JSON.parse(localStorage.getItem(KEY) || 'null');
-    if (p && typeof p.level === 'number') return { ...fresh(), ...p, quest: p.quest ?? fresh().quest, bar: [...(p.bar || []), '', '', '', '', '', ''].slice(0, 6) };
+    if (p && typeof p.level === 'number') {
+      const out: Progress = { ...fresh(), ...p, quest: p.quest ?? fresh().quest, bar: [...(p.bar || []), '', '', '', '', '', ''].slice(0, 6) };
+      if (out.storyV !== STORY_V) {
+        out.quest = { idx: 0, count: 0, state: 'offered' };
+        out.chapterSeen = undefined;
+        out.storyV = STORY_V;
+      }
+      return out;
+    }
   } catch {
     /* private window */
   }

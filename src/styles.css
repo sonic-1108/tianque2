@@ -100,3 +100,10 @@ button:not(:disabled):hover { border-color: var(--gold); }
 .dialog-body { white-space: pre-wrap; line-height: 1.7; font-size: 15px; }
 .dialog-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 .help { top: 40px !important; }
+
+.chapter { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(10, 8, 6, 0.86), rgba(0, 0, 0, 0.96)); display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; z-index: 30; padding: 24px; cursor: pointer; animation: chFade 0.8s ease both; }
+.chapter-name { color: var(--gold); font-size: clamp(26px, 5vw, 44px); letter-spacing: 0.3em; margin-bottom: 28px; font-family: 'Noto Serif SC', 'Songti SC', serif; animation: chFade 1s ease both; }
+.chapter-text { max-width: 640px; text-align: center; }
+.chapter-text p { color: #e8dfcf; font-size: clamp(15px, 2.2vw, 18px); line-height: 1.9; margin: 0 0 6px; font-family: 'Noto Serif SC', 'Songti SC', serif; opacity: 0; animation: chFade 1.2s ease both; }
+.chapter-go { margin-top: 30px; opacity: 0; animation: chFade 0.8s ease both; background: transparent; color: var(--gold); border: 1px solid var(--gold); padding: 8px 28px; border-radius: 6px; font-size: 15px; cursor: pointer; }
+@keyframes chFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }

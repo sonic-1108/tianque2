@@ -12,6 +12,7 @@ import { Juice, juice } from './Juice';
 import { Post } from './Post';
 
 export const cam = { yaw: 0, pitch: 0.25, dist: 6 };
+(globalThis as any).__T2_CAM = cam;
 
 function Loop({ sim }: { sim: Sim }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;

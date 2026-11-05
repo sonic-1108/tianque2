@@ -2,7 +2,7 @@
 // rivers and plains in the east, the village in the middle; noise adds the ridges and cliffs. Height is a pure function, so the sim, the renderer and the camera
 // all agree on where the ground is. Slopes steeper than MAX_SLOPE can't be walked up (the mountains are walls).
 import { DENS, DEN_R } from './foes';
-import { ROADS, VILLAGE_R, WORLD_R } from './layout';
+import { ROADS, nearTq, TQ_POS, TQ_ROT, TQ_TOP, tqWorld, TQ_Y, VILLAGE_R, WORLD_R } from './layout';
 import { mapBig, mapRough, mapSnow, mapWater } from './mapsample';
 export { WORLD_R, VILLAGE_R } from './layout';
 
@@ -114,7 +114,7 @@ function bilinear(grid: Float32Array, x: number, z: number) {
 }
 export const pathDist = (x: number, z: number) => bilinear(ROAD_D, x, z);
 
-const CAMPS = DENS.map((d) => [d.x, d.z] as [number, number]);
+const CAMPS = DENS.filter((d) => !d.peak).map((d) => [d.x, d.z] as [number, number]);
 
 function rawHeight(x: number, z: number): number {
   const r = Math.hypot(x, z);
@@ -136,6 +136,16 @@ function rawHeight(x: number, z: number): number {
     if (dd > DEN_R + 40) continue;
     const f = 1 - smooth(DEN_R, DEN_R + 40, dd);
     h += (padHeight(cx, cz) - h) * f;
+  }
+  // 天阙: a mesa walled by cliffs; the road climbs to it along a ridge (the only way up)
+  {
+    const dd = Math.hypot(x - TQ_POS[0], z - TQ_POS[1]);
+    if (dd < 260) {
+      const mesa = TQ_Y * (1 - smooth(TQ_TOP, TQ_TOP + 22, dd)) + noise(x * 0.05, z * 0.05) * 1.5 * smooth(TQ_TOP, TQ_TOP + 10, dd);
+      const ramp = TQ_Y * (1 - smooth(TQ_TOP - 4, 210, dd)); // the climb: steepest about 0.6
+      const tr = 1 - smooth(5, 16, pathDist(x, z));
+      h = Math.max(h, mesa, ramp * tr);
+    }
   }
   // the edge of the map: a wall of peaks
   const e = Math.max(Math.abs(x), Math.abs(z));
@@ -184,6 +194,28 @@ export interface Building {
   /** open structures (a gate): only these posts block, as circles [local x, local z, radius] */
   posts?: [number, number, number][];
 }
+/** 天阙's solid parts in its own frame (+z toward the gate): the hall on its terrace, the side halls, the bell tower, the gate */
+export const TQ_PARTS: { name: string; x: number; z: number; hx: number; hz: number; h: number; posts?: [number, number, number][] }[] = [
+  { name: 'hall', x: 0, z: -10, hx: 20, hz: 14, h: 24 },
+  { name: 'west', x: -24, z: 4, hx: 6, hz: 8, h: 10 },
+  { name: 'east', x: 24, z: 4, hx: 6, hz: 8, h: 10 },
+  { name: 'tower', x: 0, z: -32, hx: 5.5, hz: 5.5, h: 44 },
+  { name: 'gate', x: 0, z: 38, hx: 10, hz: 1.2, h: 12, posts: [[-8.1, 1.5, 0.9], [-3.3, 1.5, 0.8], [3.3, 1.5, 0.8], [8.1, 1.5, 0.9]] },
+];
+export const TQ_WALL_R = 43;
+/** the mesa wall's segments in 天阙's frame: centre, length, turn */
+export function tqWall() {
+  const out: { x: number; z: number; L: number; ry: number }[] = [];
+  const N = 40;
+  for (let k = 0; k < N; k++) {
+    const a0 = (k / N) * Math.PI * 2, a1 = ((k + 1) / N) * Math.PI * 2;
+    const am = (a0 + a1) / 2;
+    if (Math.abs(Math.atan2(Math.sin(am), Math.cos(am)) - Math.PI / 2) < 0.28) continue; // the gate's gap (+z)
+    const x0 = Math.cos(a0) * TQ_WALL_R, z0 = Math.sin(a0) * TQ_WALL_R, x1 = Math.cos(a1) * TQ_WALL_R, z1 = Math.sin(a1) * TQ_WALL_R;
+    out.push({ x: (x0 + x1) / 2, z: (z0 + z1) / 2, L: Math.hypot(x1 - x0, z1 - z0) + 0.1, ry: Math.atan2(x1 - x0, z1 - z0) });
+  }
+  return out;
+}
 export const BUILDINGS: Building[] = (() => {
   const out: Building[] = [];
   // village houses round the square, between the roads (doors facing the well)
@@ -216,6 +248,16 @@ export const BUILDINGS: Building[] = (() => {
     const z = z0 + ux * 12;
     out.push({ x, z, rot: Math.atan2(uz, -ux), hx: 0.46 * P, hz: 0.44 * P, h: 0.96 * P, model: 'pavilion.glb', scale: P });
   }
+  // 天阙 (drawn by render/Tianque.tsx; these are only the solid footprints, in its frame, see TQ_PARTS)
+  for (const t of TQ_PARTS) {
+    const [x, z] = tqWorld(t.x, t.z);
+    out.push({ x, z, rot: TQ_ROT, hx: t.hx, hz: t.hz, h: t.h, model: '', scale: 1, posts: t.posts });
+  }
+  // the low wall round the mesa's top (keeps bodies from walking off the cliff), open at the gate
+  for (const w of tqWall()) {
+    const [x, z] = tqWorld(w.x, w.z);
+    out.push({ x, z, rot: TQ_ROT + w.ry, hx: 0.6, hz: w.L / 2, h: 6, model: '', scale: 1 });
+  }
   return out;
 })();
 /** a point inside a building footprint (and below its roof)? */
@@ -223,7 +265,8 @@ export function inBuilding(x: number, y: number, z: number, pad = 0) {
   for (const b of BUILDINGS) {
     const dx = x - b.x;
     const dz = z - b.z;
-    if (dx * dx + dz * dz > 100) continue;
+    const reach = Math.max(b.hx, b.hz) + 3;
+    if (dx * dx + dz * dz > reach * reach) continue;
     const c = Math.cos(b.rot);
     const s = Math.sin(b.rot);
     const lx = dx * c - dz * s;
@@ -239,7 +282,8 @@ export function pushOutOfBuildings(p: [number, number, number]) {
   for (const b of BUILDINGS) {
     const dx = p[0] - b.x;
     const dz = p[2] - b.z;
-    if (dx * dx + dz * dz > (b.posts ? 100 : 64)) continue;
+    const reach = Math.max(b.hx, b.hz) + 3;
+    if (dx * dx + dz * dz > reach * reach) continue;
     const c = Math.cos(b.rot);
     const s = Math.sin(b.rot);
     let lx = dx * c - dz * s;
@@ -291,7 +335,7 @@ export const TREES: Tree[] = (() => {
     // forests come in patches
     if (noise(x * 0.008 + 9, z * 0.008 - 4) < -0.05) continue;
     if (CAMPS.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < DEN_R + 8)) continue;
-    if (BUILDINGS.some((b) => Math.hypot(b.x - x, b.z - z) < Math.max(b.hx, b.hz) + 7)) continue;
+    if (nearTq(x, z, 52) || BUILDINGS.some((b) => Math.hypot(b.x - x, b.z - z) < Math.max(b.hx, b.hz) + 7)) continue;
     if (pathDist(x, z) < 7) continue;
     const h = groundHeight(x, z);
     if (h < WATER_Y + 0.5 || h > SNOW_Y + 10) continue;

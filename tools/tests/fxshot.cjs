@@ -6,7 +6,7 @@ const { chromium } = require(process.env.PW || '/opt/npm-tools/node_modules/play
   const p = await b.newPage({ viewport: { width: 800, height: 450 } });
   p.on('pageerror', (e) => console.log('PE', e.message.slice(0, 300)));
   p.on('console', (m) => m.type() === 'error' && console.log('CE', m.text().slice(0, 200)));
-  await p.addInitScript(() => localStorage.clear());
+  await p.addInitScript(() => { localStorage.clear(); globalThis.__T2_NOCARD = true; });
   await p.goto((process.env.URL || 'http://localhost:4201/') + '?silent=1');
   await p.waitForSelector('.pick');
   await p.click('.pick.wanderer');

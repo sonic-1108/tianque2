@@ -10,6 +10,11 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
 - Ultimates must be held on R for 0.8 s (ULT_CHARGE); letting go or a hit cancels with nothing spent.
 - Open map: village in the middle, bandit dens on three rings (src/game/foes.ts), harder further out, a boss den per ring.
 - No sect camps or masters on the map (the owner said no).
+- The story (`src/game/quests.ts`, the owner asked for one): 序章 青石村, 第一章 山雨欲来, 第二章 七家散落, 第三章 雪线之下,
+  终章 天阙. You are the lost child of 天阙's keeper; ring bosses 雷彪, 玄阴真人, 无面; the last boss 伪帝 · 萧承乾 waits on
+  天阙, a palace on a cliff mesa at the end of road 4 (`TQ_*` in layout.ts, mesa in world.ts rawHeight, footprints
+  `TQ_PARTS` / `tqWall`, drawn by `render/Tianque.tsx`). Chapter cards (`ChapterCard` in ui/Dialog.tsx) open each chapter;
+  headless tests set `__T2_NOCARD`. Saves from an older story (`storyV`) restart the quest line, keeping level.
 
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported
@@ -18,7 +23,7 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   `progress.ts` (levels, points, save in localStorage `tq2_progress_v2`), `heroes.ts`, `foes.ts`, `world.ts` (terrain).
 - `src/render/`: `Scene.tsx` (loop + camera, scope zoom), `Rig.tsx` (Mixamo models, clip plan: one key per move
   `kr_* aq_* fy_* yr_* tz_* jy_* dx_*` with 天阙 1's clip choices, plus a pose layer for spins, flips, leans,
-  levitation), `World.tsx`, `Juice.tsx` (effects, sounds, shake, projectile meshes), `HouseFx.tsx` (地仙 / 交易员
+  levitation), `World.tsx` (village dressing, den palisades: shapes merged per material by `build.tsx`), `Tianque.tsx`, `Juice.tsx` (effects, sounds, shake, projectile meshes), `HouseFx.tsx` (地仙 / 交易员
   world things drawn from zones), `vfx/` (天阙 1's VFXSystem, MonkFX, EmperorFX, ImperialFX, DragonFX; guard.glb).
 - `src/ui/`: `Hud.tsx`, `Panels.tsx` (start screen, skill tree). `src/input.ts`.
 - Models in `public/models` (Tripo + Mixamo rig); the 散人 borrows shadowblade.glb clips.
@@ -28,7 +33,7 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
 - Headless (no GPU): `BASE=/ npx vite build --outDir /tmp/t2b`, `BASE=/ npx vite preview --outDir /tmp/t2b --port 4191`,
   `URL=http://localhost:4191/ node tools/tests/smoke.cjs` (every move) and `tools/tests/ai.cjs` (bandits fight, xp).
   巡检 (all start choices x walks to every den, every move in 14 situations, den fights, rules, soak):
-  `npx tsx tools/sweep.ts` (~15 min, prints findings). Real software render screenshot: `tools/tests/shot.cjs` (SPOT=village|den|far).
+  `npx tsx tools/sweep.ts` (~15 min, prints findings). Real software render screenshot: `tools/tests/shot.cjs` (SPOT=village|village2|den|far|tq|tqroad|tqfar).
   Hooks: `__T2` (sim), `__T2_PRESS(code)`, `__T2_HOLD(code, on)`, `__T2_TURBO`, `__T2_VFX`.
   Per move in plain node (dummy 5 m ahead, damage, first hit, statuses): `npx tsx tools/movecheck.ts [id ...]`.
   One move's effect really rendered: `MOVE=true_dragon AT=0.4,1.2 OUT=/path/x node tools/tests/fxshot.cjs` (effects

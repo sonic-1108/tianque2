@@ -1,7 +1,7 @@
 // The whole game world, stepped once per frame: the player, the bandits in their dens, projectiles, zones on
 // the ground and the little effects the renderer draws. Pure logic: no React, no three.js.
 import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } from './types';
-import { DENS, DEN_R, FOE_KINDS } from './foes';
+import { DENS, DEN_R, FOE_KINDS, bossNameOf, menNameOf } from './foes';
 import { MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
 
 /** what a body stands on: the ground, or the lake's surface (wading / swimming) */
@@ -138,7 +138,7 @@ export class Sim {
         const boss = d.boss && k === n - 1;
         const a = (k / n) * Math.PI * 2;
         const r = boss ? 0 : 6;
-        const f = this.make('sect', kind.house, boss ? kind.boss ?? `${kind.name}头目` : kind.name, kind.model, d.level + (boss ? 3 : k % 3), d.x + Math.cos(a) * r, d.z + Math.sin(a) * r);
+        const f = this.make('sect', kind.house, boss ? bossNameOf(d) : menNameOf(d), kind.model, d.level + (boss ? 3 : k % 3), d.x + Math.cos(a) * r, d.z + Math.sin(a) * r);
         f.home = [f.pos[0], f.pos[2]];
         (f as any).den = di;
         if (boss) {

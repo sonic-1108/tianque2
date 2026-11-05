@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Sky, mergeVertices } from 'three-stdlib';
-import { SNOW_Y, TREES, VILLAGE_R, WATER_Y, WORLD_R, groundHeight, pathDist, slopeAt } from '../game/world';
+import { SNOW_Y, TREES, VILLAGE_R, WATER_Y, WORLD_R, groundHeight, noise, pathDist, slopeAt } from '../game/world';
 import { DENS, DEN_R } from '../game/foes';
+import { nearTq } from '../game/layout';
 import type { Sim } from '../game/sim';
 
 const CH = 125;
@@ -376,7 +377,7 @@ function Rocks() {
       const z = (hash(k * 1.3, 9.1) * 2 - 1) * R;
       const h = groundHeight(x, z);
       if (h < WATER_Y + 0.5 || Math.hypot(x, z) < VILLAGE_R + 15 || pathDist(x, z) < 3.5) continue;
-      if (DENS.some((d) => Math.hypot(d.x - x, d.z - z) < DEN_R + 4)) continue;
+      if (nearTq(x, z, 47) || DENS.some((d) => Math.hypot(d.x - x, d.z - z) < DEN_R + 4)) continue;
       const sl = slopeAt(x, z);
       const want = sl > 0.35 ? 0.9 : h > 40 ? 0.6 : pathDist(x, z) < 12 ? 0.5 : 0.18;
       if (hash(x, z) > want) continue;
@@ -404,20 +405,26 @@ function Rocks() {
   return <primitive object={mesh} />;
 }
 
+const smoothstep = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
 /** the blade texture: a tuft of tapering blades, light at the tips */
 function bladeTexture() {
   const c = document.createElement('canvas');
   c.width = 128;
   c.height = 128;
   const g = c.getContext('2d')!;
-  for (let k = 0; k < 14; k++) {
-    const x = 10 + hash(k, 1) * 108;
-    const lean = (hash(k, 2) - 0.5) * 40;
-    const h = 60 + hash(k, 3) * 66;
-    const w = 4 + hash(k, 4) * 4;
+  for (let k = 0; k < 38; k++) {
+    const x = 6 + hash(k, 1) * 116;
+    const lean = (hash(k, 2) - 0.5) * 46;
+    const h = 40 + hash(k, 3) * 86;
+    const w = 1.6 + hash(k, 4) * 2.4;
+    const t = hash(k, 5);
     const grd = g.createLinearGradient(0, 128, 0, 128 - h);
-    grd.addColorStop(0, 'rgb(70,95,40)');
-    grd.addColorStop(1, 'rgb(170,190,105)');
+    grd.addColorStop(0, `rgb(${52 + t * 20},${74 + t * 20},${30 + t * 8})`);
+    grd.addColorStop(0.55, `rgb(${110 + t * 30},${140 + t * 20},${60 + t * 10})`);
+    grd.addColorStop(1, `rgb(${175 + t * 40},${185 + t * 20},${105 + t * 20})`);
     g.fillStyle = grd;
     g.beginPath();
     g.moveTo(x - w, 128);
@@ -430,12 +437,12 @@ function bladeTexture() {
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
-const GRASS_N = 14000;
-const GRASS_R = 48;
+const GRASS_N = 20000;
+const GRASS_R = 44;
 /** grass tufts round the player, swaying in the wind; laid again as he walks (same tufts in the same places) */
 function Grass({ sim }: { sim: Sim }) {
   const st = useMemo(() => {
-    const q1 = new THREE.PlaneGeometry(0.9, 0.5).translate(0, 0.24, 0);
+    const q1 = new THREE.PlaneGeometry(1.1, 0.55).translate(0, 0.26, 0);
     const q2 = q1.clone().rotateY(Math.PI / 2);
     const q3 = q1.clone().rotateY(Math.PI / 4);
     const geo = new THREE.BufferGeometry();
@@ -488,7 +495,7 @@ transformed.z += sway * 0.08 * uv.y;`,
     const sc = new THREE.Vector3();
     const col = new THREE.Color();
     const Y = new THREE.Vector3(0, 1, 0);
-    const S = 1.15;
+    const S = 0.92;
     let n = 0;
     for (let gx = Math.floor((cx - GRASS_R) / S); gx <= Math.ceil((cx + GRASS_R) / S) && n < GRASS_N; gx++)
       for (let gz = Math.floor((cz - GRASS_R) / S); gz <= Math.ceil((cz + GRASS_R) / S) && n < GRASS_N; gz++) {
@@ -501,16 +508,19 @@ transformed.z += sway * 0.08 * uv.y;`,
         const h = groundHeight(x, z);
         if (h < WATER_Y + 0.4 || h > SNOW_Y - 20) continue;
         if (pathDist(x, z) < 3.2 || Math.hypot(x, z) < VILLAGE_R + 6) continue;
-        if (slopeAt(x, z) > 0.55) continue;
+        if (slopeAt(x, z) > 0.55 || nearTq(x, z, 46)) continue;
         let skip = false;
         for (const d of DENS) if (Math.abs(d.x - x) < DEN_R + 3 && Math.abs(d.z - z) < DEN_R + 3 && Math.hypot(d.x - x, d.z - z) < DEN_R + 3) skip = true;
         if (skip) continue;
         q.setFromAxisAngle(Y, hash(x, z) * 6.28);
-        const s = 0.7 + hash(z, x) * 0.7;
+        // smaller toward the patch's rim, so it ends softly instead of in a ring
+        const s = (0.6 + hash(z, x) * 0.75) * (1 - smoothstep(GRASS_R * 0.6, GRASS_R, dd) * 0.7);
         sc.set(s, s * (0.8 + hash(x * 3, z) * 0.6), s);
         m.compose(v.set(x, h - 0.05, z), q, sc);
         st.im.setMatrixAt(n, m);
-        col.setHSL(0.21 + hash(x, z * 2) * 0.06, 0.4, 0.36 + hash(x * 2, z) * 0.12);
+        // patches of greener and drier tufts, following a slow noise like the ground's
+        const dry = Math.max(0, Math.min(1, noise(x * 0.03, z * 0.03) * 0.9 + 0.35));
+        col.setHSL(0.24 - dry * 0.07 + hash(x, z * 2) * 0.03, 0.42 - dry * 0.1, 0.34 + dry * 0.1 + hash(x * 2, z) * 0.1);
         st.im.setColorAt(n, col);
         n++;
       }
