@@ -155,12 +155,13 @@ export class Sim {
         const boss = d.boss && k === n - 1;
         const a = (k / n) * Math.PI * 2;
         const r = boss ? 0 : 6;
-        const f = this.make('sect', kind.house, boss ? bossNameOf(d) : menNameOf(d), kind.model, d.level + (boss ? 3 : k % 3), d.x + Math.cos(a) * r, d.z + Math.sin(a) * r);
+        const f = this.make('sect', kind.house, boss ? bossNameOf(d) : menNameOf(d), kind.model, d.level + (boss ? (d.ring === 0 ? 1 : 3) : k % 3), d.x + Math.cos(a) * r, d.z + Math.sin(a) * r);
         f.home = [f.pos[0], f.pos[2]];
         (f as any).den = di;
         if (boss) {
           (f as any).boss = true;
-          f.maxHp = f.hp = Math.round(f.maxHp * 3);
+          // 雷彪, the first boss, is gentler: a couple of levels and a third less life than the later ones
+          f.maxHp = f.hp = Math.round(f.maxHp * (d.ring === 0 ? 2.2 : 3));
         }
       }
     });
