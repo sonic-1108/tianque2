@@ -18,8 +18,10 @@ export interface Progress {
   chapterSeen?: number;
   /** which story the quest index belongs to (the story was rewritten: older saves start it over) */
   storyV?: number;
+  /** keepsakes from the story (sword: the broken sword made whole) */
+  relics?: string[];
 }
-export const STORY_V = 2;
+export const STORY_V = 3;
 
 const KEY = 'tq2_progress_v2';
 export const MAX_LEVEL = 30;
@@ -43,7 +45,9 @@ export function load(): Progress {
     const p = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (p && typeof p.level === 'number') {
       const out: Progress = { ...fresh(), ...p, quest: p.quest ?? fresh().quest, bar: [...(p.bar || []), '', '', '', '', '', ''].slice(0, 6) };
-      if (out.storyV !== STORY_V) {
+      // story 2 saves keep their place (story 3 only added quests); anything older starts the story over
+      if (out.storyV === 2) out.storyV = -2; // the sim maps the quest number (it knows the quest list)
+      else if (out.storyV !== STORY_V) {
         out.quest = { idx: 0, count: 0, state: 'offered' };
         out.chapterSeen = undefined;
         out.storyV = STORY_V;

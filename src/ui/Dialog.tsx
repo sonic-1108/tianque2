@@ -88,7 +88,7 @@ export function chapterDue(sim: Sim) {
   if ((globalThis as any).__T2_NOCARD) return false; // headless tests
   const P = sim.progress;
   const q = QUESTS[P.quest.idx];
-  return !!q?.chapter && P.quest.state === 'offered' && P.chapterSeen !== P.quest.idx;
+  return !!q?.chapter && !sim.note && (P.quest.state === 'offered' || (!!q.direct && P.quest.state === 'active')) && P.chapterSeen !== P.quest.idx;
 }
 /** the chapter card: its name, then the narration line by line */
 export function ChapterCard({ sim, onClose }: { sim: Sim; onClose: () => void }) {
@@ -111,6 +111,32 @@ export function ChapterCard({ sim, onClose }: { sim: Sim; onClose: () => void })
         ))}
       </div>
       <button className="chapter-go" style={{ animationDelay: `${0.8 + q.chapter.text.split('\n').length * 1.1}s` }}>
+        继续
+      </button>
+    </div>
+  );
+}
+
+/** a story beat that just happened out in the world (an auto quest handed itself in): its words, then 继续 */
+export function NoteCard({ sim, onClose }: { sim: Sim; onClose: () => void }) {
+  const n = sim.note;
+  if (!n) return null;
+  const close = () => {
+    sim.note = null;
+    onClose();
+  };
+  const lines = n.text.split('\n');
+  return (
+    <div className="chapter note" onClick={close}>
+      <div className="chapter-name">{n.title}</div>
+      <div className="chapter-text">
+        {lines.map((l, i) => (
+          <p key={i} style={{ animationDelay: `${0.3 + i * 0.8}s` }}>
+            {l}
+          </p>
+        ))}
+      </div>
+      <button className="chapter-go" style={{ animationDelay: `${0.5 + lines.length * 0.8}s` }}>
         继续
       </button>
     </div>

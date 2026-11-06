@@ -1,13 +1,17 @@
 // The main story: the village elder sends you out den by den, nearest first, back to him every few dens, out to the
 // last boss at the far edge. Built from the den layout, so it always matches the map.
 import { DENS, FOE_KINDS, bossNameOf, menNameOf } from './foes';
+import { FOLK, placeOf } from './places';
+import { GD_PAV } from './layout';
 
 export type Goal =
   | { type: 'learn' } // learn a first move (K)
   | { type: 'talk'; npc: NpcRole } // go and talk to someone
   | { type: 'kill'; den: number; count: number } // beat this many at a den
   | { type: 'boss'; den: number } // beat the den's boss
-  | { type: 'level'; level: number };
+  | { type: 'level'; level: number }
+  | { type: 'visit'; at: [number, number]; r: number; place: string } // go there
+  | { type: 'folk'; name: string }; // talk to one of the folk (FOLK, by name)
 
 export type NpcRole = 'elder' | 'doctor' | 'teller';
 
@@ -20,6 +24,14 @@ export interface Quest {
   xp: number;
   /** the first quest of a chapter: its title and the narration shown on the chapter card */
   chapter?: { name: string; text: string };
+  /** starts as soon as the one before is handed in (nobody to fetch it from) */
+  direct?: boolean;
+  /** hands itself in the moment it's done; `done` shows as a story card (folk: what they tell you) */
+  auto?: boolean;
+  /** a keepsake the quest gives (sword: the broken sword made whole, +10% damage) */
+  relic?: 'sword';
+  /** added in story 3 (older saves' quest numbers skip these) */
+  v3?: boolean;
 }
 
 export const NPCS: { role: NpcRole; name: string; model: string; x: number; z: number; greet: string }[] = [
@@ -93,6 +105,25 @@ export const QUESTS: Quest[] = (() => {
     const dir = dirName(d.x, d.z);
     const chapter = inRing === 0 ? CH[ring] : undefined;
     inRing++;
+    const extras: Quest[] = [];
+    if (ring === 0 && inRing === 2)
+      extras.push({ title: '报个平安', giver: 'elder', direct: true, auto: true, v3: true, intro: '你从寨子的柴房里放出一个人，是秀兰的丈夫周大。回村跟秀兰说一声。', done: '他回来了？……谢谢你，谢谢你。\n他说在寨子里听那些贼人讲，抢来的粮食不分，全往西北山里送，说是孝敬"上面"的。\n上面是谁，他们自己也不知道。', goal: { type: 'folk', name: '村妇 · 秀兰' }, xp: 80 });
+    if (ring === 1 && inRing === 1) {
+      const jz = placeOf('jianzhong');
+      extras.push({
+        title: '断剑冢',
+        giver: 'elder',
+        v3: true,
+        auto: true,
+        intro: `${dirName(jz.x, jz.z)}的荒原上有片古战场，人叫断剑冢。二十年前天阙出事那一夜，七家在那儿死了很多人，剑都插在地上没人收。你那柄断剑，说不定另一半就在那儿。`,
+        done: '断剑冢里插着上千柄剑，大半已经锈穿。\n你在一块断碑下找到半截剑身，剑脊上七道纹，和你那半截严丝合缝。\n碑上刻着几个字，被人用刀刮过，只剩一个"守"字。',
+        goal: { type: 'visit', at: [jz.x, jz.z], r: 9, place: '断剑冢' },
+        xp: 260,
+      });
+      extras.push({ title: '断剑重铸', giver: 'elder', direct: true, auto: true, relic: 'sword', v3: true, intro: '两截剑都在你手上了。村外铁铺的张大锤，他师父那一辈给天阙打过剑。', done: '这……这是天阙的剑！剑脊七道纹，七家各一道。我师父的师父打的，我只在图上见过。\n（叮，叮，叮。炉火烧了一夜。）\n接好了。剑是好剑，就是认主，你拿着它，比拿别的剑快三分。', goal: { type: 'folk', name: '铁匠 · 张大锤' }, xp: 200 });
+    }
+    if (ring === 2 && inRing === 1)
+      extras.push({ title: '面具客', giver: 'elder', v3: true, auto: true, intro: '杏花酒肆的杏娘说，每年冬天有个戴面具的客人。你去问问她。', done: '那个戴面具的？每年头一场雪他就来，喝一碗杏花酿，不说话，往北走。\n有一年他喝多了，盯着村口看了半天，说了一句："那孩子该长大了。"\n我问他哪个孩子，他把碗一扣就走了。', goal: { type: 'folk', name: '酒肆掌柜 · 杏娘' }, xp: 160 });
     if (d.boss) {
       q.push({
         title: `擒贼擒王 · ${bossNameOf(d)}`,
@@ -114,7 +145,9 @@ export const QUESTS: Quest[] = (() => {
         goal: { type: 'kill', den: i, count: d.count },
         xp: 60 + d.level * 18,
       });
+      if (ring === 0 && inRing === 2) q[q.length - 1].done = '干得漂亮。寨子里还关着人？快，先把人带回来。';
     }
+    q.push(...extras);
   }
   // ---------------- 终章 · 天阙
   const tq = DENS.findIndex((d) => d.peak);
@@ -130,13 +163,52 @@ export const QUESTS: Quest[] = (() => {
     goal: { type: 'level', level: 28 },
     xp: 400,
   });
+  const tomb = placeOf('tomb');
+  q.push({
+    title: '守阙人之墓',
+    giver: 'elder',
+    direct: true,
+    auto: true,
+    v3: true,
+    intro: '无面临死前说，那一夜之后，他回去把守阙人夫妇葬在了古道山脚下，就在牌坊不远处。上山之前，去给你爹娘磕个头。',
+    done: '一座孤坟，没有名字，只有一块素碑，碑前的石台上却很干净，有人年年来扫。\n碑后插着一柄木剑，是给孩子玩的。\n你跪下，磕了三个头。山风很大，雪线就在头顶。',
+    goal: { type: 'visit', at: [tomb.x, tomb.z], r: 7, place: '守阙人之墓' },
+    xp: 300,
+  });
+  q.push({
+    title: '望阙台',
+    giver: 'elder',
+    direct: true,
+    auto: true,
+    v3: true,
+    intro: '沿着古道往上走，半山腰的望阙台上能看清天阙的山门。',
+    done: '从望阙台望上去，钟楼顶上那颗金珠在雪里发亮。\n山门前站着金甲卫，旗子上的"阙"字是新绣的。\n你想起石伯的话：剑是断的，人不能软。现在剑也不断了。',
+    goal: { type: 'visit', at: [GD_PAV[0], GD_PAV[1]], r: 9, place: '望阙台' },
+    xp: 200,
+  });
   q.push({
     title: '天阙钟鸣',
     giver: 'elder',
-    intro: '西北官道的尽头，悬崖上那座宫殿就是天阙。萧承乾在那儿等着，金甲卫守着山门。孩子，活着回来。',
-    done: '……听见了。二十年了，天阙的钟又响了。整个江湖都听见了。',
+    direct: true,
+    auto: true,
+    intro: '山门就在上面。萧承乾在大殿前等着，金甲卫守着山门。',
+    done: '萧承乾倒在大殿的台阶上，金冠滚进了雪里。\n你走上钟楼，抓住那根二十年没人碰过的钟杵。\n咚。\n钟声顺着七条官道传下去，青石村的人都抬起了头。',
     goal: { type: 'boss', den: tq },
     xp: 2000,
+  });
+  q.push({
+    title: '回村',
+    giver: 'elder',
+    direct: true,
+    v3: true,
+    chapter: {
+      name: '尾声 · 钟鸣',
+      text: '天阙的钟响了三天三夜。\n散落各地的七家弟子，有的扔下了刀，有的上了山。\n没有人再坐在天阙上。钟楼的门开着，谁都能去敲。\n石伯在村口等你，像二十年前那个雪夜一样。',
+    },
+    intro: '回青石村去，石伯在等你。',
+    done: '回来了。我听见钟声的时候，就在这儿站着。\n你爹娘要是知道，会高兴的。',
+    goal: { type: 'talk', npc: 'elder' },
+    xp: 300,
   });
   q.push({ title: '散人之道', giver: 'elder', intro: '你学过七家的招，一家都不属于。到了三十级，按 K 可以转职，学一家的大招。也可以一直做个散人。路怎么走，你自己定。', done: '青石村记住你了。天阙的钟，往后由你来敲。', goal: { type: 'level', level: 30 }, xp: 500 });
   return q;
@@ -154,6 +226,11 @@ export function goalPos(g: Goal): [number, number] | null {
   if (g.type === 'talk') {
     const n = NPCS.find((x) => x.role === g.npc)!;
     return [n.x, n.z];
+  }
+  if (g.type === 'visit') return g.at;
+  if (g.type === 'folk') {
+    const f = FOLK.find((x) => x.name === g.name);
+    return f ? [f.x, f.z] : null;
   }
   return null;
 }
@@ -175,9 +252,19 @@ export function questTarget(sim: { progress: { quest: { idx: number; state: stri
   const Q = sim.progress.quest;
   const q = QUESTS[Q.idx];
   if (!q) return null;
-  if (Q.state !== 'active') {
+  if (Q.state !== 'active' && !(q.direct && Q.state === 'ready')) {
     const n = NPCS.find((x) => x.role === q.giver)!;
     return [n.x, n.z];
   }
   return goalPos(q.goal);
+}
+
+/** an older story's quest number in this one (story 2 had none of the v3 quests) */
+export function fromStory2(idx: number) {
+  let k = -1;
+  for (let i = 0; i < QUESTS.length; i++) {
+    if (QUESTS[i].v3) continue;
+    if (++k === idx) return i;
+  }
+  return QUESTS.length;
 }

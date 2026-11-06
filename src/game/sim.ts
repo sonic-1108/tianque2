@@ -6,10 +6,10 @@ import { MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, clampWorld, groundHeight,
 
 /** what a body stands on: the ground, or the lake's surface (wading / swimming) */
 const floorAt = (x: number, z: number) => Math.max(groundHeight(x, z), WATER_Y - 1.1);
-import { Progress, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
+import { Progress, STORY_V, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
 import { WANDERER, heroOf } from './heroes';
 import { SKILLS } from './skills';
-import { NPCS, QUESTS, type NpcRole } from './quests';
+import { NPCS, QUESTS, fromStory2, type NpcRole } from './quests';
 import { FOLK } from './places';
 
 /** an ultimate goes off only after R is held this long (the owner's rule); letting go or a hit throws it away */
@@ -122,6 +122,13 @@ export class Sim {
 
   constructor(progress?: Progress) {
     this.progress = progress ?? load();
+    if (this.progress.storyV === -2) {
+      // a story 2 save: the same quests with new ones slotted in between
+      const Q = this.progress.quest;
+      this.progress.quest = { ...Q, idx: fromStory2(Q.idx) };
+      if (this.progress.chapterSeen !== undefined) this.progress.chapterSeen = fromStory2(this.progress.chapterSeen);
+      this.progress.storyV = STORY_V;
+    }
     const h = heroOf(this.progress.hero);
     const p = this.make('player', null, h ? h.name : WANDERER.name, h ? h.model : WANDERER.model, this.progress.level, VILLAGE_SPAWN[0], VILLAGE_SPAWN[1]);
     p.maxHp = p.hp = playerMaxHp(p.level);
@@ -249,7 +256,7 @@ export class Sim {
     f.yaw = Math.atan2(-(x - f.pos[0]), -(z - f.pos[2]));
   }
   power(f: Fighter) {
-    return f.team === 'player' ? playerPower(f.level) : 0.25 + f.level * 0.04; // bandits hit softer than you: a few at once is the danger
+    return f.team === 'player' ? playerPower(f.level) * (this.progress.relics?.includes('sword') ? 1.1 : 1) : 0.25 + f.level * 0.04; // bandits hit softer than you: a few at once is the danger
   }
   setAct(f: Fighter, act: Fighter['act'], dur: number, anim?: string) {
     f.act = act;
@@ -509,23 +516,32 @@ export class Sim {
       (g.type === 'learn' && Object.values(P.skills).some((l) => l > 0)) ||
       (g.type === 'level' && P.level >= g.level) ||
       (g.type === 'kill' && Q.count >= g.count) ||
-      (g.type === 'boss' && Q.count >= 1);
+      (g.type === 'boss' && Q.count >= 1) ||
+      (g.type === 'visit' && Math.hypot(this.player.pos[0] - g.at[0], this.player.pos[2] - g.at[1]) < g.r);
     if (done) {
       Q.state = 'ready';
+      if (q.auto) return this.turnInQuest();
       this.toast(`任务完成：${q.title} · 回村找${NPCS.find((n) => n.role === q.giver)!.name}交付`);
       this.emit({ k: 'level', x: this.player.pos[0], y: this.player.pos[1], z: this.player.pos[2], id: PLAYER });
       save(P);
     }
   }
   /** the player talks to a villager: quest offers, turn-ins and talk goals happen here */
-  talk(role: NpcRole) {
+  talk(role: NpcRole | undefined, folk?: string) {
     const Q = this.progress.quest;
     const q = this.quest();
-    if (q && Q.state === 'active' && q.goal.type === 'talk' && q.goal.npc === role) {
+    if (!q || Q.state !== 'active') return;
+    if ((q.goal.type === 'talk' && q.goal.npc === role) || (q.goal.type === 'folk' && folk && q.goal.name === folk)) {
       Q.state = 'ready';
       save(this.progress);
+      if (q.auto) {
+        this.dialog = -1;
+        this.turnInQuest();
+      }
     }
   }
+  /** a story card to show (an auto quest just handed itself in); the UI clears it */
+  note: { title: string; text: string } | null = null;
   acceptQuest() {
     const Q = this.progress.quest;
     if (Q.state !== 'offered' || !this.quest()) return;
@@ -550,8 +566,19 @@ export class Sim {
       this.toast(`升级！${P.level} 级 · 技能点 +${ups * 2}，按 K 加点`);
     }
     this.emit({ k: 'level', x: this.player.pos[0], y: this.player.pos[1], z: this.player.pos[2], id: PLAYER });
+    if (q.auto) this.note = { title: q.goal.type === 'folk' ? q.goal.name : q.title, text: q.done };
+    if (q.relic === 'sword' && !(P.relics ?? []).includes('sword')) {
+      P.relics = [...(P.relics ?? []), 'sword'];
+      this.toast('断剑重铸 · 伤害 +10%');
+    }
     P.quest = { idx: Q.idx + 1, count: 0, state: 'offered' };
+    const next = QUESTS[P.quest.idx];
+    if (next?.direct) {
+      P.quest.state = 'active';
+      this.toast(`新任务：${next.title}`);
+    }
     save(P);
+    if (next?.direct) this.questCheck();
   }
   healFull() {
     const p = this.player;
@@ -793,7 +820,10 @@ export class Sim {
     (f as any).wish = this.ultCharge !== null ? [0, 0] : [mx, mz];
     if (inp.interact && this.near >= 0) {
       this.dialog = this.dialog >= 0 ? -1 : this.near;
-      if (this.dialog >= 0) this.talk((this.fighters[this.dialog] as any).role);
+      if (this.dialog >= 0) {
+        const t = this.fighters[this.dialog] as any;
+        this.talk(t.role, t.folk !== undefined ? t.name : undefined);
+      }
     }
     if (inp.dodge) this.dodge(f, mx, mz);
     if (inp.jump) this.jump(f);

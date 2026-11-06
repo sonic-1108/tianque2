@@ -73,15 +73,16 @@ function Minimap({ sim }: { sim: Sim }) {
       }
       // waystations: a small house mark (rest there)
       g.font = 'bold 9px serif';
+      const MARK: Partial<Record<string, string>> = { inn: '驿', jianzhong: '冢', tomb: '墓' };
       for (const pl of PLACES) {
-        if (pl.kind !== 'inn') continue;
+        if (!MARK[pl.kind]) continue;
         g.fillStyle = '#f1e2bd';
         g.strokeStyle = '#3a2a10';
         g.lineWidth = 1;
         g.fillRect(X(pl.x) - 5, Z(pl.z) - 5, 10, 10);
         g.strokeRect(X(pl.x) - 5, Z(pl.z) - 5, 10, 10);
         g.fillStyle = '#5a2a10';
-        g.fillText('驿', X(pl.x) - 4.5, Z(pl.z) + 3.5);
+        g.fillText(MARK[pl.kind]!, X(pl.x) - 4.5, Z(pl.z) + 3.5);
       }
       const qt = questTarget(sim);
       if (qt) {
@@ -139,7 +140,9 @@ function QuestTracker({ sim }: { sim: Sim }) {
   const g = q.goal;
   let what = '';
   if (Q.state === 'offered') what = `回村找${giver.name}领任务`;
-  else if (Q.state === 'ready') what = `回村找${giver.name}交付`;
+  else if (Q.state === 'ready') what = q.auto ? '' : `回村找${giver.name}交付`;
+  else if (g.type === 'visit') what = `去${g.place}`;
+  else if (g.type === 'folk') what = `去找${g.name}`;
   else if (g.type === 'learn') what = '按 K 学一招';
   else if (g.type === 'talk') what = `去找${NPCS.find((n) => n.role === g.npc)!.name}`;
   else if (g.type === 'kill') what = `打倒 ${menNameOf(DENS[g.den])} ${Math.min(Q.count, g.count)} / ${g.count}`;

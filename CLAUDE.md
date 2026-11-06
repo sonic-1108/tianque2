@@ -19,7 +19,11 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   终章 天阙. You are the lost child of 天阙's keeper; ring bosses 雷彪, 玄阴真人, 无面; the last boss 伪帝 · 萧承乾 waits on
   天阙, a palace on a cliff mesa at the end of road 4 (`TQ_*` in layout.ts, mesa in world.ts rawHeight, footprints
   `TQ_PARTS` / `tqWall`, drawn by `render/Tianque.tsx`). Chapter cards (`ChapterCard` in ui/Dialog.tsx) open each chapter;
-  headless tests set `__T2_NOCARD`. Saves from an older story (`storyV`) restart the quest line, keeping level.
+  headless tests set `__T2_NOCARD`. Story 3 added quests marked `v3` (story 2 saves keep their place via `fromStory2`;
+  older ones restart the quest line, keeping level). Goals also `visit` (reach a spot) and `folk` (talk to one of FOLK);
+  `direct` quests start without going back to the elder, `auto` ones hand themselves in and show `done` as a story card
+  (`sim.note`, `NoteCard`). Story places: 断剑冢 (beside road 2, ring 1: find the sword's other half, 铁匠 reforges it,
+  `relics: ['sword']` = +10% damage) and 守阙人之墓 (by the 古道 arch); 秀兰, 铁匠, 杏娘 have story talks; 尾声 card at the end.
 
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported

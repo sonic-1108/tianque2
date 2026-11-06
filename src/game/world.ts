@@ -4,7 +4,7 @@
 import { DENS, DEN_R } from './foes';
 import { ROADS, nearTq, TQ_POS, TQ_ROT, TQ_TOP, tqWorld, TQ_Y, VILLAGE_R, WORLD_R, TQ_ROAD, GD_ARCH_R, GD_PAV, GD_PAV_R, onGudao, roadFrame, roadPoint } from './layout';
 import { mapBig, mapRough, mapSnow, mapWater } from './mapsample';
-import { PLACES, PLACE_BOX, innHouses, nearPlace } from './places';
+import { IN_TOWN, PLACES, PLACE_BOX, innHouses, nearPlace } from './places';
 export { WORLD_R, VILLAGE_R } from './layout';
 
 export const WATER_Y = -2; // lakes fill the ground below this
@@ -142,7 +142,7 @@ function rawHeight(x: number, z: number): number {
   for (const p of PLACES) {
     const dd = Math.hypot(x - p.x, z - p.z);
     if (dd > p.pad + 26) continue;
-    const ph = p.kind === 'inn' ? padHeight(p.x, p.z) : 1.5;
+    const ph = IN_TOWN(p.kind) ? 1.5 : padHeight(p.x, p.z);
     h += (ph - h) * (1 - smooth(p.pad, p.pad + 26, dd));
   }
   // 天阙: a mesa walled by cliffs; the road climbs to it along a ridge (the only way up)

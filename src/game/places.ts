@@ -3,10 +3,12 @@
 // block (BUILDINGS), and the folk who live there (FOLK) stand about or stroll, talk, and the innkeepers patch you up.
 // Pure data: no imports from world.ts (it imports this).
 import { DENS, DEN_R } from './foes';
-import { ROADS, ROAD_N, roadFrame, TQ_POS } from './layout';
+import { ROADS, ROAD_N, roadFrame, TQ_POS, TQ_ROAD } from './layout';
 import { mapWater } from './mapsample';
 
-export type PlaceKind = 'smithy' | 'tavern' | 'shrine' | 'inn';
+export type PlaceKind = 'smithy' | 'tavern' | 'shrine' | 'inn' | 'jianzhong' | 'tomb';
+/** the village's own workshops (their yards sit at the village's level) */
+export const IN_TOWN = (k: PlaceKind) => k === 'smithy' || k === 'tavern' || k === 'shrine';
 export interface Place {
   kind: PlaceKind;
   name: string;
@@ -22,6 +24,8 @@ export const PLACE_BOX: Record<PlaceKind, { hx: number; hz: number; h: number }>
   tavern: { hx: 6, hz: 4.2, h: 8 },
   shrine: { hx: 2.6, hz: 2.4, h: 5 },
   inn: { hx: 6.5, hz: 4.5, h: 8 },
+  jianzhong: { hx: 1.2, hz: 0.8, h: 4 }, // the broken stele in the middle
+  tomb: { hx: 2.8, hz: 3.2, h: 2.4 }, // the mound
 };
 
 const sectorMid = (k: number) => {
@@ -52,8 +56,27 @@ export const PLACES: Place[] = (() => {
       out.push({ kind: 'inn', name: INN_NAMES[k], x, z, rot: Math.atan2(f.x - x, f.z - z), pad: 18, road: k });
       break;
     }
+  // 断剑冢: the old battlefield of the night 天阙 fell, beside the third road at the foot of the valley's wall
+  {
+    // beside the third road, out in the middle ring (the roads run through the valleys, the open ground is mountain)
+    for (const [k, r] of [[2, 360], [2, 340], [2, 380], [3, 360], [3, 340], [2, 320], [3, 380]] as const) {
+      const f = roadFrame(k, r);
+      const x = f.x - f.uz * 24, z = f.z + f.ux * 24;
+      const dry = [0, 1, 2, 3, 4, 5].every((i) => mapWater(x + Math.cos(i * 1.05) * 18 * (i ? 1 : 0), z + Math.sin(i * 1.05) * 18 * (i ? 1 : 0)) < 0.01);
+      if (!dry || DENS.some((d) => Math.hypot(d.x - x, d.z - z) < DEN_R + 35)) continue;
+      out.push({ kind: 'jianzhong', name: '断剑冢', x, z, rot: Math.atan2(f.x - x, f.z - z), pad: 16, road: k });
+      break;
+    }
+  }
+  // 守阙人之墓: below 天阙, beside the road at the foot of the last climb (the side away from 望阙台)
+  {
+    const f = roadFrame(TQ_ROAD, 636);
+    const x = f.x - f.uz * 24, z = f.z + f.ux * 24;
+    out.push({ kind: 'tomb', name: '守阙人之墓', x, z, rot: Math.atan2(f.x - x, f.z - z), pad: 11 });
+  }
   return out;
 })();
+export const placeOf = (kind: PlaceKind) => PLACES.find((p) => p.kind === kind)!;
 
 /** a point in a place's frame to the world (local +z = its front) */
 export function placeAt(p: Place, lx: number, lz: number): [number, number] {
