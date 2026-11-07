@@ -216,6 +216,29 @@ export interface Building {
 /** a box whose top is at most this far above your feet is a step you walk up onto, not a wall */
 export const STEP_UP = 0.6;
 const baseOf = (b: Building) => (b.y0 ??= groundHeight(b.x, b.z));
+// buildings by grid cell (each listed in every cell its reach touches), with their turn's cos / sin worked out once:
+// a body only ever looks at the few buildings round it, never the whole list
+const BC = 24;
+let bgrid: Map<number, Building[]> | null = null;
+const trig = new WeakMap<Building, [number, number]>();
+function nearBuildings(x: number, z: number): Building[] {
+  if (!bgrid) {
+    bgrid = new Map();
+    for (const b of BUILDINGS) {
+      trig.set(b, [Math.cos(b.rot), Math.sin(b.rot)]);
+      const reach = Math.max(b.hx, b.hz) + 3;
+      for (let i = Math.floor((b.x - reach) / BC); i <= Math.floor((b.x + reach) / BC); i++)
+        for (let j = Math.floor((b.z - reach) / BC); j <= Math.floor((b.z + reach) / BC); j++) {
+          const k = i * 4096 + j;
+          let l = bgrid.get(k);
+          if (!l) bgrid.set(k, (l = []));
+          l.push(b);
+        }
+    }
+  }
+  return bgrid.get(Math.floor(x / BC) * 4096 + Math.floor(z / BC)) ?? NONE;
+}
+const NONE: Building[] = [];
 /** 天阙's solid parts in its own frame (+z toward the gate): the hall on its terrace, the side halls, the bell tower, the gate */
 export const TQ_PARTS: { name: string; x: number; z: number; hx: number; hz: number; h: number; posts?: [number, number, number][] }[] = [
   // the terrace you climb by its front stairs, and the hall standing on it
@@ -306,13 +329,12 @@ export const BUILDINGS: Building[] = (() => {
 })();
 /** a point inside a building footprint (and below its roof)? */
 export function inBuilding(x: number, y: number, z: number, pad = 0) {
-  for (const b of BUILDINGS) {
+  for (const b of nearBuildings(x, z)) {
     const dx = x - b.x;
     const dz = z - b.z;
     const reach = Math.max(b.hx, b.hz) + 3;
     if (dx * dx + dz * dz > reach * reach) continue;
-    const c = Math.cos(b.rot);
-    const s = Math.sin(b.rot);
+    const [c, s] = trig.get(b)!;
     const lx = dx * c - dz * s;
     const lz = dx * s + dz * c;
     if (b.posts) continue; // an open gate never hides the player
@@ -323,14 +345,13 @@ export function inBuilding(x: number, y: number, z: number, pad = 0) {
 /** the highest building top under (x, z) that a body with its feet at y stands on (it's above it, or it's a step) */
 export function buildingFloor(x: number, z: number, y: number) {
   let top = -Infinity;
-  for (const b of BUILDINGS) {
+  for (const b of nearBuildings(x, z)) {
     if (b.posts) continue;
     const dx = x - b.x;
     const dz = z - b.z;
     const reach = Math.max(b.hx, b.hz) + 1;
     if (dx * dx + dz * dz > reach * reach) continue;
-    const c = Math.cos(b.rot);
-    const s = Math.sin(b.rot);
+    const [c, s] = trig.get(b)!;
     if (Math.abs(dx * c - dz * s) > b.hx || Math.abs(dx * s + dz * c) > b.hz) continue;
     const t = baseOf(b) + b.h;
     if (t <= y + STEP_UP && t > top) top = t;
@@ -341,13 +362,12 @@ export function buildingFloor(x: number, z: number, y: number) {
  *  building's top (flying, gliding, jumping off a roof) nothing pushes, and a low block is a step to climb */
 export function pushOutOfBuildings(p: [number, number, number]) {
   const R = 0.35;
-  for (const b of BUILDINGS) {
+  for (const b of nearBuildings(p[0], p[2])) {
     const dx = p[0] - b.x;
     const dz = p[2] - b.z;
     const reach = Math.max(b.hx, b.hz) + 3;
     if (dx * dx + dz * dz > reach * reach) continue;
-    const c = Math.cos(b.rot);
-    const s = Math.sin(b.rot);
+    const [c, s] = trig.get(b)!;
     let lx = dx * c - dz * s;
     let lz = dx * s + dz * c;
     if (p[1] >= baseOf(b) + (b.posts ? b.h * 0.85 : b.h) - (b.posts ? 0 : STEP_UP)) continue;
