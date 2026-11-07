@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { GLTFLoader, MeshoptDecoder } from 'three-stdlib';
 import { Builder, Built } from './build';
+import { liftProp } from './propLook';
 import { TQ_POS, TQ_ROT, TQ_Y } from '../game/layout';
 import { tqWall } from '../game/world';
 
@@ -139,6 +140,7 @@ function Gate() {
         g.scene.traverse((o: any) => {
           if (o.isMesh) o.castShadow = o.receiveShadow = true;
         });
+        liftProp(g.scene, 'paifang.glb');
         setObj(g.scene);
       })
       .catch(() => {});

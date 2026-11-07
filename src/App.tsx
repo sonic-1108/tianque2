@@ -63,8 +63,8 @@ export function App() {
         <>
           <Canvas
             shadows
-            dpr={[1, 1.5]}
-            camera={{ fov: 62, near: 0.1, far: 600 }}
+            dpr={[1, 1.75]}
+            camera={{ fov: 62, near: 0.15, far: 2000 }}
             gl={{ antialias: true, powerPreference: 'high-performance' }}
             onCreated={({ gl }) => {
               gl.toneMapping = THREE.NoToneMapping; // the post pass does ACES

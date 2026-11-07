@@ -138,6 +138,7 @@ export class Builder {
 
 
 const matCache = new Map<Mat, THREE.Material>();
+const LIFT: Partial<Record<Mat, number>> = { stone: 0.22, step: 0.18, pave: 0.14, pave2: 0.14, red: 0.18, roof: 0.15, wall: 0.12, wood: 0.1 };
 export function matOf(m: Mat) {
   let out = matCache.get(m);
   if (!out) {
@@ -148,6 +149,11 @@ export function matOf(m: Mat) {
         : m === 'flame'
           ? new THREE.MeshBasicMaterial({ color: c, toneMapped: false })
           : new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: mt, side: m === 'canvas' ? THREE.DoubleSide : THREE.FrontSide });
+    // worked stone glows a little of its own colour: an arch or a stair in its own shadow still reads, never a black block
+    if (LIFT[m] && out instanceof THREE.MeshStandardMaterial) {
+      out.emissive = new THREE.Color(c);
+      out.emissiveIntensity = LIFT[m]!;
+    }
     matCache.set(m, out);
   }
   return out;

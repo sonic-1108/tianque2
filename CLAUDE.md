@@ -18,6 +18,13 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   shakes and nudges along the blow (`juice.push`). Swings face the foe on the camera line, else anyone within 3.2 m.
 - Difficulty (owner's rule): the men stay easy (x0.82 damage, x0.85 life); bosses can be hard. Bosses past ring 0
   ignore light hits (only heavy ones stagger); 雷彪 (ring 0) is softened and still reels.
+- Collision knows height (world.ts): over a building's top nothing pushes (flying, gliding), tops are floors
+  (`buildingFloor`, sim `floorAt(x, z, y)`), a box whose top is within `STEP_UP` (0.6) of your feet is a step.
+  Open things block only by posts (pavilions `PAVILION_POSTS`, porches, sheds). Each place's solid parts are
+  `PLACE_PARTS` (places.ts) and must match what Places.tsx draws; 天阙's terrace + stairs are in `TQ_PARTS`.
+  Check with a headless walk (drop on a roof, glide over a house, up 天阙's stairs, into a pavilion).
+- View: camera far 2000, fog 240 to 1500 (the rim and 天阙 show from the village). Worked stone and props glow a
+  little of their own colour (`LIFT` in build.tsx, `render/propLook.ts`) so arches never read black.
 - Places (`src/game/places.ts`, drawn by `render/Places.tsx`): beyond the village fence 张记铁铺, 杏花酒肆, 土地庙; a
   驿站 on every road (inn, two house.glb, fenced yard, 驿 on the minimap). `FOLK`: unarmed, unhurtable villagers and
   travellers who stand or stroll (`walk`), talk on F; innkeepers and 杏娘 heal (`heal`). Yards are levelled in rawHeight.

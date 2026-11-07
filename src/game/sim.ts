@@ -2,10 +2,11 @@
 // the ground and the little effects the renderer draws. Pure logic: no React, no three.js.
 import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } from './types';
 import { DENS, DEN_R, FOE_KINDS, bossNameOf, menNameOf } from './foes';
-import { MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
+import { MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, buildingFloor, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
 
 /** what a body stands on: the ground, or the lake's surface (wading / swimming) */
-const floorAt = (x: number, z: number) => Math.max(groundHeight(x, z), WATER_Y - 1.1);
+/** what a body stands on: the ground (or the river's bed), or, given its feet's height, a roof, a terrace or a step it's on */
+const floorAt = (x: number, z: number, y?: number) => Math.max(groundHeight(x, z), WATER_Y - 1.1, y === undefined ? -Infinity : buildingFloor(x, z, y));
 import { Progress, STORY_V, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
 import { WANDERER, heroOf } from './heroes';
 import { SKILLS } from './skills';
@@ -754,8 +755,8 @@ export class Sim {
         b.pos[0] += (dx / d) * push * kb;
         b.pos[2] += (dz / d) * push * kb;
         // shoved up a slope: onto the ground there, never left inside it
-        if (a.grounded) a.pos[1] = Math.max(a.pos[1], floorAt(a.pos[0], a.pos[2]));
-        if (b.grounded) b.pos[1] = Math.max(b.pos[1], floorAt(b.pos[0], b.pos[2]));
+        if (a.grounded) a.pos[1] = Math.max(a.pos[1], floorAt(a.pos[0], a.pos[2], a.pos[1]));
+        if (b.grounded) b.pos[1] = Math.max(b.pos[1], floorAt(b.pos[0], b.pos[2], b.pos[1]));
       }
     }
     for (const f of this.fighters) this.acts(f, dt);
@@ -1083,7 +1084,7 @@ export class Sim {
         }
       }
     }
-    const g = floorAt(f.pos[0], f.pos[2]);
+    const g = floorAt(f.pos[0], f.pos[2], f.pos[1]);
     if (f.pos[1] <= g) {
       f.pos[1] = g;
       const vy = f.vel[1];

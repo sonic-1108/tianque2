@@ -33,7 +33,7 @@ export function Post() {
       <primitive object={sanitize} />
       <Bloom mipmapBlur intensity={0.55} luminanceThreshold={0.85} luminanceSmoothing={0.25} />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
-      <Vignette offset={0.32} darkness={0.5} />
+      <Vignette offset={0.38} darkness={0.32} />
     </EffectComposer>
   );
 }

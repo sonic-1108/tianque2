@@ -14,6 +14,7 @@ import { DENS, DEN_R, FOE_KINDS } from '../game/foes';
 import type { Sim } from '../game/sim';
 
 /** a Tripo prop (public/props): loaded once, cloned per placement (geometry and textures shared) */
+import { liftProp } from './propLook';
 const propCache = new Map<string, Promise<THREE.Group>>();
 const propLoader = new GLTFLoader();
 propLoader.setMeshoptDecoder(typeof MeshoptDecoder === 'function' ? (MeshoptDecoder as any)() : MeshoptDecoder);
@@ -27,6 +28,7 @@ function loadProp(file: string) {
           o.receiveShadow = true;
         }
       });
+      liftProp(g.scene, file);
       return g.scene;
     });
     propCache.set(file, p);
@@ -349,7 +351,8 @@ function Sun({ sim }: { sim: Sim }) {
 export function World({ sim }: { sim: Sim }) {
   return (
     <>
-      <fog attach="fog" args={['#bcccd8', 140, 1250]} />
+      {/* a long clear view: the rim's mountains and 天阙 stand in the haze from the village */}
+      <fog attach="fog" args={['#c3d3e0', 240, 1500]} />
       <hemisphereLight args={['#dfeeff', '#4b5a33', 0.85]} />
       <Sun sim={sim} />
       <Landscape sim={sim} />

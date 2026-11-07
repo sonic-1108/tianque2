@@ -4,7 +4,7 @@
 import { DENS, DEN_R } from './foes';
 import { ROADS, nearTq, TQ_POS, TQ_ROT, TQ_TOP, tqWorld, TQ_Y, VILLAGE_R, WORLD_R, TQ_ROAD, GD_ARCH_R, GD_PAV, GD_PAV_R, onGudao, roadFrame, roadPoint } from './layout';
 import { mapBig, mapRough, mapSnow, mapWater } from './mapsample';
-import { IN_TOWN, PLACES, PLACE_BOX, innHouses, nearPlace } from './places';
+import { IN_TOWN, PLACES, PLACE_PARTS, innHouses, nearPlace, placeAt } from './places';
 export { WORLD_R, VILLAGE_R } from './layout';
 
 export const WATER_Y = -2; // lakes fill the ground below this
@@ -208,10 +208,18 @@ export interface Building {
   scale: number;
   /** open structures (a gate): only these posts block, as circles [local x, local z, radius] */
   posts?: [number, number, number][];
+  /** the ground its footprint stands on (filled in on first use) */
+  y0?: number;
 }
+/** a box whose top is at most this far above your feet is a step you walk up onto, not a wall */
+export const STEP_UP = 0.6;
+const baseOf = (b: Building) => (b.y0 ??= groundHeight(b.x, b.z));
 /** 天阙's solid parts in its own frame (+z toward the gate): the hall on its terrace, the side halls, the bell tower, the gate */
 export const TQ_PARTS: { name: string; x: number; z: number; hx: number; hz: number; h: number; posts?: [number, number, number][] }[] = [
-  { name: 'hall', x: 0, z: -10, hx: 20, hz: 14, h: 24 },
+  // the terrace you climb by its front stairs, and the hall standing on it
+  { name: 'terrace', x: 0, z: -10, hx: 20, hz: 14, h: 2.4 },
+  ...Array.from({ length: 8 }, (_, k) => ({ name: 'stair', x: 0, z: 8 - k * 0.45, hx: 4.8, hz: 0.235, h: 0.3 * (k + 1) })),
+  { name: 'hall', x: 0, z: -12, hx: 15.2, hz: 8.7, h: 24 },
   { name: 'west', x: -24, z: 4, hx: 6, hz: 8, h: 10 },
   { name: 'east', x: 24, z: 4, hx: 6, hz: 8, h: 10 },
   { name: 'tower', x: 0, z: -32, hx: 5.5, hz: 5.5, h: 44 },
@@ -231,6 +239,10 @@ export function tqWall() {
   }
   return out;
 }
+/** pavilion.glb's columns, in model units (measured off the model: a ring of six round the open floor) */
+const PAVILION_POSTS: [number, number, number][] = [
+  [-0.1, -0.29, 0.05], [0.145, -0.25, 0.05], [-0.286, -0.1, 0.05], [0.206, -0.058, 0.05], [-0.18, 0.19, 0.05], [0.083, 0.21, 0.05],
+];
 export const BUILDINGS: Building[] = (() => {
   const out: Building[] = [];
   // village houses round the square, between the roads (doors facing the well)
@@ -261,12 +273,14 @@ export const BUILDINGS: Building[] = (() => {
     const ux = (x1 - x0) / l, uz = (z1 - z0) / l;
     const x = x0 - uz * 12;
     const z = z0 + ux * 12;
-    out.push({ x, z, rot: Math.atan2(uz, -ux), hx: 0.46 * P, hz: 0.44 * P, h: 0.96 * P, model: 'pavilion.glb', scale: P });
+    out.push({ x, z, rot: Math.atan2(uz, -ux), hx: 0.46 * P, hz: 0.44 * P, h: 0.96 * P, model: 'pavilion.glb', scale: P, posts: PAVILION_POSTS.map(([a, b, r]) => [a * P, b * P, r * P] as [number, number, number]) });
   }
-  // the workshops and inns (drawn by render/Places.tsx), and the two houses at each waystation
+  // the workshops and inns (drawn by render/Places.tsx): each one's solid parts, and the two houses at each waystation
   for (const p of PLACES) {
-    const b = PLACE_BOX[p.kind];
-    out.push({ x: p.x, z: p.z, rot: p.rot, hx: b.hx, hz: b.hz, h: b.h, model: '', scale: 1 });
+    for (const b of PLACE_PARTS[p.kind]) {
+      const [x, z] = placeAt(p, b.x, b.z);
+      out.push({ x, z, rot: p.rot + (b.ry ?? 0), hx: b.hx, hz: b.hz, h: b.h, model: '', scale: 1, posts: b.posts, y0: groundHeight(p.x, p.z) - 0.05 });
+    }
     if (p.kind === 'inn') for (const hs of innHouses(p)) out.push({ x: hs.x, z: hs.z, rot: hs.rot, hx: 0.49 * S + 0.3, hz: 0.41 * S + 0.3, h: 0.66 * S, model: 'house.glb', scale: S });
   }
   // 天阙 (drawn by render/Tianque.tsx; these are only the solid footprints, in its frame, see TQ_PARTS)
@@ -300,11 +314,29 @@ export function inBuilding(x: number, y: number, z: number, pad = 0) {
     const lx = dx * c - dz * s;
     const lz = dx * s + dz * c;
     if (b.posts) continue; // an open gate never hides the player
-    if (Math.abs(lx) < b.hx + pad && Math.abs(lz) < b.hz + pad && y < groundHeight(b.x, b.z) + b.h) return true;
+    if (Math.abs(lx) < b.hx + pad && Math.abs(lz) < b.hz + pad && y < baseOf(b) + b.h) return true;
   }
   return false;
 }
-/** push a body out of any building it walked into (out through the nearest wall) */
+/** the highest building top under (x, z) that a body with its feet at y stands on (it's above it, or it's a step) */
+export function buildingFloor(x: number, z: number, y: number) {
+  let top = -Infinity;
+  for (const b of BUILDINGS) {
+    if (b.posts) continue;
+    const dx = x - b.x;
+    const dz = z - b.z;
+    const reach = Math.max(b.hx, b.hz) + 1;
+    if (dx * dx + dz * dz > reach * reach) continue;
+    const c = Math.cos(b.rot);
+    const s = Math.sin(b.rot);
+    if (Math.abs(dx * c - dz * s) > b.hx || Math.abs(dx * s + dz * c) > b.hz) continue;
+    const t = baseOf(b) + b.h;
+    if (t <= y + STEP_UP && t > top) top = t;
+  }
+  return top;
+}
+/** push a body out of any building it walked into (out through the nearest wall). Height matters: over a
+ *  building's top (flying, gliding, jumping off a roof) nothing pushes, and a low block is a step to climb */
 export function pushOutOfBuildings(p: [number, number, number]) {
   const R = 0.35;
   for (const b of BUILDINGS) {
@@ -316,6 +348,7 @@ export function pushOutOfBuildings(p: [number, number, number]) {
     const s = Math.sin(b.rot);
     let lx = dx * c - dz * s;
     let lz = dx * s + dz * c;
+    if (p[1] >= baseOf(b) + (b.posts ? b.h * 0.85 : b.h) - (b.posts ? 0 : STEP_UP)) continue;
     if (b.posts) {
       for (const [px, pz, pr] of b.posts) {
         const ex = lx - px, ez = lz - pz;

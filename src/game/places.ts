@@ -18,14 +18,83 @@ export interface Place {
   pad: number; // levelled radius
   road?: number;
 }
-/** a box that blocks, in the place's own frame */
-export const PLACE_BOX: Record<PlaceKind, { hx: number; hz: number; h: number }> = {
-  smithy: { hx: 4.2, hz: 3.4, h: 6 },
-  tavern: { hx: 6, hz: 4.2, h: 8 },
-  shrine: { hx: 2.6, hz: 2.4, h: 5 },
-  inn: { hx: 6.5, hz: 4.5, h: 8 },
-  jianzhong: { hx: 1.2, hz: 0.8, h: 4 }, // the broken stele in the middle
-  tomb: { hx: 2.8, hz: 3.2, h: 2.4 }, // the mound
+/** what blocks at each place, in its own frame (local +z = its front): boxes (centre, half sizes, height; a top
+ *  within a step of your feet you walk onto) and open posts. Matches the shapes render/Places.tsx draws. */
+export interface PlacePart {
+  x: number;
+  z: number;
+  hx: number;
+  hz: number;
+  h: number;
+  ry?: number;
+  posts?: [number, number, number][];
+}
+const posts = (x: number, z: number, h: number, pts: [number, number, number][]): PlacePart => ({ x, z, hx: 12, hz: 12, h, posts: pts });
+export const PLACE_PARTS: Record<PlaceKind, PlacePart[]> = {
+  // an open shed: the back wall, a half wall, the hearth, the anvil, the trough, six posts
+  smithy: [
+    { x: 0, z: -3.3, hx: 4.2, hz: 0.35, h: 3.2 },
+    { x: -4, z: -1.3, hx: 0.3, hz: 2, h: 1.4 },
+    { x: -2, z: -2.1, hx: 1.2, hz: 0.8, h: 1.0 },
+    { x: 1.2, z: 0.4, hx: 0.45, hz: 0.45, h: 1.0 },
+    { x: 3, z: -1.4, hx: 0.4, hz: 1.1, h: 0.7 },
+    posts(0, 0, 4, [[-4, -3.2, 0.25], [0, -3.2, 0.25], [4, -3.2, 0.25], [-4, 3.2, 0.25], [0, 3.2, 0.25], [4, 3.2, 0.25]]),
+  ],
+  // two storeys, red columns along the front, tables and wine jars in the yard
+  tavern: [
+    { x: 0, z: -0.4, hx: 5.5, hz: 3.7, h: 9.5 },
+    posts(0, 4.2, 3.6, [[-5.3, 0, 0.3], [-1.8, 0, 0.3], [1.8, 0, 0.3], [5.3, 0, 0.3]]),
+    { x: -3.5, z: 7.5, hx: 0.8, hz: 0.5, h: 0.82 },
+    { x: 3.2, z: 8.2, hx: 0.8, hz: 0.5, h: 0.82 },
+    { x: -5.6, z: 5.85, hx: 1.1, hz: 0.7, h: 1.1 },
+  ],
+  // on a low stone base you step up onto: three walls round the god, columns at the front, the burner, lanterns, stele
+  shrine: [
+    { x: 0, z: 0, hx: 3, hz: 2.8, h: 0.55 },
+    { x: 0, z: -1.2, hx: 2.2, hz: 0.9, h: 3.55 },
+    { x: -2.1, z: 0.2, hx: 0.1, hz: 1.9, h: 3.55 },
+    { x: 2.1, z: 0.2, hx: 0.1, hz: 1.9, h: 3.55 },
+    { x: 0, z: 0.6, hx: 1, hz: 0.4, h: 1.45 },
+    posts(0, 2, 3.5, [[-2.2, 0, 0.25], [2.2, 0, 0.25]]),
+    { x: 0, z: 4.6, hx: 0.55, hz: 0.55, h: 0.7 },
+    { x: -3.4, z: 4.4, hx: 0.45, hz: 0.45, h: 2.3 },
+    { x: 3.4, z: 4.4, hx: 0.45, hz: 0.45, h: 2.3 },
+    { x: 4.4, z: -1, hx: 0.7, hz: 0.5, h: 3.1 },
+  ],
+  // the inn and its porch, the stable's posts and hay, the woodpile, the well
+  inn: [
+    { x: 0, z: -0.8, hx: 6, hz: 3.7, h: 7 },
+    posts(0, 4.6, 3, [[-5.6, 0, 0.22], [-1.9, 0, 0.22], [1.9, 0, 0.22], [5.6, 0, 0.22]]),
+    { x: -3.2, z: 3.8, hx: 0.8, hz: 0.5, h: 0.82 },
+    { x: 2.6, z: 3.8, hx: 0.8, hz: 0.5, h: 0.82 },
+    posts(-9.2, 0, 2.6, [[0, -3.6, 0.2], [0, 0, 0.2], [0, 3.6, 0.2]]),
+    { x: -8.4, z: -2.2, hx: 0.95, hz: 0.95, h: 1 },
+    { x: 8, z: -2, hx: 0.6, hz: 0.7, h: 0.65 },
+    { x: 5.5, z: 8.5, hx: 0.85, hz: 0.85, h: 0.9 },
+  ],
+  // the split stele, the marker, the dead tree and the cairns (the swords you walk among)
+  jianzhong: [
+    { x: 0, z: 0, hx: 1.2, hz: 0.8, h: 2.8 },
+    { x: 0, z: 15, hx: 0.7, hz: 0.45, h: 2.8 },
+    posts(0, 0, 3, [
+      [-6, -7, 0.4],
+      ...Array.from({ length: 6 }, (_, c) => {
+        const a = c * 1.05 + 0.3, r = 8 + (c % 2) * 5;
+        return [Math.cos(a) * r, Math.sin(a) * r, 0.6] as [number, number, number];
+      }),
+    ]),
+  ],
+  // the mound, the stone, the offering table, two pines, the low curved wall behind
+  tomb: [
+    { x: 0, z: 0, hx: 2.6, hz: 3, h: 1.9 },
+    { x: 0, z: 4, hx: 0.95, hz: 0.4, h: 2.85 },
+    { x: 0, z: 5.4, hx: 0.8, hz: 0.45, h: 0.75 },
+    posts(0, 0, 4, [[-4.6, -2.5, 0.3], [4.6, -2.5, 0.3]]),
+    ...Array.from({ length: 9 }, (_, k) => {
+      const a = Math.PI + 0.25 + (k / 8) * (Math.PI - 0.5);
+      return { x: Math.cos(a) * 6, z: Math.sin(a) * 6, hx: 1.1, hz: 0.23, h: 1.5, ry: Math.PI / 2 - a };
+    }),
+  ],
 };
 
 const sectorMid = (k: number) => {

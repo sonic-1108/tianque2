@@ -130,7 +130,7 @@ function Sign({ f, lx, y, lz, w, h, tex }: { f: Frame; lx: number; y: number; lz
   return (
     <mesh position={[x, y, z]} rotation={[0, f.rot, 0]}>
       <planeGeometry args={[w, h]} />
-      <meshStandardMaterial map={tex} transparent roughness={0.8} />
+      <meshStandardMaterial map={tex} emissiveMap={tex} emissive="#ffffff" emissiveIntensity={0.7} transparent roughness={0.8} />
     </mesh>
   );
 }
