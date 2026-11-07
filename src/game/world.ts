@@ -127,9 +127,11 @@ function rawHeight(x: number, z: number): number {
   const trail = 1 - smooth(6, 34, pathDist(x, z));
   h += (Math.max(floor + 1, WATER_Y + 0.8) - h) * trail * 0.96;
   // the painted rivers
-  const w = smooth(0.08, 0.55, mapWater(x, z));
-  // a road crossing a river becomes a shallow ford (you wade across instead of meeting a cliff)
-  h += (Math.min(h, WATER_Y - 2.6 + 1.9 * trail) - h) * w;
+  // a road crossing a river becomes a shallow ford (you wade across instead of meeting a cliff): on the road the
+  // bank is let down over a much wider stretch of the river's edge, so the way in is a walkable slope
+  const wm = mapWater(x, z);
+  const w = smooth(0.08, 0.55, wm) * (1 - trail) + smooth(0.02, 0.98, wm) * trail;
+  h += (Math.min(h, WATER_Y - 2.6 + 2.15 * trail) - h) * w;
   // flat pads: the village, then each den (blended one after another, no seams)
   h += (1.5 - h) * (1 - smooth(VILLAGE_R, VILLAGE_R + 50, r));
   for (const [cx, cz] of CAMPS) {
