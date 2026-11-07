@@ -1206,6 +1206,9 @@ export class VFXSystem {
     this.sparkBurst(pos, heavy ? 34 : 18, color, heavy ? 9 : 6.5, heavy ? 0.12 : 0.09, dir, 0.9);
     this.flash(pos, heavy ? '#ffb46b' : '#ff8a4a', heavy ? 26 : 12, heavy ? 0.16 : 0.1, 6);
     if (heavy) this.ring(new THREE.Vector3(pos.x, pos.y - 1.05, pos.z), 1.3, color, 0.3, 0.18);
+    // the cut itself: a bright streak across the point struck, and on a heavy blow the dust kicked up round his feet
+    this.slashMark(pos, color, heavy ? 1.25 : 0.8, heavy ? 0.14 : 0.1);
+    if (heavy) this.dustPuff(new THREE.Vector3(pos.x, pos.y - 1.0, pos.z), 10, 0.6, 2.8, 0.75);
   }
 
   groundSlam(posIn: THREE.Vector3, scale: number, color: THREE.ColorRepresentation = '#ff4a1c') {

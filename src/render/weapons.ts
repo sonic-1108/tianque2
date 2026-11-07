@@ -294,6 +294,7 @@ export function weaponsFor(model: string, glow: THREE.Color): { right: THREE.Obj
       return pair(() => buildKnife(glow));
     case 'shadowblade.glb':
       return pair(() => buildDagger(glow), true);
+    case 'guard.glb':
     case 'emperor.glb': {
       const r = buildImperialSword(glow);
       return { ...none, right: r.group, base: r.base, tip: r.tip };

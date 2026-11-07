@@ -91,6 +91,8 @@ export class Sim {
   events: SimEvent[] = [];
   /** a moment's freeze when the player lands a blow (seconds) */
   hitstop = 0;
+  /** seconds of slow motion left (a kill by the player); the camera loop reads it */
+  slowmo = 0;
   emit(e: SimEvent) {
     if (this.events.length < 200) this.events.push(e);
   }
@@ -155,9 +157,10 @@ export class Sim {
         const boss = d.boss && k === n - 1;
         const a = (k / n) * Math.PI * 2;
         const r = boss ? 0 : 6;
-        const f = this.make('sect', kind.house, boss ? bossNameOf(d) : menNameOf(d), kind.model, d.level + (boss ? (d.ring === 0 ? 1 : 3) : k % 3), d.x + Math.cos(a) * r, d.z + Math.sin(a) * r);
+        const f = this.make('sect', kind.house, boss ? bossNameOf(d) : menNameOf(d), boss ? (kind.bossModel ?? kind.model) : kind.model, d.level + (boss ? (d.ring === 0 ? 1 : 3) : k % 3), d.x + Math.cos(a) * r, d.z + Math.sin(a) * r);
         f.home = [f.pos[0], f.pos[2]];
         (f as any).den = di;
+        if (!boss) f.maxHp = f.hp = Math.round(f.maxHp * 0.85); // the men go down quicker
         if (boss) {
           (f as any).boss = true;
           // 雷彪, the first boss, is gentler: a couple of levels and a third less life than the later ones
@@ -257,7 +260,8 @@ export class Sim {
     f.yaw = Math.atan2(-(x - f.pos[0]), -(z - f.pos[2]));
   }
   power(f: Fighter) {
-    return f.team === 'player' ? playerPower(f.level) * (this.progress.relics?.includes('sword') ? 1.1 : 1) : 0.25 + f.level * 0.04; // bandits hit softer than you: a few at once is the danger
+    if (f.team === 'player') return playerPower(f.level) * (this.progress.relics?.includes('sword') ? 1.1 : 1);
+    return (0.25 + f.level * 0.04) * ((f as any).boss ? 1 : 0.82); // the men hit softer than their bosses // bandits hit softer than you: a few at once is the danger
   }
   setAct(f: Fighter, act: Fighter['act'], dur: number, anim?: string) {
     f.act = act;
@@ -386,7 +390,10 @@ export class Sim {
     if (att.id === PLAYER) this.lastTarget = def.id;
     const heavy = !!(o.heavy || o.launch || o.down || (o.knock ?? 0) >= 6 || crit || dmg > def.maxHp * 0.12);
     this.emit({ k: 'hit', x: def.pos[0], y: def.pos[1] + 1.1, z: def.pos[2], id: att.id, to: def.id, n: dmg, heavy, crit, color: o.color });
-    if ((att.id === PLAYER || def.id === PLAYER) && !o.noScale) this.hitstop = Math.max(this.hitstop, heavy ? 0.09 : 0.045);
+    if ((att.id === PLAYER || def.id === PLAYER) && !o.noScale) this.hitstop = Math.max(this.hitstop, heavy ? 0.12 : 0.07);
+    // for the renderer: the body flashes and jolts back the way the blow came
+    (def as any).hitAt = this.time;
+    (def as any).hitHeavy = heavy;
     this.text(def, crit ? `暴击 ${dmg}` : `${dmg}`, crit ? '#ffcf3a' : def.id === PLAYER ? '#ff6b6b' : o.color ?? '#ffffff');
     if (def.team === 'sect') def.aggro = true;
     // 金钟罩: whoever strikes it up close takes three tenths back
@@ -408,7 +415,17 @@ export class Sim {
     const dz = def.pos[2] - az;
     const d = Math.hypot(dx, dz) || 1;
     if (def.hp <= 0) {
+      if (att.id === PLAYER) {
+        this.hitstop = Math.max(this.hitstop, (def as any).boss ? 0.3 : 0.16);
+        this.slowmo = Math.max(this.slowmo, (def as any).boss ? 1.2 : 0.35);
+      }
       this.kill(att, def, dx / d, dz / d);
+      return dmg;
+    }
+    // a boss stands his ground against light blows: only heavy ones (finishers, crits, big moves) stagger him
+    // (雷彪, the first, still reels from anything)
+    if ((def as any).boss && DENS[(def as any).den]?.ring > 0 && !heavy && !o.launch && !o.down && !o.stun) {
+      if (def.act === 'idle' || def.act === 'run') this.setAct(def, 'hit', 0.12, 'hit');
       return dmg;
     }
     const armored = !o.breakArmor && (def.st.armor > 0 || def.st.shield > 0 || def.act === 'glide');
@@ -831,7 +848,8 @@ export class Sim {
     const aim = () => {
       // face where the camera looks, or the enemy nearest that line
       f.yaw = cy;
-      const t = this.nearestEnemy(f, 12, Math.cos(0.6));
+      // (or, with nobody on that line, whoever is right beside you: a foe at your elbow gets cut, not the air)
+      const t = this.nearestEnemy(f, 12, Math.cos(0.6)) ?? this.nearestEnemy(f, 3.2, -1);
       if (t) this.faceTo(f, t.pos[0], t.pos[2]);
     };
     const running = f.run ? SKILLS[f.run.id] : null;
@@ -1104,7 +1122,7 @@ export class Sim {
             f.vel[0] += fx * 3;
             f.vel[2] += fz * 3;
           }
-          for (const o of this.inCone(f, MELEE_RANGE, 0.25)) this.hit(f, o, c.dmg, f.combo === 2 ? { knock: 6, mult: 1 } : { mult: 1 });
+          for (const o of this.inCone(f, MELEE_RANGE, 0.25)) this.hit(f, o, c.dmg, f.combo === 2 ? { knock: 8, heavy: true, dur: 0.55, mult: 1 } : f.team === 'player' ? { knock: 2.2, dur: 0.3, mult: 1 } : { mult: 1 });
           this.addFx({ kind: 'slash', x: f.pos[0] + fx * 1.2, y: f.pos[1] + 1.1, z: f.pos[2] + fz * 1.2, max: 0.18, r: 1.4, color: f.team === 'player' ? '#e8f4ff' : this.kindOf(f)?.color ?? '#fff', yaw: f.yaw });
         }
       }

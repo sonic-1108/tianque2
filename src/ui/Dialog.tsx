@@ -54,7 +54,7 @@ export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => vo
         q.title === '玉佩'
           ? '你看这本旧医书，这一页画的就是它：天阙守阙人的信物。\n守阙人一家，二十年前那一夜全死了，只有一个婴儿下落不明。\n……石伯捡到你，也是那年冬天。'
           : '石伯让你来的？这些伤药你带着。\n你这块玉佩……我好像在哪本旧医书里见过。等我翻翻。\n以后受了伤就来，我给你治。';
-    buttons.push({ label: '请郎中治伤（回满生命和内力）', go: () => sim.healFull() });
+    buttons.push({ label: '请慧明治伤（回满生命和内力）', go: () => sim.healFull() });
   }
   if (role === 'teller')
     body =

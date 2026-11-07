@@ -322,16 +322,21 @@ export class WuxiaSound {
   hitLight() {
     const b = this.bus();
     if (!b) return;
-    this.thump(b, b.now, 170 * this.v(), 60, 0.16, 0.7, 0.05);
-    this.burst(b, b.now, 0.08, 'bandpass', 1800, 0.35);
-    this.burst(b, b.now, 0.12, 'lowpass', 700, 0.4);
+    this.thump(b, b.now, 190 * this.v(), 55, 0.16, 0.95, 0.05);
+    this.burst(b, b.now, 0.05, 'highpass', 3800, 0.45); // the crack of the edge landing
+    this.burst(b, b.now, 0.09, 'bandpass', 1700, 0.45);
+    this.burst(b, b.now, 0.13, 'lowpass', 650, 0.55);
+    this.metal(b, b.now, 1500 * this.v(0.1), 0.05, 0.12, [1, 2.4], 0.05);
   }
   hitHeavy() {
     const b = this.bus();
     if (!b) return;
-    this.thump(b, b.now, 120 * this.v(), 38, 0.38, 1.0, 0.2);
-    this.burst(b, b.now, 0.18, 'lowpass', 1200, 0.7, 0.2);
-    this.metal(b, b.now, 420 * this.v(0.08), 0.12, 0.5, [1, 2.76, 5.4], 0.2);
+    this.thump(b, b.now, 130 * this.v(), 32, 0.45, 1.25, 0.22);
+    this.thump(b, b.now + 0.01, 60, 28, 0.5, 0.7, 0.3); // the floor of it
+    this.burst(b, b.now, 0.06, 'highpass', 3000, 0.6);
+    this.burst(b, b.now, 0.22, 'lowpass', 1100, 0.85, 0.2);
+    this.burst(b, b.now + 0.02, 0.1, 'bandpass', 2400, 0.4); // the crunch
+    this.metal(b, b.now, 420 * this.v(0.08), 0.14, 0.5, [1, 2.76, 5.4], 0.2);
   }
   /** Blades meeting on a block */
   clash() {

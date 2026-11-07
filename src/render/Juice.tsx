@@ -15,7 +15,7 @@ import { questTarget } from '../game/quests';
 import { groundHeight } from '../game/world';
 
 /** camera trauma (0..1) and FOV punch the camera loop reads */
-export const juice = { trauma: 0, kick: 0 };
+export const juice = { trauma: 0, kick: 0, push: 0, px: 0, pz: 0 };
 
 const UP = new THREE.Vector3(0, 1, 0);
 const SOUND_ALIAS: Record<string, string> = { click: 'wood', fanfare: 'ultRise' };
@@ -148,6 +148,7 @@ export function Juice({ sim }: { sim: Sim }) {
     vfx.update(sdt);
     juice.trauma = Math.max(0, juice.trauma - dt * 1.8);
     juice.kick *= Math.exp(-dt * 9);
+    juice.push *= Math.exp(-dt * 14);
   });
 
   /** darts, pins, knives and boomerangs: the old game's meshes; Rolexes; the mantra's words go to the monk effects */
@@ -317,8 +318,12 @@ export function Juice({ sim }: { sim: Sim }) {
         sfx(e.heavy ? 'hitHeavy' : 'hitLight');
         if (e.to === PLAYER) juice.trauma = Math.min(1, juice.trauma + (e.heavy ? 0.45 : 0.2));
         else if (e.id === PLAYER) {
-          juice.trauma = Math.min(1, juice.trauma + (e.heavy ? 0.28 : 0.08));
-          if (e.heavy) juice.kick = -4;
+          juice.trauma = Math.min(1, juice.trauma + (e.heavy ? 0.42 : 0.17));
+          juice.kick = e.heavy ? -5 : -1.4;
+          // the blow's line: the camera nudges the way the foe is knocked
+          juice.push = e.heavy ? 0.35 : 0.12;
+          juice.px = v.b.x;
+          juice.pz = v.b.z;
         }
         if (e.crit) sfx('perfect');
         return;

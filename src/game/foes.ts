@@ -12,14 +12,15 @@ export interface FoeKind {
   color: string;
   skills: string[];
   boss?: string; // the boss's own name
+  bossModel?: string; // the boss's body when it isn't the men's
 }
 export const FOE_KINDS: FoeKind[] = [
   { name: '山贼', model: 'berserker.glb', house: 'kuangren', ranged: false, color: '#e0452b', skills: ['earth_cleave', 'bull_charge', 'whirlwind_blade'] },
-  { name: '飞镖客', model: 'ranger.glb', house: 'anqi', ranged: true, color: '#2dd4bf', skills: ['pin_dart', 'boomerang', 'swallow_flip'] },
+  { name: '女飞贼', model: 'ranger.glb', house: 'anqi', ranged: true, color: '#2dd4bf', skills: ['pin_dart', 'boomerang', 'swallow_flip'] },
   { name: '野和尚', model: 'monk.glb', house: 'fanyin', ranged: false, color: '#f5b942', skills: ['vajra_palm', 'zen_domain', 'six_syllable_mantra'] },
   { name: '刺客', model: 'shadowblade.glb', house: 'yingren', ranged: false, color: '#a78bfa', skills: ['shadow_step', 'fan_knives', 'burrow'] },
-  { name: '伪朝兵', model: 'emperor.glb', house: 'tianzi', ranged: false, color: '#ffd36a', skills: ['edict', 'jade_seal', 'phantom_guard'] },
-  { name: '骗子', model: 'trader.glb', house: 'jiaoyi', ranged: true, color: '#4ade80', skills: ['rolex_throw', 'make_it_rain'] },
+  { name: '伪朝禁军', model: 'guard.glb', bossModel: 'emperor.glb', house: 'tianzi', ranged: false, color: '#ffd36a', skills: ['edict', 'jade_seal', 'phantom_guard'] },
+  { name: '奸商', model: 'trader.glb', house: 'jiaoyi', ranged: true, color: '#4ade80', skills: ['rolex_throw', 'make_it_rain'] },
   { name: '妖道', model: 'dixian.glb', house: 'dixian', ranged: false, color: '#86efac', skills: ['drain_surplus', 'earth_spring', 'qingfeng'] },
 ];
 

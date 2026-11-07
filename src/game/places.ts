@@ -125,10 +125,10 @@ export const FOLK: Folk[] = (() => {
   {
     const p = by('shrine');
     const [x, z] = placeAt(p, 2.5, 4);
-    out.push({ name: '庙祝 · 了尘', model: 'monk.glb', x, z, lines: ['土地爷保佑青石村，也保佑你。', '香火钱随缘。你身上的杀气，倒是比香火重。', '这庙比村子还老。墙上那块碑，写的是天阙七家的名字，后来被人凿掉了。'] });
+    out.push({ name: '庙祝 · 慧觉', model: 'monk.glb', x, z, lines: ['土地爷保佑青石村，也保佑你。', '香火钱随缘。你身上的杀气，倒是比香火重。', '这庙比村子还老。墙上那块碑，写的是天阙七家的名字，后来被人凿掉了。'] });
   }
   // round the square
-  out.push({ name: '货郎', model: 'trader.glb', x: 5, z: 10, walk: 9, lines: ['针头线脑、胭脂水粉，要啥有啥！', '山贼把路堵了，我的货都运不出去。', '外地人？我走南闯北，没见过你这样的眼神。'] });
+  out.push({ name: '货郎', model: 'wanderer_m.glb', x: 5, z: 10, walk: 9, lines: ['针头线脑、胭脂水粉，要啥有啥！', '山贼把路堵了，我的货都运不出去。', '外地人？我走南闯北，没见过你这样的眼神。'] });
   out.push({ name: '樵夫 · 老周', model: 'wanderer_m.glb', x: -12, z: -10, walk: 7, lines: ['林子里的狼少了，人倒是多了。', '往西北走，山越来越陡，路只剩一条。', '砍了四十年柴，没见过天阙的门开过。'] });
   out.push({ name: '村妇 · 秀兰', model: 'ranger.glb', x: 13, z: -12, walk: 6, lines: ['孩子他爹被抓去寨子里干活，到现在没回来。', '谢谢你帮村里出头。', '石伯捡到你那天，雪下了三尺厚。'] });
   out.push({ name: '更夫', model: 'dixian.glb', x: -4, z: 13, walk: 10, lines: ['天干物燥，小心火烛。', '半夜我常听见北边有钟声，可天阙早没人了啊。', '咚，咚……习惯了，白天也想敲。'] });

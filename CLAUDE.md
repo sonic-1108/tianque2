@@ -10,6 +10,14 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
 - Ultimates must be held on R for 0.8 s (ULT_CHARGE); letting go or a hit cancels with nothing spent.
 - Open map: village in the middle, bandit dens on three rings (src/game/foes.ts), harder further out, a boss den per ring.
 - No sect camps or masters on the map (the owner said no).
+- Names must fit the body (owner's rule): ranger.glb is a young woman (女飞贼, 杏娘, 秀兰), emperor.glb is only ever
+  萧承乾 (`bossModel`; his men and kind 4 dens are 伪朝禁军 / 金甲卫 on guard.glb), trader.glb is a merchant (奸商),
+  monk.glb a monk (僧医 · 慧明, 庙祝 · 慧觉), plain folk use wanderer_m.glb. Check portraits/ before naming anyone.
+- Hit feel (owner wants it strong): every basic hit pushes (2.2), the third launches back (8, heavy); hit-stop 0.07 /
+  0.12 s; a kill by the player adds `sim.slowmo`; struck bodies flash white and jolt back (Rig `hitAt`); the camera
+  shakes and nudges along the blow (`juice.push`). Swings face the foe on the camera line, else anyone within 3.2 m.
+- Difficulty (owner's rule): the men stay easy (x0.82 damage, x0.85 life); bosses can be hard. Bosses past ring 0
+  ignore light hits (only heavy ones stagger); 雷彪 (ring 0) is softened and still reels.
 - Places (`src/game/places.ts`, drawn by `render/Places.tsx`): beyond the village fence 张记铁铺, 杏花酒肆, 土地庙; a
   驿站 on every road (inn, two house.glb, fenced yard, 驿 on the minimap). `FOLK`: unarmed, unhurtable villagers and
   travellers who stand or stroll (`walk`), talk on F; innkeepers and 杏娘 heal (`heal`). Yards are levelled in rawHeight.

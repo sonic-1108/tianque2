@@ -29,7 +29,11 @@ function Loop({ sim }: { sim: Sim }) {
     let sdt = dt;
     if (sim.hitstop > 0) {
       sim.hitstop -= dt;
-      sdt = dt * 0.08;
+      sdt = dt * 0.05;
+    } else if (sim.slowmo > 0) {
+      // a kill: the world runs slow for a moment, easing back to full speed
+      sim.slowmo -= dt;
+      sdt = dt * (0.3 + 0.7 * (1 - Math.min(1, sim.slowmo / 0.35)) ** 2);
     }
     for (let k = 0; k < turbo; k++) sim.step(sdt, readInput(cam.yaw));
     // camera: over the right shoulder, the player in the left third
@@ -62,6 +66,10 @@ function Loop({ sim }: { sim: Sim }) {
     c.y = Math.max(c.y, groundHeight(c.x, c.z) + 0.5);
     camera.position.copy(c);
     camera.lookAt(tx, ty, tz);
+    if (juice.push > 0.001) {
+      camera.position.x += juice.px * juice.push;
+      camera.position.z += juice.pz * juice.push;
+    }
     if (juice.trauma > 0.001) {
       const t = performance.now() * 0.045;
       const k = juice.trauma * juice.trauma * 0.35;

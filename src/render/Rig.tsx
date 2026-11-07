@@ -22,6 +22,7 @@ const CLIP_SOURCE: Record<string, string[]> = {
   'trader.glb': ['berserker.glb'],
   'dixian.glb': ['berserker.glb'],
   'emperor.glb': ['berserker.glb'],
+  'guard.glb': ['emperor.glb', 'berserker.glb'],
 };
 
 interface Spec {
@@ -260,6 +261,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
           mat.emissive = new THREE.Color('#000000');
           applyCharacterShading(mat, f.team === 'player', f.model === 'monk.glb');
           o.material = mat;
+          ((obj as any).userData.mats ||= []).push(mat);
         });
         setModel({ obj, clips: buildClips(raw, planOf(f.model)), scale: m.scale, floor: m.floor });
       })
@@ -299,7 +301,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
   }, [model, glide]);
   const lastAct = useRef<{ act: string; anim: string; t: number }>({ act: '', anim: '', t: 0 });
   const pose = useRef<THREE.Group>(null);
-  const body = useMemo(() => ({ spin: 0, lean: 0, lev: 0 }), []);
+  const body = useMemo(() => ({ spin: 0, lean: 0, lev: 0, lastHit: -1, jolt: 0, flash: 0, flashOn: false }), []);
 
   useFrame((_, dt) => {
     const g = group.current;
@@ -310,6 +312,28 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     if (!g.visible) return;
     g.position.set(f.pos[0], f.pos[1] - (f.act === 'burrow' ? 1.3 : 0), f.pos[2]);
     g.rotation.y = f.yaw + Math.PI;
+    // struck: a white flash and a jolt back (on render time, so they play through the hit-stop)
+    const ha = (f as any).hitAt;
+    if (ha !== undefined && ha !== body.lastHit) {
+      if (body.lastHit !== -1 || f.hp < f.maxHp) {
+        const heavy = !!(f as any).hitHeavy;
+        body.jolt = heavy ? 1 : 0.6;
+        body.flash = heavy ? 1 : 0.75;
+      }
+      body.lastHit = ha;
+    }
+    if (body.jolt > 0.005) {
+      g.position.x += Math.sin(f.yaw) * 0.22 * body.jolt;
+      g.position.z += Math.cos(f.yaw) * 0.22 * body.jolt;
+      body.jolt *= Math.exp(-dt * 11);
+    }
+    const mats: THREE.MeshStandardMaterial[] | undefined = (model?.obj as any)?.userData.mats;
+    if (mats && (body.flash > 0.01 || body.flashOn)) {
+      const k = body.flash > 0.01 ? body.flash * body.flash * 0.9 : 0;
+      for (const m of mats) m.emissive.setRGB(k, k * 0.95, k * 0.85);
+      body.flashOn = k > 0;
+      body.flash *= Math.exp(-dt * 15);
+    }
     if (!mixer) return;
     const held: THREE.Object3D[] | undefined = (model?.obj as any)?.userData.held;
     if (held?.length && !(model!.obj as any).userData.scaled) {
@@ -365,7 +389,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
       body.lean += (lean - body.lean) * Math.min(1, dt * 10);
       const lev = f.anim === 'fy_ult' ? 0.45 + Math.sin(performance.now() * 0.003) * 0.05 : 0;
       body.lev += (lev - body.lev) * Math.min(1, dt * 6);
-      ps.rotation.set(body.lean + flip, body.spin, 0, 'YXZ');
+      ps.rotation.set(body.lean + flip - body.jolt * 0.28, body.spin, 0, 'YXZ');
       ps.position.y = PIVOT + body.lev;
     }
     // the glider: blend the arms up onto the straps, open the canopy above the fists
