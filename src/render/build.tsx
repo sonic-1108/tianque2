@@ -2,24 +2,25 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
 import { mergeBufferGeometries } from 'three-stdlib';
+import { dress } from './surfaces';
 
 export type Mat = 'stone' | 'step' | 'red' | 'wall' | 'roof' | 'ridge' | 'wood' | 'bronze' | 'cloth' | 'paper' | 'dark' | 'plank' | 'log' | 'thatch' | 'tile' | 'leaf' | 'crop' | 'soil' | 'hay' | 'lamp' | 'flame' | 'canvas' | 'rock' | 'pave' | 'pave2';
 const COLORS: Record<Mat, [string, number, number]> = {
   stone: ['#d4cdbd', 0.95, 0],
   step: ['#b9b2a2', 1, 0],
-  red: ['#8d2a1c', 0.7, 0],
+  red: ['#8d2a1c', 0.82, 0],
   wall: ['#a5402c', 0.85, 0],
-  roof: ['#c48d2c', 0.45, 0.25],
+  roof: ['#c48d2c', 0.62, 0.15],
   ridge: ['#6a4a1c', 0.6, 0.2],
   wood: ['#4b2d1a', 0.9, 0],
-  bronze: ['#7a6330', 0.4, 0.75],
+  bronze: ['#7a6330', 0.6, 0.55],
   cloth: ['#17130f', 0.9, 0],
   paper: ['#ffd58a', 1, 0],
   dark: ['#1d1612', 1, 0],
   plank: ['#7a5a3a', 0.95, 0],
   log: ['#5e4430', 1, 0],
   thatch: ['#a08a5a', 1, 0],
-  tile: ['#3d4248', 0.8, 0],
+  tile: ['#4a4f55', 0.9, 0],
   leaf: ['#3f6a2a', 1, 0],
   crop: ['#5d8a2e', 1, 0],
   soil: ['#5a4430', 1, 0],
@@ -154,6 +155,7 @@ export function matOf(m: Mat) {
       out.emissive = new THREE.Color(c);
       out.emissiveIntensity = LIFT[m]!;
     }
+    if (out instanceof THREE.MeshStandardMaterial && m !== 'paper' && m !== 'lamp') dress(out, m);
     matCache.set(m, out);
   }
   return out;

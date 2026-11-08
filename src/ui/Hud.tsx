@@ -128,7 +128,12 @@ function Minimap({ sim }: { sim: Sim }) {
     }, 200);
     return () => clearInterval(id);
   }, [sim]);
-  return <canvas ref={ref} className="minimap" width={180} height={180} />;
+  return (
+    <>
+      <canvas ref={ref} className="minimap" width={180} height={180} />
+      <div className="mm-hint">M 打开大地图</div>
+    </>
+  );
 }
 
 function QuestTracker({ sim }: { sim: Sim }) {

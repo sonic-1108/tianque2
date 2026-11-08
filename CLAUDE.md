@@ -23,6 +23,10 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   Open things block only by posts (pavilions `PAVILION_POSTS`, porches, sheds). Each place's solid parts are
   `PLACE_PARTS` (places.ts) and must match what Places.tsx draws; 天阙's terrace + stairs are in `TQ_PARTS`.
   Check with a headless walk (drop on a roof, glide over a house, up 天阙's stairs, into a pavilion).
+- M opens the full map (`ui/BigMap.tsx`: dens with names and levels, grey once cleared, places, quest star, you).
+- Built shapes wear painted patterns (`render/surfaces.ts`: boards, cut stone, plaster, tiles, thatch, bark, sampled
+  in world space from three sides, a shade per piece) so nothing reads as plain plastic; new materials get a
+  `SURFACE` entry.
 - View: camera far 2000, fog 240 to 1500 (the rim and 天阙 show from the village). Worked stone and props glow a
   little of their own colour (`LIFT` in build.tsx, `render/propLook.ts`) so arches never read black.
 - Places (`src/game/places.ts`, drawn by `render/Places.tsx`): beyond the village fence 张记铁铺, 杏花酒肆, 土地庙; a

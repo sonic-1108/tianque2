@@ -11,6 +11,7 @@ import { Hud } from './ui/Hud';
 import { SkillTree, StartScreen } from './ui/Panels';
 import { TQ_POS, TQ_ROAD, roadPoint, tqWorld } from './game/layout';
 import { Dialog, ChapterCard, NoteCard, chapterDue } from './ui/Dialog';
+import { BigMap } from './ui/BigMap';
 import { attachInput, ui } from './input';
 
 declare const __BUILD_TIME__: string;
@@ -26,6 +27,7 @@ export function App() {
   (globalThis as any).__T2_SKILLS = SKILLS;
   (globalThis as any).__T2_GROUND = groundHeight;
   (globalThis as any).__T2_TQ = { c: TQ_POS, gate: tqWorld(0, 30), far: roadPoint(TQ_ROAD, 560), road: roadPoint(TQ_ROAD, 735) };
+  const [bigMap, setBigMap] = useState(false);
   const card = started && !tree && chapterDue(sim);
   const note = started && !tree && !!sim.note && !(globalThis as any).__T2_NOCARD;
 
@@ -40,15 +42,17 @@ export function App() {
     return () => clearInterval(id);
   }, []);
   useEffect(() => {
-    ui.open = tree || !started || sim.dialog >= 0 || card || note;
+    ui.open = tree || !started || sim.dialog >= 0 || card || note || bigMap;
     if (ui.open && document.pointerLockElement) document.exitPointerLock();
-  }, [tree, started, tick >= 0 && sim.dialog >= 0, card, note]);
+  }, [tree, started, tick >= 0 && sim.dialog >= 0, card, note, bigMap]);
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       if (!started) return;
       if (e.code === 'KeyK' || e.code === 'Tab') setTree((v) => !v);
+      if (e.code === 'KeyM') setBigMap((v) => !v);
       if (e.code === 'Escape') {
         setTree(false);
+        setBigMap(false);
         sim.dialog = -1;
       }
       if (e.code === 'KeyF' && sim.dialog >= 0 && ui.open) sim.dialog = -1;
@@ -77,6 +81,7 @@ export function App() {
           {sim.dialog >= 0 && !tree && <Dialog sim={sim} onClose={() => (sim.dialog = -1)} onChange={() => setTick((n) => n + 1)} />}
           {note && <NoteCard sim={sim} onClose={() => setTick((n) => n + 1)} />}
           {card && <ChapterCard sim={sim} onClose={() => setTick((n) => n + 1)} />}
+          {bigMap && <BigMap sim={sim} onClose={() => setBigMap(false)} />}
           {tree && <SkillTree sim={sim} onClose={() => setTree(false)} onHero={() => setVersion((v) => v + 1)} />}
           {!document.pointerLockElement && !tree && <div className="lockhint">点击画面开始（锁定鼠标转视角）</div>}
           <div className="build">tianque2 · {new Date(__BUILD_TIME__).toLocaleString()}</div>

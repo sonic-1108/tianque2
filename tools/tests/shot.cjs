@@ -28,6 +28,7 @@ const { chromium } = require(process.env.PW || '/opt/npm-tools/node_modules/play
     if (globalThis.__NOTE) { S.note = { title: '断剑冢', text: S.constructor && globalThis.__NOTE }; globalThis.__T2_NOCARD = false; }
   }, process.env.SPOT || 'village');
   await new Promise((r) => setTimeout(r, +(process.env.WAIT || 60000)));
+  if (process.env.KEY) { await p.keyboard.press(process.env.KEY); await p.waitForTimeout(3000); }
   await p.screenshot({ timeout: 180000, path: process.env.OUT || '/tmp/shot.png' });
   console.log('t', await p.evaluate(() => globalThis.__T2.time.toFixed(1)));
   await b.close();
