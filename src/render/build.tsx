@@ -46,21 +46,55 @@ export class Builder {
   col(m: Mat, x: number, y: number, z: number, r: number, h: number, seg = 10) {
     this.add(m, new THREE.CylinderGeometry(r, r * 1.05, h, seg), x, y + h / 2, z);
   }
-  /** a hip roof with flared eaves: a wide shallow skirt under a steeper top, both four sided */
+  /** a hip roof the Chinese way: four curved slopes (steep under the ridge, easing out flat to the eaves), the eaves
+   *  hanging past the walls by o and their corners swept up; a thin slab, its underside darker */
   roof(x: number, y: number, z: number, w: number, d: number, h: number, o = 2.2, m: Mat = 'roof') {
-    const skirt = new THREE.CylinderGeometry(0.62, 1, 1, 4, 1, true);
-    skirt.rotateY(Math.PI / 4);
-    skirt.scale((w + 2 * o) / Math.SQRT2, h * 0.32, (d + 2 * o) / Math.SQRT2);
-    this.add(m, skirt, x, y + h * 0.16, z);
-    const top = new THREE.CylinderGeometry(0.08, 1, 1, 4, 1);
-    top.rotateY(Math.PI / 4);
-    top.scale(((w + 2 * o) * 0.62) / Math.SQRT2, h * 0.72, ((d + 2 * o) * 0.62) / Math.SQRT2);
-    this.add(m, top, x, y + h * 0.32 + h * 0.36, z);
+    const W = w / 2 + o, D = d / 2 + o;
+    const short = Math.min(W, D);
+    const N = 22;
+    const pos: number[] = [];
+    const idx: number[] = [];
+    const lift = (px: number, pz: number) => {
+      // distance in from the nearest edge, as a share of the way to the ridge
+      const s = Math.min(1, Math.min((W - Math.abs(px)) / short, (D - Math.abs(pz)) / short));
+      const prof = Math.pow(s, 1.6); // concave: shallow at the eaves, steep up top
+      const cx = Math.max(0, (Math.abs(px) / W - 0.55) / 0.45), cz = Math.max(0, (Math.abs(pz) / D - 0.55) / 0.45);
+      const corner = Math.pow(cx * cz, 1.5) * Math.pow(1 - s, 2) * 0.32; // the swept-up corners
+      return h * (0.06 + 0.9 * prof + corner);
+    };
+    for (let j = 0; j <= N; j++)
+      for (let i = 0; i <= N; i++) {
+        const px = -W + (2 * W * i) / N, pz = -D + (2 * D * j) / N;
+        pos.push(px, lift(px, pz), pz);
+      }
+    const row = N + 1;
+    for (let j = 0; j < N; j++)
+      for (let i = 0; i < N; i++) {
+        const a = j * row + i, b = a + 1, c = a + row, e = c + 1;
+        idx.push(a, c, b, b, c, e);
+      }
+    const top = new THREE.BufferGeometry();
+    top.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    top.setIndex(idx);
+    top.computeVertexNormals();
+    this.add(m, top, x, y, z);
+    // the underside: the same sheet a hand lower, facing down, in the dark of the eaves
+    const under = top.clone();
+    under.translate(0, -0.22, 0);
+    const ui = under.index!.array as Uint16Array | Uint32Array;
+    for (let k = 0; k < ui.length; k += 3) {
+      const t = ui[k + 1];
+      ui[k + 1] = ui[k + 2];
+      ui[k + 2] = t;
+    }
+    under.computeVertexNormals();
+    this.add('wood', under, x, y, z);
     // the ridge and its two end ornaments
-    this.box('ridge', x, y + h * 0.98, z, Math.max(1, (w - d) * 0.6), 0.5, 0.5);
-    for (const s of [-1, 1]) this.box('ridge', x + s * Math.max(0.5, (w - d) * 0.3), y + h * 0.98, z, 0.5, 1.4, 0.5);
-    // the eave's underside, dark, so the roof reads as overhanging
-    this.box('dark', x, y - 0.05, z, w + 2 * o * 0.9, 0.12, d + 2 * o * 0.9);
+    // (along the longer side; the end ornaments curl up at its two ends)
+    const along = Math.max(1, Math.abs(w - d) * 0.6), endAt = Math.max(0.5, Math.abs(w - d) * 0.3);
+    const ry = w >= d ? 0 : Math.PI / 2;
+    this.box('ridge', x, y + h * 0.94, z, along, 0.5, 0.5, ry);
+    for (const s of [-1, 1]) this.box('ridge', x + (w >= d ? s * endAt : 0), y + h * 0.94, z + (w >= d ? 0 : s * endAt), 0.5, 1.4, 0.5);
   }
   /** a hall: columns round a walled core, brackets, a roof (two eaves when big) */
   hall(x: number, y: number, z: number, w: number, d: number, colH: number, eaves: number) {

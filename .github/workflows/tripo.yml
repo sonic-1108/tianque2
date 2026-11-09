@@ -1,0 +1,74 @@
+# Make a model with Tripo (text to 3D) and keep it on the tripo-models branch for review.
+# Needs the repo secret TRIPO_API_KEY (Settings > Secrets and variables > Actions); the key never leaves GitHub.
+# Run from Actions > Tripo model > Run workflow, or: gh workflow run tripo.yml -f name=inn -f prompt="..."
+name: Tripo model
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: file name (letters, digits, dashes), saved as public/props/<name>.glb
+        required: true
+      prompt:
+        description: what to make
+        required: true
+      faces:
+        description: face limit (keep props light)
+        default: '12000'
+permissions:
+  contents: write
+concurrency:
+  group: tripo-${{ inputs.name }}
+jobs:
+  make:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Ask Tripo, wait, download
+        env:
+          KEY: ${{ secrets.TRIPO_API_KEY }}
+          NAME: ${{ inputs.name }}
+          PROMPT: ${{ inputs.prompt }}
+          FACES: ${{ inputs.faces }}
+        run: |
+          set -euo pipefail
+          [ -n "$KEY" ] || { echo "TRIPO_API_KEY is not set"; exit 1; }
+          echo "$NAME" | grep -Eq '^[a-z0-9-]+$' || { echo "bad name"; exit 1; }
+          API=https://openapi.tripo3d.com/v3
+          body=$(jq -n --arg p "$PROMPT" --argjson f "$FACES" '{prompt:$p, model:"v3.1-20260211", texture:true, pbr:true, texture_quality:"detailed", face_limit:$f}')
+          res=$(curl -sS -X POST "$API/generation/text-to-model" -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' -d "$body")
+          id=$(echo "$res" | jq -r '.data.task_id // empty')
+          [ -n "$id" ] || { echo "create failed: $(echo "$res" | jq -c 'del(.data.output)')"; exit 1; }
+          echo "task $id"
+          for i in $(seq 1 150); do
+            sleep 10
+            t=$(curl -sS "$API/tasks/$id" -H "Authorization: Bearer $KEY")
+            st=$(echo "$t" | jq -r '.data.status // "?"')
+            echo "$i $st $(echo "$t" | jq -r '.data.progress // ""')"
+            case "$st" in
+              success) break ;;
+              failed|cancelled|banned|expired|unknown) echo "$t" | jq -c '.data | del(.output)'; exit 1 ;;
+            esac
+          done
+          [ "$st" = success ] || { echo "timed out"; exit 1; }
+          url=$(echo "$t" | jq -r '.data.output.model_url // .data.output.pbr_model // .data.output.model // empty')
+          img=$(echo "$t" | jq -r '.data.output.rendered_image_url // empty')
+          [ -n "$url" ] || { echo "no model url: $(echo "$t" | jq -c '.data.output | keys')"; exit 1; }
+          mkdir -p public/props tools/tripo
+          curl -sSL "$url" -o "public/props/$NAME.glb"
+          [ -n "$img" ] && curl -sSL "$img" -o "tools/tripo/$NAME.png" || true
+          jq -n --arg n "$NAME" --arg p "$PROMPT" --arg id "$id" --argjson f "$FACES" '{name:$n, prompt:$p, task:$id, faces:$f}' > "tools/tripo/$NAME.json"
+          ls -la "public/props/$NAME.glb"
+      - name: Keep it on the tripo-models branch
+        env:
+          NAME: ${{ inputs.name }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p /tmp/out && cp "public/props/$NAME.glb" tools/tripo/$NAME.* /tmp/out/
+          if git ls-remote --exit-code origin tripo-models >/dev/null; then git fetch origin tripo-models && git checkout -B tripo-models origin/tripo-models; else git checkout --orphan tripo-models && git rm -rf -q . ; fi
+          mkdir -p models && cp /tmp/out/* models/
+          git add models && git commit -m "Tripo: $NAME" && git push origin tripo-models
