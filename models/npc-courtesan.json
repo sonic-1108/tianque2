@@ -1,8 +1,8 @@
 {
   "name": "npc-courtesan",
   "kind": "biped",
-  "prompt": "A confident Chinese tavern keeper woman in her thirties, a crimson and gold embroidered jacket, a long dark skirt, hair in an elaborate bun with a jade hairpin, ancient China, stylized realistic game character, nothing in her hands",
-  "task": "9364bf29-0c74-4637-983c-f6d5dc867026",
+  "prompt": "A beautiful young Chinese singing girl in a muted crimson and black layered hanfu with long sleeves, hair in an ornate bun with a red flower and gold pins, graceful posture, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "c5990981-dedf-42aa-8e1d-09d7a70b82e4",
   "faces": 12000,
   "credits": 75
 }
