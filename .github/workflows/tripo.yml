@@ -14,6 +14,9 @@ on:
       faces:
         description: face limit (keep props light)
         default: '12000'
+      region:
+        description: ov (developers.tripo3d.ai, the owner's account) or cn (developers.tripo3d.com)
+        default: ov
 permissions:
   contents: write
 concurrency:
@@ -32,11 +35,13 @@ jobs:
           NAME: ${{ inputs.name }}
           PROMPT: ${{ inputs.prompt }}
           FACES: ${{ inputs.faces }}
+          REGION: ${{ inputs.region }}
         run: |
           set -euo pipefail
           [ -n "$KEY" ] || { echo "TRIPO_API_KEY is not set"; exit 1; }
           echo "$NAME" | grep -Eq '^[a-z0-9-]+$' || { echo "bad name"; exit 1; }
-          API=https://openapi.tripo3d.com/v3
+          # keys only work on their own region's server
+          if [ "$REGION" = cn ]; then API=https://openapi.tripo3d.com/v3; else API=https://openapi.tripo3d.ai/v3; fi
           body=$(jq -n --arg p "$PROMPT" --argjson f "$FACES" '{prompt:$p, model:"v3.1-20260211", texture:true, pbr:true, texture_quality:"detailed", face_limit:$f}')
           res=$(curl -sS -X POST "$API/generation/text-to-model" -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' -d "$body")
           id=$(echo "$res" | jq -r '.data.task_id // empty')
