@@ -1,6 +1,8 @@
 // The whole game world, stepped once per frame: the player, the bandits in their dens, projectiles, zones on
 // the ground and the little effects the renderer draws. Pure logic: no React, no three.js.
 import { makeAnimals, stepAnimals, type Animal } from './animals';
+import { CT_POS } from './court';
+import { doTouch, earn, makeHerbs, policyNow, stepSpar, touchable, type Herb, type Touch } from './play';
 import { clockOf, newWeather, stepWeather, SEASONS, type ClockInfo, type Weather } from './clock';
 import { dateOf, hauntsFor, planFor, type Entry, type Plan } from './life';
 import type { Folk } from './places';
@@ -141,6 +143,17 @@ export class Sim {
   private marks = { season: -1, fest: -1, snowY: -1, stormD: -1, quest: -1 };
   private boarSeen = false;
   private goreAt = -9;
+  /** 玩法 (play.ts): short boosts (seconds left), the little game on screen, the court's counsel standing, the sparring
+   *  bouts, the horse you're on, the herbs in the wild, what's in reach to touch, words floating over things */
+  buffs = { speed: 0, dmg: 0, regen: 0 };
+  game: any = null;
+  policy: { id: string; until: number } | null = null;
+  spar: { wave: number; t: number; ids: number[] } | null = null;
+  riding = -1;
+  herbs: Herb[] = makeHerbs();
+  touch: Touch | null = null;
+  bubbles: { x: number; y: number; z: number; text: string; t: number }[] = [];
+  private sparPool: Fighter[] = [];
   /** the camera turns to this yaw on the next frame (going through a door), then it's cleared */
   camSnap: number | null = null;
   /** a short fade the UI plays when the player goes through a door */
@@ -185,6 +198,7 @@ export class Sim {
         if (w.w?.kind) this.weather = { ...newWeather(), ...w.w };
         if (Array.isArray(w.c)) this.chronicle = w.c;
         if (w.m) this.marks = { ...this.marks, ...w.m };
+        if (w.p?.id) this.policy = w.p;
       }
     } catch {}
     this.clock = clockOf(this.worldT);
@@ -232,12 +246,38 @@ export class Sim {
         }
       }
     });
+    // the general's sparring guards (演武): made now, benched until called
+    const gk = FOE_KINDS.find((k) => k.model === 'guard.glb') ?? FOE_KINDS[0];
+    for (let k = 0; k < 3; k++) {
+      const f = this.make('sect', gk.house, '陪练禁军', gk.model, 1, CT_POS[0], CT_POS[1] - 60);
+      f.hp = 0;
+      (f as any).benched = true;
+      (f as any).spar = true;
+      (f as any).foeKind = gk;
+      this.sparPool.push(f);
+    }
+  }
+  /** calls one of the sparring guards onto the floor */
+  sparrer(k: number, _kind: unknown, name: string, level: number, x: number, z: number) {
+    const f = this.sparPool[k];
+    f.name = name;
+    f.level = level;
+    f.maxHp = Math.round((180 + level * 55) * 0.65);
+    f.home = [x, z];
+    (f as any).benched = false;
+    this.revive(f);
+    f.aggro = true;
+    return f;
+  }
+  /** words floating over a spot for a moment */
+  say(x: number, y: number, z: number, text: string) {
+    this.bubbles.push({ x, y, z, text, t: 1.8 });
   }
 
   /** which move set a foe fights with */
-  kindOf(f: Fighter) {
+  kindOf(f: Fighter): (typeof FOE_KINDS)[number] | null {
     const d = DENS[(f as any).den];
-    return d ? FOE_KINDS[d.kind] : null;
+    return d ? FOE_KINDS[d.kind] : ((f as any).foeKind ?? null);
   }
 
   private make(team: Team, sect: SectId | null, name: string, model: string, level: number, x: number, z: number): Fighter {
@@ -435,6 +475,11 @@ export class Sim {
       if (att.st.rage > 0) dmg *= RAGE.dmg;
       if (att.st.weak > 0) dmg *= 0.8;
       if (def.st.weak > 0) dmg *= 1.25;
+      if (att.id === PLAYER && this.buffs.dmg > 0) dmg *= 1.15;
+      const pf = policyNow(this)?.foes;
+      if (pf && att.team === 'sect' && !(att as any).spar) dmg *= pf;
+      if (pf && def.team === 'sect' && !(def as any).spar) dmg /= pf;
+      if ((att as any).spar) dmg *= 0.55; // sparring: they pull their blows
     }
     if (def.st.shield > 0) dmg *= 0.35;
     // 鹤羽护 soaks what it can
@@ -552,6 +597,7 @@ export class Sim {
       return;
     }
     def.respawn = (def as any).boss ? 60 : 25;
+    if ((def as any).spar) def.respawn = undefined;
     def.aggro = false;
     if (att.id === PLAYER) {
       const P = this.progress;
@@ -561,6 +607,7 @@ export class Sim {
       const gap = Math.max(0, P.level - def.level - 3);
       const xp = Math.max(3, Math.round((18 + def.level * 10) * ((def as any).boss ? 5 : 1) * Math.pow(0.75, gap)));
       this.text(att, `经验 +${xp}`, '#a5f3fc');
+      if (!(def as any).spar) earn(this, (def as any).boss ? 60 : 2 + Math.floor(def.level / 3));
       const ups = gainXp(P, xp);
       if (ups > 0) {
         const p = this.player;
@@ -656,6 +703,7 @@ export class Sim {
     const P = this.progress;
     const ups = gainXp(P, q.xp);
     this.text(this.player, `经验 +${q.xp}`, '#a5f3fc');
+    earn(this, 20);
     if (ups > 0) {
       const p = this.player;
       p.level = P.level;
@@ -842,6 +890,33 @@ export class Sim {
     for (const f of this.fighters) this.acts(f, dt);
     this.projectiles(dt);
     this.zoneStep(dt);
+    // 玩法: boosts run out, the horse carries you, the bouts go on, what's in reach
+    {
+      const pl = this.player, B = this.buffs;
+      for (const k of ['speed', 'dmg', 'regen'] as const) if (B[k] > 0) B[k] = Math.max(0, B[k] - dt);
+      if (B.regen > 0 && pl.hp > 0) pl.hp = Math.min(pl.maxHp, pl.hp + pl.maxHp * 0.012 * dt);
+      const ride = this.riding >= 0 ? 2.3 * (policyNow(this)?.ride ?? 1) : 1;
+      (pl as any).spdMul = (B.speed > 0 ? 1.25 : 1) * ride;
+      if (this.riding >= 0) {
+        const a = this.animals[this.riding];
+        const sp = Math.hypot(pl.vel[0], pl.vel[2]);
+        a.x = pl.pos[0];
+        a.z = pl.pos[2];
+        a.y = groundHeight(a.x, a.z);
+        a.speed = sp;
+        if (sp > 0.4) a.yaw = Math.atan2(pl.vel[0], pl.vel[2]);
+        a.state = 'graze';
+        a.t = 99;
+        if (pl.hp <= 0 || this.indoor >= 0) {
+          (a as any).ridden = false;
+          this.riding = -1;
+        }
+      }
+      stepSpar(this, dt);
+      this.touch = this.near < 0 && this.door === -1 && this.dialog < 0 ? touchable(this) : null;
+      for (const b of this.bubbles) b.t -= dt;
+      if (this.bubbles.length) this.bubbles = this.bubbles.filter((b) => b.t > 0);
+    }
     // the world turns: the hour, the season, the weather
     this.worldT += dt;
     this.clock = clockOf(this.worldT);
@@ -850,7 +925,7 @@ export class Sim {
     if ((this.worldSaveT -= dt) <= 0) {
       this.worldSaveT = 10;
       try {
-        localStorage.setItem('tq2_world_v1', JSON.stringify({ t: this.worldT, w: this.weather, c: this.chronicle.slice(-200), m: this.marks }));
+        localStorage.setItem('tq2_world_v1', JSON.stringify({ t: this.worldT, w: this.weather, c: this.chronicle.slice(-200), m: this.marks, p: this.policy }));
       } catch {}
     }
     {
@@ -941,6 +1016,7 @@ export class Sim {
   /** the player's keys */
   private control(f: Fighter, inp: InputState) {
     if (f.hp <= 0) return;
+    if (this.riding >= 0) inp = { ...inp, attack: false, dodge: false, ultHeld: false, skills: inp.skills.map(() => false) };
     const cy = inp.camYaw;
     const fx = -Math.sin(cy);
     const fz = -Math.cos(cy);
@@ -954,7 +1030,9 @@ export class Sim {
       mz /= ml;
     }
     (f as any).wish = this.ultCharge !== null ? [0, 0] : [mx, mz];
-    if (inp.interact && this.near < 0 && this.door !== -1 && this.dialog < 0) this.useDoor();
+    if (inp.interact && this.riding >= 0) doTouch(this, { kind: 'dismount', id: this.riding, label: '' });
+    else if (inp.interact && this.near < 0 && this.door !== -1 && this.dialog < 0) this.useDoor();
+    else if (inp.interact && this.near < 0 && this.touch && this.dialog < 0 && !this.game) doTouch(this, this.touch);
     else if (inp.interact && this.near >= 0) {
       this.dialog = this.dialog >= 0 ? -1 : this.near;
       if (this.dialog >= 0) {

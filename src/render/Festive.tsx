@@ -27,7 +27,9 @@ export function Festive({ sim }: { sim: Sim }) {
       const a = (k / 36) * Math.PI * 2, x = Math.cos(a) * 12, z = Math.sin(a) * 12;
       spots.push([x, groundHeight(x, z) + 3.4, z]);
     }
-    const geo = new THREE.SphereGeometry(0.28, 10, 8).scale(1, 1.25, 1);
+    // a paper lantern: bellied, with flat gold-capped ends
+    const prof = [[0.0, -0.24], [0.1, -0.24], [0.1, -0.21], [0.19, -0.15], [0.23, 0], [0.19, 0.15], [0.1, 0.21], [0.1, 0.24], [0, 0.24]].map(([x, y]) => new THREE.Vector2(x, y));
+    const geo = new THREE.LatheGeometry(prof, 12);
     const mat = new THREE.MeshStandardMaterial({ color: '#d4261c', emissive: '#ff4a1a', emissiveIntensity: 0.4, roughness: 0.6 });
     const im = new THREE.InstancedMesh(geo, mat, spots.length);
     const m = new THREE.Matrix4();

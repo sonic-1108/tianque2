@@ -102,6 +102,18 @@ function piece(f: Furn, theme: RoomTheme, seed: number): Builder {
       break;
     }
     case 'screen':
+      if (theme === 'throne') {
+        // five gilt panels, the middle one red with a golden dragon's disc
+        for (let k = -2; k <= 2; k++) {
+          const ry = k * 0.12;
+          b.box('gold', k * 1.28, 0, 0, 1.26, 4.4, 0.16, ry);
+          b.box(k === 0 ? 'red' : 'silk2', k * 1.28, 0.35, 0.06, 1.0, 3.6, 0.06, ry);
+        }
+        b.add('gold', new THREE.TorusGeometry(0.55, 0.08, 8, 24), 0, 2.6, 0.12);
+        b.add('gold', new THREE.CircleGeometry(0.4, 20), 0, 2.6, 0.11);
+        for (let k = 0; k < 7; k++) b.add('gold', new THREE.ConeGeometry(0.1, 0.4, 5), (k - 3) * 0.95, 4.55, 0); // the crest
+        break;
+      }
       for (let k = -1; k <= 1; k++) {
         b.box('wood', k * 0.66, 0, 0, 0.64, 0.12, 0.08, k * 0.35);
         b.box('paper', k * 0.66, 0.12, 0, 0.58, 1.6, 0.03, k * 0.35);
@@ -156,6 +168,15 @@ function piece(f: Furn, theme: RoomTheme, seed: number): Builder {
       }
       for (const s of [-1, 1]) b.add('bronze', new THREE.TorusGeometry(0.14, 0.035, 6, 10), s * 0.5, 1.35, 0, Math.PI / 2);
       b.add('flame', new THREE.ConeGeometry(0.06, 0.25, 6), 0, 1.38, 0);
+      break;
+    }
+    case 'lamp': {
+      // a bronze crane standing on a tortoise, a lamp on its beak
+      b.add('bronze', new THREE.CylinderGeometry(0.32, 0.38, 0.25, 12), 0, 0.12, 0);
+      b.add('bronze', new THREE.CylinderGeometry(0.05, 0.07, 1.5, 8), 0, 1.0, 0);
+      b.add('bronze', new THREE.SphereGeometry(0.16, 10, 8), 0, 1.8, 0);
+      b.add('bronze', new THREE.CylinderGeometry(0.22, 0.12, 0.14, 12), 0, 2.08, 0);
+      b.add('flame', new THREE.ConeGeometry(0.07, 0.24, 6), 0, 2.27, 0);
       break;
     }
     case 'carpet':
@@ -391,6 +412,18 @@ function buildRoom(r: Room) {
     b.box('dark', 0, 6.6, -d / 2 + 0.08, 4, 1.2, 0.06);
     b.box('gold', 0, 6.6, -d / 2 + 0.1, 3.6, 0.9, 0.04);
     for (let k = -4; k <= 4; k++) b.box('gold', k * 2.4, r.h - 0.35, 0, 0.18, 0.2, d - 0.6);
+    // 藻井: the coffered dome over the throne, rings stepping up to the dragon's pearl
+    for (let k = 0; k < 4; k++) b.add(k % 2 ? 'red' : 'gold', new THREE.CylinderGeometry(3.2 - k * 0.7, 3.2 - k * 0.7, 0.18, 8), 0, r.h - 0.5 + k * 0.12, -4.5, Math.PI / 8);
+    b.add('gold', new THREE.SphereGeometry(0.4, 14, 10), 0, r.h - 1.2, -4.5);
+    // palace lanterns down the hall
+    for (const z of [-1.5, 3.5]) for (const x of [-2.6, 2.6]) {
+      b.add('lamp', new THREE.CylinderGeometry(0.32, 0.32, 0.7, 6), x, r.h - 2.6, z);
+      b.add('gold', new THREE.CylinderGeometry(0.38, 0.38, 0.08, 6), x, r.h - 2.22, z);
+      b.add('gold', new THREE.CylinderGeometry(0.38, 0.38, 0.08, 6), x, r.h - 2.98, z);
+      b.box('gold', x, r.h - 2.2, z, 0.03, 1.8, 0.03);
+    }
+    // the gold-bordered floor of 金砖
+    for (const s of [-1, 1]) b.box('gold', s * (w / 2 - 0.6), 0.004, 0, 0.12, 0.01, d - 1.2);
   }
   if (r.theme === 'elder' || r.theme === 'scholar' || r.theme === 'weaver') b.box('silk2', 0.8, 0.01, 0.5, 3, 0.02, 2.2);
   // the furniture
@@ -419,7 +452,7 @@ export function Interiors({ sim }: { sim: Sim }) {
     <group position={[r.ox, ROOM_Y, r.oz]}>
       <Built parts={parts} />
       {lamps.map(([x, z], i) => (
-        <pointLight key={i} position={[x, r.h - 1.2, z]} color="#ffb46a" intensity={18} distance={r.w * 1.2} decay={1.4} />
+        <pointLight key={i} position={[x, r.h - 1.2, z]} color={r.theme === 'throne' ? '#ffd890' : '#ffb46a'} intensity={r.theme === 'throne' ? 34 : 18} distance={r.w * 1.2} decay={1.4} />
       ))}
       <pointLight position={[0, 2.2, r.d / 2 - 0.8]} color="#fff2d8" intensity={6} distance={7} decay={1.6} />
       {r.furn

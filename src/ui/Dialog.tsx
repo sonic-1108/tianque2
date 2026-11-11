@@ -5,6 +5,52 @@ import { NPCS, QUESTS, TELLER_LINES } from '../game/quests';
 import { save } from '../game/progress';
 import { ALL_FOLK } from '../game/interiors';
 import { worldRemark } from '../game/life';
+import { BUYERS, ITEMS, SHOPS, bag, buy, done, give, nextCase, priceOf, purse, sell, startSpar, wantOf } from '../game/play';
+import type { Sim as SimT } from '../game/sim';
+
+/** what you can do with a folk besides talk: buy, sell, give what they wished for, play their game */
+function actionsFor(sim: SimT, name: string, changed: () => void, startGame: () => void) {
+  const out: { label: string; go: () => void; hot?: boolean; off?: boolean }[] = [];
+  const P = sim.progress, B = bag(P), D = done(P), c = sim.clock;
+  for (const id of SHOPS[name] ?? []) {
+    const it = ITEMS[id];
+    out.push({ label: `买${it.name} · ${priceOf(sim, id)}文`, go: () => (buy(sim, id), changed()), off: it.kind === 'tool' && (B[id] ?? 0) > 0 });
+  }
+  if (name === '面摊 · 胖大海' && c.festival?.name === '中秋') out.push({ label: `买月饼 · ${priceOf(sim, 'mooncake')}文`, go: () => (buy(sim, 'mooncake'), changed()) });
+  const kinds = BUYERS[name];
+  if (kinds) {
+    const n = Object.entries(B).filter(([id, k]) => k > 0 && id !== 'hen' && kinds.includes(ITEMS[id]?.kind)).reduce((a, [, k]) => a + k, 0);
+    if (n) out.push({ label: kinds.includes('fish') ? `卖鱼（${n} 条）` : `卖药材（${n} 株）`, go: () => (sell(sim, kinds), changed()) });
+  }
+  const w = wantOf(sim, name);
+  if (w && (B[w.item] ?? 0) > 0) out.push({ label: `送上${ITEMS[w.item].name}`, hot: true, go: () => (give(sim, w), changed()) });
+  const play = (kind: string, extra: object = {}) => () => {
+    sim.game = { kind, ...extra };
+    startGame();
+  };
+  if (name === '渔翁 · 老钓') out.push({ label: '借竿钓鱼', go: play('fish') });
+  if (name === '书摊 · 老夫子' || (name === '灯笼匠 · 胡老爹' && c.festival?.name === '元宵灯会'))
+    out.push({ label: D.riddle === c.day ? '猜灯谜（今天猜过了）' : '猜灯谜', go: play('riddle'), off: D.riddle === c.day });
+  if (name === '赌客 · 钱八') out.push({ label: '掷骰子', go: play('dice') });
+  if (name === '茶博士') out.push({ label: '投壶', go: play('touhu') });
+  if (name === '礼部主事 · 孔方') {
+    const took = D.exam === c.year;
+    out.push({ label: took ? '应试（今年考过了）' : '应试 · 20文', off: took || purse(P) < 20, go: () => {
+      P.coins = purse(P) - 20;
+      play('exam')();
+    } });
+  }
+  if (name === '击鼓鸣冤的老汉') {
+    const k = nextCase(sim);
+    if (k >= 0) out.push({ label: D.casefail === c.day ? '替他击鼓（明天再来）' : '替他击鼓鸣冤', hot: true, off: D.casefail === c.day, go: play('case', { idx: k }) });
+  }
+  if (name === '丞相 · 魏如晦') {
+    const morning = c.hour >= 6 && c.hour < 12;
+    out.push({ label: D.debate === c.day ? '朝议（今日已议）' : morning ? '参与朝议' : '朝议（早朝在卯时到午时）', hot: morning && D.debate !== c.day, off: !morning || D.debate === c.day, go: play('debate') });
+  }
+  if (name === '镇国大将军 · 霍铮') out.push({ label: sim.spar ? '演武中……' : '请将军指点（演武）', off: !!sim.spar, go: () => (startSpar(sim), startGame()) });
+  return out;
+}
 
 export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => void; onChange: () => void }) {
   const f = sim.fighters[sim.dialog];
@@ -17,7 +63,12 @@ export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => vo
     // now and then they talk about the world: the weather, the season, the festival, what you've been up to
     const deeds = sim.chronicle.filter((e) => e.talk).map((e) => e.talk!);
     const remark = pick < 0.45 ? worldRemark(sim.clock, sim.weather, deeds, pick / 0.45) : null;
-    const said = remark ?? folk.lines[Math.floor(pick * folk.lines.length)];
+    const want = wantOf(sim, folk.name);
+    const said = want ? want.ask : remark ?? folk.lines[Math.floor(pick * folk.lines.length)];
+    const acts = actionsFor(sim, folk.name, () => onChange(), () => {
+      sim.dialog = -1;
+      onChange();
+    });
     const act = (f as any).plan?.act;
     return (
       <div className="dialog">
@@ -37,8 +88,14 @@ export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => vo
               {folk.heal}
             </button>
           )}
+          {acts.map((a, i) => (
+            <button key={i} className={a.hot ? 'hot' : ''} disabled={a.off} onClick={a.go}>
+              {a.label}
+            </button>
+          ))}
           <button onClick={onClose}>离开 (F)</button>
         </div>
+        <div className="dialog-purse">铜钱 {purse(sim.progress)} 文</div>
       </div>
     );
   }

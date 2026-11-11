@@ -141,6 +141,15 @@ function Minimap({ sim }: { sim: Sim }) {
       <canvas ref={ref} className="minimap" width={180} height={180} />
       <div className="mm-hint">M 打开大地图</div>
       <WorldClock sim={sim} />
+      <div className="purse">
+        铜钱 {sim.progress.coins ?? 0} 文
+        {sim.buffs.speed > 0 && <span className="buff"> · 疾行 {Math.ceil(sim.buffs.speed)}s</span>}
+        {sim.buffs.dmg > 0 && <span className="buff"> · 利刃 {Math.ceil(sim.buffs.dmg)}s</span>}
+        {sim.buffs.regen > 0 && <span className="buff"> · 回血 {Math.ceil(sim.buffs.regen)}s</span>}
+        {sim.spar && <span className="buff"> · 演武第 {sim.spar.wave} 阵</span>}
+        <span className="purse-keys"> · B 包袱</span>
+      </div>
+      {sim.touch && sim.near < 0 && sim.door === -1 && sim.dialog < 0 && !sim.game && <div className="talk-hint">F {sim.touch.label}</div>}
     </>
   );
 }

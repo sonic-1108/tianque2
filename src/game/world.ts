@@ -7,7 +7,7 @@ import { mapBig, mapRough, mapSnow, mapWater } from './mapsample';
 import { FISH_SPOT, IN_TOWN, PLACES, PLACE_PARTS, innHouses, nearPlace, placeAt } from './places';
 import { ROOM_Y, roomSolids } from './interiors';
 import { MILL_FILE, STALLS, TEAHOUSE, fit, modelPoint } from './props';
-import { COURT_PIECES, CT_PAD, CT_POS, CT_ROT, CT_Y, ctWorld, nearCourt } from './court';
+import { BOARDS, COURT_PIECES, CT_PAD, CT_POS, CT_ROT, CT_Y, ctWorld, nearCourt } from './court';
 export { WORLD_R, VILLAGE_R } from './layout';
 
 export const WATER_Y = -2; // lakes fill the ground below this
@@ -362,6 +362,8 @@ export const BUILDINGS: Building[] = (() => {
     const ux = Math.cos(a), uz = Math.sin(a);
     out.push(propBuilding('inn-boat.glb', x - uz * 3.5, z + ux * 3.5, Math.atan2(ux, uz), 6));
   }
+  // the notice boards: their two legs block
+  for (const [x, z] of BOARDS) out.push({ x, z, rot: Math.atan2(-x, -z), hx: 1.3, hz: 0.2, h: 2.7, model: '', scale: 1, posts: [[-1.1, 0, 0.18], [1.1, 0, 0.18]] });
   // 永安城 · 朝廷 (court.ts): the wall, the gate (open between its piers), the hall, the towers, the street outside
   for (const c of COURT_PIECES) {
     const [x, z] = ctWorld(c.lx, c.lz);

@@ -90,7 +90,7 @@ function Beast({ sim, a }: { sim: Sim; a: Animal }) {
     const p = sim.player.pos;
     const d = Math.hypot(a.x - p[0], a.z - p[2]);
     if (!near && d < SHOW_R) setNear(true);
-    const vis = d < SHOW_R && sim.indoor < 0;
+    const vis = d < SHOW_R && sim.indoor < 0 && !(a as any).caught;
     g.visible = vis;
     if (!vis || !body) return;
     // a hare bounds, the rest keep to the ground

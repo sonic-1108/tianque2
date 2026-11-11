@@ -313,9 +313,11 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     if (!g) return;
     const p = sim.player;
     const far = Math.hypot(f.pos[0] - p.pos[0], f.pos[2] - p.pos[2]) > 95;
-    g.visible = !far && !(f as any).away && !(f.team !== 'player' && f.hp <= 0 && f.actT > 3) && !(f.team === 'player' && f.run?.id === 'snipe'); // the fallen fade from the field until they come back; down your own scope your body would block it
+    g.visible = !far && !(f as any).away && !(f as any).benched && !(f.team !== 'player' && f.hp <= 0 && f.actT > 3) && !(f.team === 'player' && f.run?.id === 'snipe'); // the fallen fade from the field until they come back; down your own scope your body would block it
     if (!g.visible) return;
-    g.position.set(f.pos[0], f.pos[1] - (f.act === 'burrow' ? 1.3 : 0), f.pos[2]);
+    // in the saddle: sat up on the horse's back
+    const saddle = f.id === 0 && sim.riding >= 0 ? 1.05 : 0;
+    g.position.set(f.pos[0], f.pos[1] - (f.act === 'burrow' ? 1.3 : 0) + saddle, f.pos[2]);
     g.rotation.y = f.yaw + Math.PI;
     // struck: a white flash and a jolt back (on render time, so they play through the hit-stop)
     const ha = (f as any).hitAt;
@@ -353,6 +355,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     }
     // which clip: the anim key, falling back to something close
     let key = f.anim;
+    if (f.id === 0 && sim.riding >= 0 && (key === 'run' || key === 'walk')) key = 'idle';
     if (!actions[key]) key = /^(skill|kr_|aq_|fy_|yr_|tz_|jy_|dx_)/.test(key) ? 'skill_slash' : key === 'channel' ? 'skill_spell' : 'idle';
     if (!actions[key]) key = 'idle';
     const restarted = f.act !== lastAct.current.act || f.anim !== lastAct.current.anim || f.actT < lastAct.current.t - 0.01;

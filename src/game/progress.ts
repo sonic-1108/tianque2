@@ -20,6 +20,11 @@ export interface Progress {
   storyV?: number;
   /** keepsakes from the story (sword: the broken sword made whole) */
   relics?: string[];
+  /** 铜钱, what's in the bag, things done (gifts given, today's riddles, cases solved), names earned */
+  coins?: number;
+  bag?: Record<string, number>;
+  done?: Record<string, number>;
+  titles?: string[];
 }
 export const STORY_V = 3;
 

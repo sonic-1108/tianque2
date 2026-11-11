@@ -43,6 +43,7 @@ export const FURN = {
   pillar: [0.45, 0.45, 7], // red and gold columns
   cauldron: [0.6, 0.6, 1.3], // bronze tripods with incense
   carpet: [1.4, 6, 0.02], // the red way to the throne (lies flat, blocks nothing)
+  lamp: [0.3, 0.3, 2.3], // bronze crane lamps
 } as const;
 export type FurnKind = keyof typeof FURN;
 export interface Furn {
@@ -175,7 +176,8 @@ const LAYOUT: Record<RoomTheme, { w: number; d: number; furn: Furn[]; floor?: 'p
     furn: [
       { k: 'screen', x: 0, z: -9.4 }, { k: 'dais', x: 0, z: -7.4 }, { k: 'throne', x: 0, z: -7.6 },
       { k: 'carpet', x: 0, z: 1.5 },
-      ...[-6.5, -1.5, 3.5].flatMap((z) => [-5, 5].map((x) => ({ k: 'pillar' as const, x, z }))),
+      ...[-6.5, -1.5, 3.5, 7.5].flatMap((z) => [-5, 5].map((x) => ({ k: 'pillar' as const, x, z }))),
+      { k: 'lamp', x: -3.4, z: -6.2 }, { k: 'lamp', x: 3.4, z: -6.2 }, { k: 'lamp', x: -8.6, z: 6 }, { k: 'lamp', x: 8.6, z: 6 },
       { k: 'cauldron', x: -4.2, z: -4 }, { k: 'cauldron', x: 4.2, z: -4 },
       { k: 'desk', x: -8, z: -6, ry: Math.PI / 2 }, { k: 'shelf', x: 10.4, z: -4, ry: Math.PI / 2 },
     ],
@@ -322,6 +324,10 @@ export const ROOM_FOLK: (Folk & { room: number })[] = (() => {
     case 'throne':
         put('丞相 · 魏如晦', 'npc-official.glb', -3.2, -3.4, ['龙椅空了三年了。圣上……圣上在天阙上，不肯下来。', '朝中的事，老夫一个人撑着。你从山那边来？那边的百姓，还好吗？', '天阙七家？嘘，这四个字在朝中说不得。'], { cry: ['肃静！', '有本早奏，无本退朝……唉，哪还有人上朝。'] });
         put('掌印太监 · 冯保', 'npc-eunuch.glb', 3.2, -4.4, ['咱家奉的是天阙的旨意，这殿里一举一动，都瞒不过上头。', '小子，龙椅前头站得那么近，不怕掉脑袋？', '丞相？哼，老糊涂一个。'], { walk: 2 });
+        put('户部尚书 · 钱有余', 'npc-official.glb', -6.6, -2.2, ['国库？国库里的老鼠都饿跑了。', '开仓放粮？粮从哪里来？天阙那位每年要走一半。', '你要是有好主意，早朝的时候说。'], { cry: ['臣有本奏！'] });
+        put('兵部尚书 · 石敢当', 'npc-official.glb', 6.6, -2.2, ['兵部的兵，三成在城里，七成在天阙脚下修台阶。', '山贼？山贼比官兵多，你说怎么剿？', '霍将军是好将军，可惜生错了年头。']);
+        put('翰林学士 · 苏文', 'npc-scholar.glb', -6.6, 2.4, ['我在修《承乾实录》，写到天阙那一卷，笔就停了。', '史官的笔，是不能骗人的。', '你做的事，我都会写下来。']);
+        put('礼部侍郎 · 方圆', 'npc-official.glb', 6.6, 2.4, ['礼部管的是规矩，可这朝里，早就没规矩了。', '元宵灯会办不办，全看早朝怎么议。', '科举还是要考的，读书人总得有条路。']);
         put('殿前禁军', 'npc-palaceguard.glb', -2.4, 7.6, ['殿内不得带刀……算了，看你也不像刺客。', '我们轮值三班，一班四个时辰。', '这殿里夜里有动静，像有人在龙椅上叹气。']);
         put('殿前禁军', 'npc-palaceguard.glb', 2.4, 7.6, ['站好，别乱走。', '丞相大人是好人，就是太累了。', '听说天阙的那位，不吃不睡，就坐着等一个人。']);
         break;

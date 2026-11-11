@@ -87,3 +87,8 @@ export const HALL_DOOR = (() => {
   const g = fit('court-hall.glb', HALL.size);
   return { lx: 0, lz: HALL.lz + g.hz + 0.8 };
 })();
+
+/** notice boards (委托): the village square and outside the palace gate */
+export const BOARDS: [number, number][] = [[-7, 4], ctWorld(-21, 70)];
+/** the drum tower's drum (outside its front) */
+export const DRUM = ctWorld(-25.5, 18);

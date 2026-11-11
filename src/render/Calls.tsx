@@ -78,6 +78,10 @@ export function Calls({ sim }: { sim: Sim }) {
         if (ph % PERIOD > SHOWN) continue;
         out.push({ x: f.pos[0], y: f.pos[1] + (SPEAKER_H[f.model] ?? 1.8) + 0.45, z: f.pos[2], text: cry[Math.floor(ph / PERIOD) % cry.length], d });
       }
+      for (const b of sim.bubbles) {
+        const d = Math.hypot(b.x - p[0], b.z - p[2]);
+        if (d < 60) out.push({ x: b.x, y: b.y, z: b.z, text: b.text, d: d * 0.5 });
+      }
       for (const a of sim.animals) {
         if (a.sayT <= 0) continue;
         const d = Math.hypot(a.x - p[0], a.z - p[2]);

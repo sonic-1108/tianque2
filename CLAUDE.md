@@ -84,6 +84,16 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
 - 江湖志 (J): `sim.chronicle` writes the seasons, festivals, first snow, storms, chapters, bosses beaten and level
   milestones with their dates; saved with the world clock. Festival dressing in render/Festive.tsx (lanterns, fireworks).
 
+- 玩法 (data in `src/game/economy.ts`, logic in `src/game/play.ts`, panels in `ui/Games.tsx`, map things in
+  `render/Play.tsx`): 铜钱 (`progress.coins`, from kills, quests, games), `bag`, `done` flags, `titles` (名号). Stalls
+  sell (`SHOPS`; food eaten at once, `whet` a 3 min damage boost, lantern and thrush are kept tools), buyers take fish
+  and herbs (`BUYERS`), 委托 (`WANTS`: give a folk what they wish for; notice boards `BOARDS` list them). Things to
+  touch (`touchable`): catch a hen, pick 血参 (glow red, back after a day), ride the waystation horse (x2.3, no
+  fighting from the saddle), the drum tower. Games: fishing (渔翁), riddles (书摊, once a day; 灯笼匠 at 元宵), dice
+  (钱八), 投壶 (茶博士), exam (礼部主事, once a year), cases at the drum (击鼓老汉, `CASES`), 朝议 in 金銮殿 (丞相,
+  mornings: a `POLICY` stands three days: prices, bandit strength, horse speed), 演武 with 霍铮 (three bouts of the
+  benched `sparPool` guards, they pull their blows). Keys: B bag, H 金疮药. Test: scratch play.mts.
+
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported
   from 天阙 1: same timings, reach, damage, statuses; its `vfx.*` calls become `s.vfx(name, ...args)` commands in

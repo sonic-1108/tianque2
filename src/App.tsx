@@ -13,6 +13,9 @@ import { TQ_POS, TQ_ROAD, roadPoint, tqWorld } from './game/layout';
 import { Dialog, ChapterCard, NoteCard, chapterDue } from './ui/Dialog';
 import { BigMap } from './ui/BigMap';
 import { Chronicle } from './ui/Chronicle';
+import { Games } from './ui/Games';
+import { ROOMS } from './game/interiors';
+import { use } from './game/play';
 import { attachInput, ui } from './input';
 
 declare const __BUILD_TIME__: string;
@@ -27,6 +30,7 @@ export function App() {
   (globalThis as any).__T2 = sim;
   (globalThis as any).__T2_SKILLS = SKILLS;
   (globalThis as any).__T2_GROUND = groundHeight;
+  (globalThis as any).__T2_ROOMS = ROOMS;
   (globalThis as any).__T2_TQ = { c: TQ_POS, gate: tqWorld(0, 30), far: roadPoint(TQ_ROAD, 560), road: roadPoint(TQ_ROAD, 735) };
   const [bigMap, setBigMap] = useState(false);
   const [chron, setChron] = useState(false);
@@ -44,20 +48,24 @@ export function App() {
     return () => clearInterval(id);
   }, []);
   useEffect(() => {
-    ui.open = tree || !started || sim.dialog >= 0 || card || note || bigMap;
+    ui.open = tree || !started || sim.dialog >= 0 || card || note || bigMap || !!sim.game;
     if (ui.open && document.pointerLockElement) document.exitPointerLock();
-  }, [tree, started, tick >= 0 && sim.dialog >= 0, card, note, bigMap]);
+  }, [tree, started, tick >= 0 && sim.dialog >= 0, card, note, bigMap, !!sim.game]);
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       if (!started) return;
       if (e.code === 'KeyK' || e.code === 'Tab') setTree((v) => !v);
       if (e.code === 'KeyM') setBigMap((v) => !v);
       if (e.code === 'KeyJ') setChron((v) => !v);
+      if (e.code === 'KeyB' && !sim.game) sim.game = { kind: 'bag' };
+      else if (e.code === 'KeyB' && sim.game?.kind === 'bag') sim.game = null;
+      if (e.code === 'KeyH' && !sim.game && sim.dialog < 0) use(sim, 'plaster') || sim.toast('包袱里没有金疮药（云游道人那里有卖）');
       if (e.code === 'Escape') {
         setTree(false);
         setBigMap(false);
         setChron(false);
         sim.dialog = -1;
+        sim.game = null;
       }
       if (e.code === 'KeyF' && sim.dialog >= 0 && ui.open) sim.dialog = -1;
     };
@@ -87,6 +95,7 @@ export function App() {
           {card && <ChapterCard sim={sim} onClose={() => setTick((n) => n + 1)} />}
           {bigMap && <BigMap sim={sim} onClose={() => setBigMap(false)} />}
           {chron && <Chronicle sim={sim} onClose={() => setChron(false)} />}
+          {sim.game && <Games sim={sim} onClose={() => setTick((n) => n + 1)} />}
           {tree && <SkillTree sim={sim} onClose={() => setTree(false)} onHero={() => setVersion((v) => v + 1)} />}
           {!document.pointerLockElement && !tree && <div className="lockhint">点击画面开始（锁定鼠标转视角）</div>}
           <div className="build">tianque2 · {new Date(__BUILD_TIME__).toLocaleString()}</div>
