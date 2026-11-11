@@ -1,8 +1,8 @@
 {
   "name": "npc-fortune",
   "kind": "biped",
-  "prompt": "A Chinese fortune teller in a dark blue Taoist robe with a yin yang emblem, a tall black Taoist hat, a long thin white beard, ancient China, stylized realistic game character, nothing in his hands",
-  "task": "6e590524-73ac-4053-9351-50c9d7631085",
+  "prompt": "An old Chinese Taoist fortune teller with a long white beard, a dark indigo Taoist robe with a yin yang patch, a black Taoist hat, wise wrinkled face, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "2afcc738-dc18-475b-8336-8100f57cea61",
   "faces": 12000,
   "credits": 75
 }
