@@ -184,3 +184,10 @@ button:not(:disabled):hover { border-color: var(--gold); }
 .touhu-bar { position: relative; height: 26px; background: #d9c69e; border: 1px solid #8a6a3a; border-radius: 13px; margin: 10px 20px; }
 .touhu-zone { position: absolute; top: 0; bottom: 0; background: rgba(200, 40, 30, 0.6); border-radius: 13px; }
 .touhu-needle { position: absolute; top: -6px; width: 4px; height: 38px; background: #3a2a18; transform: translateX(-2px); }
+
+.wc-dread { font-size: 12px; margin-top: 2px; letter-spacing: 1px; }
+.raid-bar { position: absolute; top: 64px; left: 50%; transform: translateX(-50%); width: 340px; text-align: center; color: #ffe0d0; text-shadow: 0 1px 3px #000; pointer-events: none; font-family: serif; }
+.raid-title { font-size: 18px; font-weight: 700; color: #ff7a5a; letter-spacing: 3px; }
+.raid-hp { height: 10px; margin: 4px 0; background: rgba(0,0,0,0.5); border: 1px solid #8a3a2a; border-radius: 5px; overflow: hidden; }
+.raid-hp div { height: 100%; background: linear-gradient(90deg, #c8322a, #ff9a3a); }
+.raid-sub { font-size: 12px; }

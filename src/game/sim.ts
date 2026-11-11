@@ -1,7 +1,9 @@
 // The whole game world, stepped once per frame: the player, the bandits in their dens, projectiles, zones on
 // the ground and the little effects the renderer draws. Pure logic: no React, no three.js.
+import { ROAD_N, roadPoint } from './layout';
 import { makeAnimals, stepAnimals, type Animal } from './animals';
 import { CT_POS } from './court';
+import { makePools, newWar, raidOn, marketShut, shiftDread, stepWar, type War } from './conflict';
 import { doTouch, earn, makeHerbs, policyNow, stepSpar, touchable, type Herb, type Touch } from './play';
 import { clockOf, newWeather, stepWeather, SEASONS, type ClockInfo, type Weather } from './clock';
 import { dateOf, hauntsFor, planFor, type Entry, type Plan } from './life';
@@ -154,6 +156,8 @@ export class Sim {
   touch: Touch | null = null;
   bubbles: { x: number; y: number; z: number; text: string; t: number }[] = [];
   private sparPool: Fighter[] = [];
+  /** 伪朝声势, its patrols and checkpoints, the night raids (conflict.ts) */
+  war: War = newWar();
   /** the camera turns to this yaw on the next frame (going through a door), then it's cleared */
   camSnap: number | null = null;
   /** a short fade the UI plays when the player goes through a door */
@@ -199,6 +203,14 @@ export class Sim {
         if (Array.isArray(w.c)) this.chronicle = w.c;
         if (w.m) this.marks = { ...this.marks, ...w.m };
         if (w.p?.id) this.policy = w.p;
+        if (w.war) {
+          const W = this.war;
+          if (typeof w.war.d === 'number') W.dread = w.war.d;
+          W.after = w.war.a ?? null;
+          W.lastTier = w.war.lt ?? 0;
+          W.raidDay = w.war.rd ?? -1;
+          (w.war.pd ?? []).forEach((d: number, k: number) => W.posts[k] && (W.posts[k].down = d));
+        }
       }
     } catch {}
     this.clock = clockOf(this.worldT);
@@ -256,6 +268,7 @@ export class Sim {
       (f as any).foeKind = gk;
       this.sparPool.push(f);
     }
+    makePools(this);
   }
   /** calls one of the sparring guards onto the floor */
   sparrer(k: number, _kind: unknown, name: string, level: number, x: number, z: number) {
@@ -597,12 +610,15 @@ export class Sim {
       return;
     }
     def.respawn = (def as any).boss ? 60 : 25;
-    if ((def as any).spar) def.respawn = undefined;
+    if ((def as any).spar || (def as any).pooled) def.respawn = undefined;
     def.aggro = false;
     if (att.id === PLAYER) {
       const P = this.progress;
       this.questKill(def);
-      if ((def as any).boss) this.chron(`你击败了${def.name}。`, `听说${def.name}栽在一个年轻人手里了，是你吧？`);
+      if ((def as any).boss) {
+        this.chron(`你击败了${def.name}。`, `听说${def.name}栽在一个年轻人手里了，是你吧？`);
+        shiftDread(this, -15);
+      }
       // a foe far below you is worth little
       const gap = Math.max(0, P.level - def.level - 3);
       const xp = Math.max(3, Math.round((18 + def.level * 10) * ((def as any).boss ? 5 : 1) * Math.pow(0.75, gap)));
@@ -922,10 +938,11 @@ export class Sim {
     this.clock = clockOf(this.worldT);
     stepWeather(this.weather, dt, this.clock);
     this.writeChronicle();
+    stepWar(this, dt);
     if ((this.worldSaveT -= dt) <= 0) {
       this.worldSaveT = 10;
       try {
-        localStorage.setItem('tq2_world_v1', JSON.stringify({ t: this.worldT, w: this.weather, c: this.chronicle.slice(-200), m: this.marks, p: this.policy }));
+        localStorage.setItem('tq2_world_v1', JSON.stringify({ t: this.worldT, w: this.weather, c: this.chronicle.slice(-200), m: this.marks, p: this.policy, war: { d: this.war.dread, a: this.war.after, lt: this.war.lastTier, rd: this.war.raidDay, pd: this.war.posts.map((p) => p.down) } }));
       } catch {}
     }
     {
@@ -1157,11 +1174,36 @@ export class Sim {
     const a = f as any, p = this.player;
     if ((a.planT = (a.planT ?? 0) - dt) <= 0) {
       a.planT = 0.8 + Math.random() * 0.6;
-      a.plan = planFor(folk, (a.haunts ??= hauntsFor(folk)), this.clock, this.weather);
+      a.plan = planFor(folk, (a.haunts ??= hauntsFor(folk)), this.clock, this.weather, { alarm: raidOn(this) && Math.hypot(f.pos[0], f.pos[2]) < 220, shut: marketShut(this) });
     }
     const pl: Plan = a.plan;
-    const dx = pl.at[0] - f.pos[0], dz = pl.at[1] - f.pos[2];
+    let dx = pl.at[0] - f.pos[0], dz = pl.at[1] - f.pos[2];
     const d = Math.hypot(dx, dz);
+    // into or out of the village ring the way goes by a road (the houses' backs face outward, their doors the square)
+    {
+      const rin = Math.hypot(f.pos[0], f.pos[2]), rto = Math.hypot(pl.at[0], pl.at[1]);
+      const IN = 25;
+      if ((rin > IN) !== (rto > IN) && d > 3) {
+        const outside: [number, number] = rto > IN ? pl.at : [f.pos[0], f.pos[2]];
+        let kb = 0, bd = Infinity;
+        for (let k = 0; k < ROAD_N; k++) {
+          const q = roadPoint(k, 32);
+          const e = Math.hypot(q[0] - outside[0], q[1] - outside[1]);
+          if (e < bd) {
+            bd = e;
+            kb = k;
+          }
+        }
+        const gapOut = roadPoint(kb, 32), gapIn = roadPoint(kb, 9);
+        let via: [number, number] | null = null;
+        if (rin > IN) via = rin > 30 && Math.hypot(gapOut[0] - f.pos[0], gapOut[1] - f.pos[2]) > 4 ? gapOut : rin > 11 ? gapIn : null;
+        else via = rin < 12 && Math.hypot(gapIn[0] - f.pos[0], gapIn[1] - f.pos[2]) > 3 ? gapIn : gapOut;
+        if (via) {
+          dx = via[0] - f.pos[0];
+          dz = via[1] - f.pos[2];
+        }
+      }
+    }
     // nobody near enough to see: they're simply where the day says
     if (this.indoor >= 0 || this.dist(f, p) > 150) {
       if (d > Math.max(2, pl.roam + 1)) {
@@ -1193,13 +1235,16 @@ export class Sim {
           a.side = Math.random() < 0.5 ? 1 : -1;
         }
       }
-      let ux = dx / d, uz = dz / d;
+      const dv = Math.hypot(dx, dz) || 1;
+      let ux = dx / dv, uz = dz / dv;
       if ((a.sideT ?? 0) > 0) {
         a.sideT -= dt;
         const s = a.side;
         [ux, uz] = [ux * 0.3 - uz * s, uz * 0.3 + ux * s];
       }
-      a.wish = [ux * 0.45, uz * 0.45];
+      // they run when raiders are in the village
+      const pace = pl.act === '躲在家里' ? 0.95 : 0.45;
+      a.wish = [ux * pace, uz * pace];
       return;
     }
     a.tripT = 0;
@@ -1241,7 +1286,12 @@ export class Sim {
     const pFromHome = Math.hypot(p.pos[0] - home[0], p.pos[2] - home[1]);
     // they give up when you leave their ground, and never follow you into the village
     const pInVillage = Math.hypot(p.pos[0], p.pos[2]) < VILLAGE_R + 10;
-    if (p.hp <= 0 || pInVillage || pFromHome > DEN_R + 28 || fromHome > 38) f.aggro = false;
+    const mode = (f as any).mode;
+    if (mode === 'raid') f.aggro = p.hp > 0 && this.indoor < 0 && d < 22;
+    else if (mode) {
+      if (p.hp <= 0 || pFromHome > 60 || this.indoor >= 0) f.aggro = false;
+      else if (d < 17) f.aggro = true;
+    } else if (p.hp <= 0 || pInVillage || pFromHome > DEN_R + 28 || fromHome > 38) f.aggro = false;
     else if (d < 15 && pFromHome < DEN_R + 16) f.aggro = true;
     let wx = 0;
     let wz = 0;
@@ -1254,7 +1304,7 @@ export class Sim {
       if (fromHome > 1.5) {
         wx = (home[0] - f.pos[0]) / fromHome;
         wz = (home[1] - f.pos[2]) / fromHome;
-      } else f.hp = Math.min(f.maxHp, f.hp + f.maxHp * 0.2 * dt); // back home: patched up
+      } else if (!(f as any).mode) f.hp = Math.min(f.maxHp, f.hp + f.maxHp * 0.2 * dt); // back home: patched up
       (f as any).wish = [wx, wz];
       return;
     }

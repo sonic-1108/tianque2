@@ -94,6 +94,16 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   mornings: a `POLICY` stands three days: prices, bandit strength, horse speed), 演武 with 霍铮 (three bouts of the
   benched `sparPool` guards, they pull their blows). Keys: B bag, H 金疮药. Test: scratch play.mts.
 
+- 冲突 (`src/game/conflict.ts`, drawn by `render/War.tsx`): `war.dread` 伪朝声势 (0 to 100, starts 15, +5 a day,
+  shifted by 朝议 `POLICY_DREAD`, -4 a routed patrol, -7 a razed checkpoint, -6 / +8 a raid won / lost, -15 a ring
+  boss). Tiers: 20 patrols of three march the post roads, 40 checkpoints (关卡, three men and a 校尉 across a road at
+  r 330), 60 天阙税 (prices x1.2), 80 the dark. Every third night (`raidNight`) raiders warn at dusk and fall on
+  青石村 at 21:00 in three waves; unopposed raiders at the house doors burn the village (bar on the HUD); won:
+  next day a feast (half price) and a title; lost: the stalls stay shut a day. Folk run indoors during a raid.
+  The men come from benched pools (`makePools`, `mode` patrol / post / raid in the bandit AI). Test: scratch war.mts.
+- Townsfolk style (owner's rule): realistic like the heroes (portraits/), never cartoon. Tripo prompts end with the
+  realistic style line and the workflow's `negative` input (cartoon, chibi, stylized, big head ...).
+
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported
   from 天阙 1: same timings, reach, damage, statuses; its `vfx.*` calls become `s.vfx(name, ...args)` commands in

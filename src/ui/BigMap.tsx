@@ -1,5 +1,6 @@
 // The whole map (M): the land, the seven roads, 青石村, every den with its level (grey once cleared), the
 // waystations and story places, 天阙, where the quest wants you and where you are. Click or M / Esc to close.
+import { postAt } from '../game/conflict';
 import { CT_POS } from '../game/court';
 import { useEffect, useRef } from 'react';
 import type { Sim } from '../game/sim';
@@ -102,6 +103,23 @@ export function BigMap({ sim, onClose }: { sim: Sim; onClose: () => void }) {
         label(m, x, y + 5 * u, 12, '#5a2a10');
         label(pl.name, x, y + 21 * u, 11);
       }
+      // the false court's men: checkpoints (a red bar across the road) and patrols (red dots)
+      sim.war.posts.forEach((po, k) => {
+        if (!po.active) return;
+        const [px, pz] = postAt(k);
+        g.fillStyle = '#c8322a';
+        g.fillRect(X(px) - 7 * u, Z(pz) - 3 * u, 14 * u, 6 * u);
+        label('关卡', X(px), Z(pz) - 8 * u, 11, '#ff9a8a');
+      });
+      for (const pt of sim.war.patrols)
+        for (const id of pt.ids) {
+          const f = sim.fighters[id];
+          if (f.hp <= 0) continue;
+          g.fillStyle = '#ff5a4a';
+          g.beginPath();
+          g.arc(X(f.pos[0]), Z(f.pos[2]), 3 * u, 0, Math.PI * 2);
+          g.fill();
+        }
       // 永安城: the court
       {
         const x = X(CT_POS[0]), y = Z(CT_POS[1]);

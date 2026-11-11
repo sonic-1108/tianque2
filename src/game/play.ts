@@ -10,6 +10,7 @@ import { groundHeight } from './world';
 import { gainXp, playerMaxHp, save, type Progress } from './progress';
 import { BOARDS, DRUM, ctWorld, CT_POS } from './court';
 import { FOE_KINDS } from './foes';
+import { POLICY_DREAD, shiftDread, warPrice } from './conflict';
 
 export { ITEMS, SHOPS, BUYERS, WANTS };
 
@@ -47,7 +48,7 @@ export function giveXp(s: Sim, n: number) {
 export const policyNow = (s: Sim) => (s.policy && s.policy.until > s.worldT ? POLICY[s.policy.id] : null);
 export const priceOf = (s: Sim, id: string) => {
   const base = ITEMS[id].price;
-  const k = policyNow(s)?.price ?? 1;
+  const k = (policyNow(s)?.price ?? 1) * warPrice(s);
   return Math.max(1, Math.round(base * k));
 };
 
@@ -304,6 +305,7 @@ export function debateDone(s: Sim, k: number) {
   const d = debateToday(s), o = d.options[k];
   done(s.progress).debate = s.clock.day;
   s.policy = { id: o.policy, until: s.worldT + DAY_S * 3 };
+  shiftDread(s, POLICY_DREAD[o.policy] ?? 0);
   s.chron(`朝议：${o.say}。${o.note}`, o.note);
   s.toast(o.note);
   if (o.coins) earn(s, o.coins, `户部赏你 ${o.coins} 文`);

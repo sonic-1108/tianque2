@@ -51,8 +51,12 @@ const near = (from: [number, number], list: [number, number][]) => {
 const inHours = (h: number, a: number, b: number) => (a <= b ? h >= a && h < b : h >= a || h < b);
 
 /** where a folk should be now, and doing what */
-export function planFor(folk: Folk, h: Haunts, c: ClockInfo, w: Weather): Plan {
+export function planFor(folk: Folk, h: Haunts, c: ClockInfo, w: Weather, war: { alarm: boolean; shut: boolean } = { alarm: false, shut: false }): Plan {
   const hr = c.hour;
+  // raiders in the village: everyone runs indoors and bars the door
+  if (war.alarm && folk.life !== 'court' && folk.life !== 'street') return { at: h.home, roam: 0, away: true, act: '躲在家里', cry: false };
+  // the day after the village burned the stalls stay shut
+  if (war.shut && folk.life === 'stall' && hr > 5 && hr < 21) return { at: h.evening, roam: 3, away: false, act: '摊子烧了，坐着发愁', cry: false };
   const wet = weatherMix(w, 'rain') + weatherMix(w, 'storm') + weatherMix(w, 'snow') > 0.55;
   const fest = c.festival?.name;
   const lantern = fest === '元宵灯会';

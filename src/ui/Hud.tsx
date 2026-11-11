@@ -141,6 +141,15 @@ function Minimap({ sim }: { sim: Sim }) {
       <canvas ref={ref} className="minimap" width={180} height={180} />
       <div className="mm-hint">M 打开大地图</div>
       <WorldClock sim={sim} />
+      {sim.war.raid?.stage === 'on' && (
+        <div className="raid-bar">
+          <div className="raid-title">山贼劫村 · 第 {sim.war.raid.wave} / 3 波</div>
+          <div className="raid-hp">
+            <div style={{ width: `${Math.max(0, sim.war.raid.hp)}%` }} />
+          </div>
+          <div className="raid-sub">青石村 {Math.max(0, Math.round(sim.war.raid.hp))}% · 别让他们靠近房子</div>
+        </div>
+      )}
       <div className="purse">
         铜钱 {sim.progress.coins ?? 0} 文
         {sim.buffs.speed > 0 && <span className="buff"> · 疾行 {Math.ceil(sim.buffs.speed)}s</span>}
@@ -184,6 +193,7 @@ function QuestTracker({ sim }: { sim: Sim }) {
 
 const NUM = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
 const cnNum = (n: number) => (n <= 10 ? NUM[n] : n < 20 ? '十' + NUM[n - 10] : NUM[Math.floor(n / 10)] + '十' + (n % 10 ? NUM[n % 10] : ''));
+const dreadColor = (d: number) => (d >= 80 ? '#ff4a3a' : d >= 60 ? '#ff8a3a' : d >= 40 ? '#ffc04a' : d >= 20 ? '#e8d9a0' : '#9fd3a0');
 /** the date, the watch and the weather, over the minimap */
 function WorldClock({ sim }: { sim: Sim }) {
   const c = sim.clock;
@@ -196,6 +206,9 @@ function WorldClock({ sim }: { sim: Sim }) {
         {c.shichen}时 · {weatherName(sim.weather)}
       </div>
       {c.festival && <div className="wc-fest">今日 {c.festival.name}</div>}
+      <div className="wc-dread" style={{ color: dreadColor(sim.war.dread) }}>
+        伪朝声势 {Math.round(sim.war.dread)}
+      </div>
     </div>
   );
 }
