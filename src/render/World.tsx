@@ -22,6 +22,7 @@ import { Climate } from './Climate';
 import { PlayThings } from './Play';
 import { Festive } from './Festive';
 import { War } from './War';
+import { Stockade } from './Stockade';
 import { Calls } from './Calls';
 import { Interiors } from './Interiors';
 const propCache = new Map<string, Promise<THREE.Group>>();
@@ -119,18 +120,7 @@ function buildVillage() {
       b.add('leaf', g, tx + bx, y + by, tz + bz);
     }
   }
-  // a wooden fence round the village, open where the roads run out
-  const FR = 36;
-  for (let k = 0; k < 120; k++) {
-    const a0 = (k / 120) * Math.PI * 2, a1 = ((k + 1) / 120) * Math.PI * 2;
-    if (!offRoad((a0 + a1) / 2, 0.13)) continue;
-    const x0 = Math.cos(a0) * FR, z0 = Math.sin(a0) * FR, x1 = Math.cos(a1) * FR, z1 = Math.sin(a1) * FR;
-    const y0 = gy(x0, z0), y1 = gy(x1, z1);
-    b.add('log', new THREE.CylinderGeometry(0.09, 0.11, 1.5, 6), x0, y0 + 0.65, z0);
-    const L = Math.hypot(x1 - x0, z1 - z0) + 0.1;
-    const ry = Math.atan2(x1 - x0, z1 - z0);
-    for (const h of [0.55, 1.05]) b.box('plank', (x0 + x1) / 2, (y0 + y1) / 2 + h, (z0 + z1) / 2, 0.06, 0.12, L, ry);
-  }
+  // (the old rail fence is gone: render/Stockade.tsx draws 青石村's stockade)
   // red lanterns on posts where each road leaves the square and at the fence gaps
   for (const ra of ROAD_A)
     for (const r of [15, 34])
@@ -352,6 +342,7 @@ export function World({ sim }: { sim: Sim }) {
         <Landscape sim={sim} />
         <Village />
         <Court />
+        <Stockade />
         <Festive sim={sim} />
         <War sim={sim} />
         <Tianque />

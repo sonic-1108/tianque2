@@ -6,7 +6,8 @@ import { ROADS, nearTq, TQ_POS, TQ_ROT, TQ_TOP, tqWorld, TQ_Y, VILLAGE_R, WORLD_
 import { mapBig, mapRough, mapSnow, mapWater } from './mapsample';
 import { FISH_SPOT, IN_TOWN, PLACES, PLACE_PARTS, innHouses, nearPlace, placeAt } from './places';
 import { ROOM_Y, roomSolids } from './interiors';
-import { MILL_FILE, STALLS, TEAHOUSE, fit, modelPoint } from './props';
+import { MILL_FILE, PROP_DIMS, STALLS, TEAHOUSE, fit, modelPoint } from './props';
+import { GATE_TOWERS, VILLAGE_PROPS, WALL_RUNS } from './village';
 import { BOARDS, COURT_PIECES, CT_PAD, CT_POS, CT_ROT, CT_Y, ctWorld, nearCourt } from './court';
 export { WORLD_R, VILLAGE_R } from './layout';
 
@@ -361,6 +362,18 @@ export const BUILDINGS: Building[] = (() => {
     const [x, z, a] = FISH_SPOT;
     const ux = Math.cos(a), uz = Math.sin(a);
     out.push(propBuilding('inn-boat.glb', x - uz * 3.5, z + ux * 3.5, Math.atan2(ux, uz), 6));
+  }
+  // 青石村's stockade (village.ts): every run of wall blocks; at each gate the two towers block, the road runs between
+  for (const [x0, z0, x1, z1] of WALL_RUNS) {
+    const L = Math.hypot(x1 - x0, z1 - z0);
+    out.push({ x: (x0 + x1) / 2, z: (z0 + z1) / 2, rot: Math.atan2(x1 - x0, z1 - z0), hx: 0.35, hz: L / 2 + 0.25, h: 3.6, model: '', scale: 1 });
+  }
+  for (const pair of GATE_TOWERS) for (const [x, z] of pair) out.push({ x, z, rot: Math.atan2(-x, -z), hx: 1.3, hz: 1.3, h: 7.4, model: '', scale: 1 });
+  // and what stands in its grounds (each once its model is in)
+  for (const [file, deg, r, size] of VILLAGE_PROPS) {
+    if (!(file in PROP_DIMS)) continue;
+    const a = (deg * Math.PI) / 180, x = Math.cos(a) * r, z = Math.sin(a) * r;
+    out.push(propBuilding(file, x, z, Math.atan2(-x, -z), size));
   }
   // the notice boards: their two legs block
   for (const [x, z] of BOARDS) out.push({ x, z, rot: Math.atan2(-x, -z), hx: 1.3, hz: 0.2, h: 2.7, model: '', scale: 1, posts: [[-1.1, 0, 0.18], [1.1, 0, 0.18]] });

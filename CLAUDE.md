@@ -105,6 +105,10 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   three runs at you from behind every two or three minutes (faster at night and as 声势 grows): 截道的山贼 by day,
   夜行刺客 by night, 金甲卫 from 声势 40. Wipe them for coins; get 140 m away or into the village and they go.
   声势 now starts at 30 (old saves raised to 30 once, `war.v2`), raids every other night (and the first evening).
+- 青石村 stockade (`src/game/village.ts`, drawn by `render/Stockade.tsx`): sharpened log wall at `WALL_R` 64 (solid runs
+  in `WALL_RUNS`), a gate with two towers and the 青石村 board on every road (`GATE_A`, `GATE_TOWERS`). Inside: the
+  houses, the square, 铁铺 / 酒肆 / 土地庙, the fields, and the Tripo yard things `VILLAGE_PROPS` (placed once each
+  file is in propdims). 青石集 is outside the east gate (road 0, r 74 to 162). Test: scratch wall.mts.
 - Townsfolk style (owner's rule): realistic like the heroes (portraits/), never cartoon. Tripo prompts end with the
   realistic style line and the workflow's `negative` input (cartoon, chibi, stylized, big head ...).
 

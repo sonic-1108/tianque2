@@ -3,6 +3,7 @@
 // (关卡) on the roads, then tax the market; every few nights raiders fall on 青石村 and you hold the village through
 // three waves (or it burns, and the market shuts for a day). The fighters come from benched pools made with the sim
 // (like the sparring guards), so nothing is created or destroyed while the game runs.
+import { WALL_R } from './village';
 import type { Sim } from './sim';
 import type { Fighter } from './types';
 import { DAY_S } from './clock';
@@ -260,7 +261,7 @@ function stepRaid(s: Sim, dt: number, c: Sim['clock'], p: Fighter) {
     // fires: every raider who reached the houses unopposed burns them down a little
     for (const id of live) {
       const f = s.fighters[id];
-      if (!f.aggro && Math.hypot(f.pos[0], f.pos[2]) < VILLAGE_R - 18) {
+      if (!f.aggro && Math.hypot(f.pos[0], f.pos[2]) < 28) {
         R.hp -= 1.1 * dt;
         if (Math.random() < dt * 0.25) s.say(f.pos[0], f.pos[1] + 2.6, f.pos[2], ['烧！', '给我烧！', '抢光！'][Math.floor(Math.random() * 3)]);
       }
@@ -332,7 +333,7 @@ const HUNTS = {
 /** out on the land (not in the village, the court, a room, a raid or a bout) nobody's safe for long */
 function exposed(s: Sim) {
   const p = s.player.pos;
-  return s.player.hp > 0 && s.indoor < 0 && !s.spar && !s.war.raid && Math.hypot(p[0], p[2]) > VILLAGE_R + 25 && !nearCourtPlain(p[0], p[2]) && s.dialog < 0 && !s.game;
+  return s.player.hp > 0 && s.indoor < 0 && !s.spar && !s.war.raid && Math.hypot(p[0], p[2]) > WALL_R + 6 && !nearCourtPlain(p[0], p[2]) && s.dialog < 0 && !s.game;
 }
 function stepHunt(s: Sim, dt: number) {
   const W = s.war, p = s.player;

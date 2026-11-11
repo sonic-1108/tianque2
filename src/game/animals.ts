@@ -2,6 +2,7 @@
 // Deer keep in herds and bolt together; rabbits and foxes dart off alone; a boar warns, then charges whoever comes
 // too near; the ox grazes by the mill; the village dog trots after you while you're in the village.
 // Only beasts near the player think (the rest stand still where they are), so a big map costs nothing.
+import { WALL_R } from './village';
 import { groundHeight, inBuilding, WATER_Y, VILLAGE_R } from './world';
 import { DENS, DEN_R } from './foes';
 import { WORLD_R, nearTq } from './layout';
@@ -64,7 +65,8 @@ const rnd = (a: number, b = 0) => {
 export function okSpot(x: number, z: number, village = false) {
   const r = Math.hypot(x, z);
   if (r > WORLD_R - 60) return false;
-  if (!village && r < VILLAGE_R + 18) return false;
+  if (!village && r < WALL_R + 8) return false;
+  if (village && r > WALL_R - 3) return false;
   if (nearTq(x, z, 95)) return false;
   const y = groundHeight(x, z);
   if (y < WATER_Y + 0.4) return false;
@@ -201,7 +203,7 @@ export function stepAnimals(list: Animal[], dt: number, w: AnimalWorld) {
     }
     switch (a.state) {
       case 'graze':
-        if (a.kind === 'dog' && w.here && dp < 9 && Math.hypot(w.px, w.pz) < VILLAGE_R + 6) {
+        if (a.kind === 'dog' && w.here && dp < 9 && Math.hypot(w.px, w.pz) < WALL_R) {
           a.state = 'follow';
           speak(a, '汪！');
           break;
@@ -269,7 +271,7 @@ export function stepAnimals(list: Animal[], dt: number, w: AnimalWorld) {
         }
         break;
       case 'follow': {
-        const inVillage = Math.hypot(w.px, w.pz) < VILLAGE_R + 6;
+        const inVillage = Math.hypot(w.px, w.pz) < WALL_R;
         if (!w.here || dp > 16 || !inVillage) {
           a.state = 'graze';
           a.t = 3;
@@ -301,7 +303,8 @@ export function stepAnimals(list: Animal[], dt: number, w: AnimalWorld) {
       Math.abs(ny - a.y) > Math.max(0.5, a.speed * dt * 1.6) ||
       inBuilding(nx, ny + 0.4, nz, 0.4) ||
       Math.hypot(nx, nz) > WORLD_R - 40 ||
-      (!village && Math.hypot(nx, nz) < VILLAGE_R + 6);
+      (!village && Math.hypot(nx, nz) < WALL_R + 4) ||
+      (village && Math.hypot(nx, nz) > WALL_R - 2);
     if (blocked) {
       a.yaw += (Math.random() < 0.5 ? 1 : -1) * (0.8 + Math.random());
       if (a.state === 'walk') a.state = 'graze';

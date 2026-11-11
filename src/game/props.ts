@@ -9,6 +9,8 @@ import { roadFrame } from './layout';
 
 type Dim = { min: number[]; max: number[] };
 const D = DIMS as Record<string, Dim>;
+/** the measured models (a file is placed only once it is in here) */
+export const PROP_DIMS = D;
 /** Tripo v3 models: centred, facing +x */
 export const isNewTripo = (file: string) => (D[file]?.min[1] ?? 0) < -0.05;
 
@@ -70,7 +72,7 @@ export interface Stall {
   size: number;
 }
 export const MARKET_ROAD = 0;
-export const MARKET_FROM = 46, MARKET_TO = 134;
+export const MARKET_FROM = 74, MARKET_TO = 162;
 const STALL_FILES = ['stall-fruit.glb', 'stall-pottery.glb', 'stall-silk.glb', 'stall-lantern.glb', 'stall-medicine.glb', 'stall-noodle.glb', 'stall-tanghulu.glb', 'stall-birds.glb', 'stall-weapons.glb', 'stall-books.glb'];
 const STALL_NAMES: Record<string, string> = {
   'stall-fruit.glb': '菜果摊', 'stall-pottery.glb': '陶器摊', 'stall-silk.glb': '绸缎摊', 'stall-lantern.glb': '灯笼铺', 'stall-medicine.glb': '草药摊',
