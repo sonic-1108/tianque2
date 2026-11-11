@@ -11,7 +11,7 @@ import { ROOMS } from './interiors';
 import { ctWorld, HALL_DOOR } from './court';
 import { BUILDINGS, groundHeight, inBuilding, WATER_Y } from './world';
 
-export type LifeKind = 'stall' | 'stroll' | 'street' | 'court' | 'woodcutter' | 'watchman' | 'fisher';
+export type LifeKind = 'stall' | 'stroll' | 'street' | 'court' | 'woodcutter' | 'watchman' | 'fisher' | 'road';
 export interface Plan {
   /** where to be */
   at: [number, number];
@@ -91,6 +91,12 @@ export function planFor(folk: Folk, h: Haunts, c: ClockInfo, w: Weather, war: { 
       // he sleeps by day; from dusk he walks the village and calls each watch
       if (inHours(hr, 8, 17)) return { ...home, act: '白天补觉' };
       return { at: h.spot, roam: folk.walk ?? 10, away: false, act: c.night ? '打更' : '准备打更', cry: c.night };
+    }
+    case 'road': {
+      // up and down their stretch of post road by day (a leg every three hours), a waystation bed by night
+      const R = folk.route ?? [h.spot, h.spot];
+      if (inHours(hr, 6, 19.5)) return wet ? shelter(rainAct) : { at: R[Math.floor(hr / 3) % 2], roam: 3, away: false, act: '赶路', cry: true };
+      return { at: h.evening, roam: 0, away: true, act: '在驿站投宿', cry: false };
     }
     case 'fisher': {
       if (inHours(hr, 5, 18.5)) return wet ? { at: h.spot, roam: 0, away: false, act: '披着蓑衣钓雨', cry: false } : { at: h.spot, roam: 0.5, away: false, act: '钓鱼', cry: true };

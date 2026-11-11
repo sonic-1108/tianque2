@@ -61,7 +61,7 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   warn then charge (`sim.gore`, 9% life, never kills), oxen by the fence, the village dog follows you in the village.
   Only beasts within 150 m think. Tripo quadrupeds carry one walk clip; facing is worked out from head and tail bones.
 
-- World clock and weather (`src/game/clock.ts`): a day is 10 min (`DAY_S`), a season 3 days, the era 承乾 (the year
+- World clock and weather (`src/game/clock.ts`): a day is 30 min (`DAY_S`, owner: 10 was too quick), a season 3 days, the era 承乾 (the year
   counts up from 三年); solar terms, festivals (`FESTIVALS` by day of year), weather spells picked per season (clear,
   cloudy, rain, storm, fog, snow; winter rain falls as snow), ground `wet` and lying `snow`. Saved in localStorage
   `tq2_world_v1`. Drawn by `render/Climate.tsx` (sun arc, moon and stars, cloud shell, fog, lightning, rain / snow /

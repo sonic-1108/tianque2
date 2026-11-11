@@ -3,7 +3,7 @@
 // block (BUILDINGS), and the folk who live there (FOLK) stand about or stroll, talk, and the innkeepers patch you up.
 // Pure data: no imports from world.ts (it imports this).
 import { DENS, DEN_R } from './foes';
-import { ROADS, ROAD_N, roadFrame, TQ_POS, TQ_ROAD } from './layout';
+import { ROADS, ROAD_N, roadFrame, roadPoint, TQ_POS, TQ_ROAD } from './layout';
 import { mapWater } from './mapsample';
 import { STALLS, MARKET_ROAD, MARKET_FROM, MARKET_TO, fit } from './props';
 import { ctWorld, WALL_FRONT } from './court';
@@ -177,6 +177,8 @@ export interface Folk {
   cry?: string[];
   /** keeps their own hours (life.ts): where they are depends on the time, the weather and the festival */
   life?: LifeKind;
+  /** a traveller's two ends of road (life 'road') */
+  route?: [number, number][];
 }
 const RING_TALK = [
   '往外走二里地就是黑风寨的人了，夜里别赶路。',
@@ -277,6 +279,47 @@ export const FOLK: Folk[] = (() => {
   for (const [name, model, r, lines, cry] of STROLL) {
     const [x, z] = street(r);
     out.push({ name, model, x, z, walk: 11, lines, cry, life: 'stroll' });
+  }
+  // more of 青石村: inside the stockade, round the square, the hall, the stage, the mill and the coop
+  const at = (deg: number, r: number): [number, number] => [Math.cos((deg * Math.PI) / 180) * r, Math.sin((deg * Math.PI) / 180) * r];
+  const MORE: [string, string, [number, number], number, string[], string[]?][] = [
+    ['放牛娃 · 二牛', 'npc-boy.glb', at(64, 44), 10, ['我家老黄牛比我岁数还大。', '牛不吃草的时候，就是要下雨了。', '你会骑马？教教我呗，我只会骑牛。'], ['哞～回家咯！']],
+    ['农妇 · 刘嫂', 'npc-merchantwoman.glb', [3, -1], 6, ['井水甜，煮饭香。', '我男人去县里卖菜了，天黑才回来。', '山贼来那晚，是你守的寨门吧？'], undefined],
+    ['教书先生 · 孟夫子', 'npc-scholar.glb', at(126, 29), 3, ['祠堂借给我教书，孩子们念的第一句就是“人之初”。', '读书不是为了做官，是为了明理。', '你识字吗？不识也不打紧，心里有数就行。'], ['人之初，性本善～', '性相近，习相远～']],
+    ['学童 · 小满', 'npc-girl.glb', at(121, 27), 3, ['先生说我背书最快！', '我长大要考状元，去永安城！', '你身上有刀，先生说带刀的都不是好人……你不一样。'], ['苟不教，性乃迁～']],
+    ['学童 · 虎子', 'npc-kid2.glb', at(132, 27), 4, ['我不想背书，我想学武！', '先生打手心可疼了。', '你能教我一招吗？就一招！'], undefined],
+    ['武师 · 赵铁臂', 'npc-swordsman.glb', [-9, 9], 4, ['寨墙修好了，可墙再高，也得有人守。', '夜里山贼来了别慌，守住寨门就是守住全村。', '年轻人，出手要快，收手要更快。'], ['嘿！哈！', '马步扎稳了！']],
+    ['晒太阳的老秦头', 'npc-oldman.glb', [10, -6], 2, ['我在这棵老槐树下坐了六十年。', '天阙的钟？我小时候听过一回，响得整座山都在抖。', '你像一个人……像谁呢，想不起来了。'], undefined],
+    ['挑水的阿四', 'npc-peddler.glb', [-4, -4], 14, ['一天挑二十担水，腿都不是自己的。', '井里的水是从天阙山上渗下来的，老人都这么说。', '让一让，水洒了你赔？'], ['水来咯，让一让～']],
+    ['磨工 · 大石', 'npc-butcher.glb', at(300, 34), 3, ['这盘石磨是我爷爷凿的。', '磨一斗麦子，转三百圈。', '力气是磨出来的，不是练出来的。'], undefined],
+    ['喂鸡的周婆', 'npc-granny.glb', at(272, 35), 4, ['咕咕咕～吃食咯！', '王婆婆家的芦花鸡又跑我这儿来了。', '鸡下蛋，人吃饭，日子就这么过。'], ['咕咕咕～']],
+    ['戏班班主 · 余老板', 'npc-noodle.glb', at(198, 30), 4, ['逢年过节，咱们戏班就在这戏台上唱三天三夜。', '今年唱什么？《守阙记》！你听过没？', '戏里的大侠，台下的看客，谁比谁真呢？'], ['好戏开锣咯！']],
+    ['花旦 · 小桃红', 'npc-courtesan.glb', at(206, 33), 3, ['我唱的是守阙人的夫人，雪夜里抱着孩子跑下山……', '每回唱到那儿，台下就有人哭。', '你别这么看着我，怪不好意思的。'], ['♪ 雪满天阙路 ♪']],
+    ['武生 · 燕七', 'npc-swordsman.glb', at(192, 33), 3, ['台上的刀枪都是木头的，可翻跟头是真的。', '我小时候想当真的大侠，后来只敢在台上当。', '你那几招，比我台上的好看。'], undefined],
+    // the market outside the east gate
+    ['买布的小媳妇', 'npc-lady.glb', [0, 0], 0, ['苏娘子的绸子真好，就是太贵。', '我男人说过年给我扯一身新衣裳。', '集上人多，小心荷包。'], undefined],
+    ['讨价还价的胖婶', 'npc-merchantwoman.glb', [0, 0], 0, ['三文？两文！两文我就要了！', '这年头什么都涨价，就是工钱不涨。', '你帮我拎着，我再去那边看看。'], ['便宜点！再便宜点！']],
+    ['赶集的老汉', 'npc-farmer.glb', [0, 0], 0, ['挑了两筐鸡蛋来卖，路上碎了一半。', '东门外这集，比县里的还热闹。', '天黑前得赶回去，夜里路上不太平。'], undefined],
+    ['扒手 · 三只手', 'npc-peddler.glb', [0, 0], 0, ['看什么看？我是……我是卖货的。', '大侠，你的荷包……还在，还在。', '我也是没法子，家里还有个瘸腿的娘。'], undefined],
+    ['算命的 · 刘半仙', 'npc-fortune.glb', [0, 0], 0, ['你命里有一座山，山上有一口钟。', '看相一文，算命三文，不准不要钱。', '最近别往北边去……算了，你肯定要去。'], ['算命看相，不准不要钱！']],
+  ];
+  MORE.forEach(([name, model, spot, walk, lines, cry], k) => {
+    // the market ones stroll the street outside the east gate
+    const [x, z] = spot[0] === 0 && spot[1] === 0 ? street(MARKET_FROM + 8 + k * 9) : spot;
+    out.push({ name, model, x, z, walk: walk || 10, lines, cry, life: 'stroll' });
+  });
+  // travellers on the post roads, back and forth between two points, in a waystation by night
+  const TRAVEL: [string, string, number, number, number, string[], string[]?][] = [
+    ['镖师 · 雷五', 'npc-swordsman.glb', 2, 110, 380, ['走镖二十年，没丢过一趟货。', '最近路上多了伪朝的兵，比山贼还难缠。', '你一个人走路？胆子不小。'], ['镖局走镖，闲人让路！']],
+    ['挑担的货郎', 'npc-peddler.glb', 5, 100, 360, ['从这个驿站挑到那个驿站，一年走坏八双鞋。', '前头有关卡，绕着走吧。', '针线、火石、伤药，要不要？'], ['货郎来咯～']],
+    ['进京赶考的举子', 'npc-scholar.glb', 1, 140, 640, ['我要去永安城应试，十年寒窗，就看这一回。', '听说考题里有江湖事，我可一点不懂。', '路上要是有贼，你……能送我一程吗？'], undefined],
+    ['云游的老僧', 'npc-novice.glb', 3, 120, 420, ['阿弥陀佛。施主眉间有杀气，也有慈悲。', '贫僧从西边来，雪山上的寺，早就空了。', '走路也是修行。'], undefined],
+    ['送信的驿卒', 'npc-guard.glb', 6, 100, 400, ['八百里加急！……其实是县太爷的家书。', '驿站的马跑死了两匹，我只好用腿。', '最近送往天阙的信越来越多，都封着黄漆。'], ['驿卒送信，让一让！']],
+    ['回娘家的新媳妇', 'npc-lady.glb', 4, 90, 260, ['我娘家在古道那边，走一天才到。', '我男人不放心，非让我天黑前到驿站。', '你也往天阙那边去？那边……别去太远。'], undefined],
+  ];
+  for (const [name, model, road, r0, r1, lines, cry] of TRAVEL) {
+    const a = roadPoint(road, r0), b = roadPoint(road, r1);
+    out.push({ name, model, x: a[0], z: a[1], walk: 3, lines, cry, life: 'road', route: [a, b] });
   }
   // the old fisherman on the bank by his boat
   if (FISH_SPOT) {

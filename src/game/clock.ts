@@ -2,7 +2,7 @@
 // Pure logic. One game day is DAY_S real seconds; a season is SEASON_DAYS days; the year turns with them.
 // The clock and the weather keep going between visits (saved in localStorage `tq2_world_v1`).
 
-export const DAY_S = 600; // ten minutes a day
+export const DAY_S = 1800; // half an hour a day (the owner found ten minutes too quick)
 export const SEASON_DAYS = 3;
 export const YEAR_DAYS = SEASON_DAYS * 4;
 export const SEASONS = ['春', '夏', '秋', '冬'] as const;
