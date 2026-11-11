@@ -1,8 +1,8 @@
 {
   "name": "npc-official",
   "kind": "biped",
-  "prompt": "A middle-aged ancient Chinese court official in a long crimson robe with an embroidered square crane badge on the chest, a black winged official hat, a jade belt, holding nothing, stern face with a thin beard, stylized realistic game character",
-  "task": "a44c92e3-6279-417b-99fb-da1cbf6f224c",
+  "prompt": "A middle-aged ancient Chinese Ming dynasty court official, brightly coloured: a long vivid crimson red silk robe, a gold embroidered square badge with a white crane on the chest, a black lacquered official hat with two long flat wings, a green jade belt, a thin black beard, fully painted colourful texture, stylized realistic game character, nothing in his hands",
+  "task": "33d82692-bcd8-4419-9bcf-e30a2c2d312c",
   "faces": 12000,
   "credits": 75
 }
