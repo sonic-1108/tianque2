@@ -1,19 +1,31 @@
-# Make a model with Tripo (text to 3D) and keep it on the tripo-models branch for review.
-# Needs the repo secret TRIPO_API_KEY (Settings > Secrets and variables > Actions); the key never leaves GitHub.
-# Run from Actions > Tripo model > Run workflow, or: gh workflow run tripo.yml -f name=inn -f prompt="..."
+# Make a model with Tripo and keep it on the tripo-models branch for review.
+#   kind=prop       text to model (a building, a stall, furniture)
+#   kind=biped      text to model, rigged on the Mixamo skeleton (plays the game's own Mixamo clips), plus Tripo's
+#                   idle and walk in place
+#   kind=quadruped  text to model, rigged as a four-legged animal, plus its walk in place
+# Every model is slimmed (textures to 1024 webp, meshopt) before it is kept.
+# Needs the repo secret TRIPO_API_KEY (the owner's overseas key; it never leaves GitHub).
+# Run: gh api -X POST repos/sonic-1108/tianque2/actions/workflows/tripo.yml/dispatches -f ref=main \
+#        -f 'inputs[name]=x' -f 'inputs[kind]=prop' -f 'inputs[prompt]=...'
 name: Tripo model
 on:
   workflow_dispatch:
     inputs:
       name:
-        description: file name (letters, digits, dashes), saved as public/props/<name>.glb
+        description: file name (letters, digits, dashes), kept as models/<name>.glb
         required: true
       prompt:
         description: what to make
         required: true
+      kind:
+        description: prop, biped or quadruped
+        default: prop
       faces:
         description: face limit (keep props light)
         default: '12000'
+      texsize:
+        description: texture size after slimming
+        default: '1024'
       region:
         description: ov (developers.tripo3d.ai, the owner's account) or cn (developers.tripo3d.com)
         default: ov
@@ -24,48 +36,89 @@ concurrency:
 jobs:
   make:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Ask Tripo, wait, download
         env:
           KEY: ${{ secrets.TRIPO_API_KEY }}
           NAME: ${{ inputs.name }}
           PROMPT: ${{ inputs.prompt }}
+          KIND: ${{ inputs.kind }}
           FACES: ${{ inputs.faces }}
           REGION: ${{ inputs.region }}
         run: |
           set -euo pipefail
           [ -n "$KEY" ] || { echo "TRIPO_API_KEY is not set"; exit 1; }
           echo "$NAME" | grep -Eq '^[a-z0-9-]+$' || { echo "bad name"; exit 1; }
+          case "$KIND" in prop|biped|quadruped) ;; *) echo "bad kind"; exit 1 ;; esac
           # keys only work on their own region's server
           if [ "$REGION" = cn ]; then API=https://openapi.tripo3d.com/v3; else API=https://openapi.tripo3d.ai/v3; fi
-          body=$(jq -n --arg p "$PROMPT" --argjson f "$FACES" '{prompt:$p, model:"v3.1-20260211", texture:true, pbr:true, texture_quality:"detailed", face_limit:$f}')
-          res=$(curl -sS -X POST "$API/generation/text-to-model" -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' -d "$body")
-          id=$(echo "$res" | jq -r '.data.task_id // empty')
-          [ -n "$id" ] || { echo "create failed: $(echo "$res" | jq -c 'del(.data.output)')"; exit 1; }
-          echo "task $id"
-          for i in $(seq 1 150); do
-            sleep 10
-            t=$(curl -sS "$API/tasks/$id" -H "Authorization: Bearer $KEY")
-            st=$(echo "$t" | jq -r '.data.status // "?"')
-            echo "$i $st $(echo "$t" | jq -r '.data.progress // ""')"
-            case "$st" in
-              success) break ;;
-              failed|cancelled|banned|expired|unknown) echo "$t" | jq -c '.data | del(.output)'; exit 1 ;;
-            esac
-          done
-          [ "$st" = success ] || { echo "timed out"; exit 1; }
-          url=$(echo "$t" | jq -r '.data.output.model_url // .data.output.pbr_model // .data.output.model // empty')
+          post() { # path body -> task id
+            local res id
+            res=$(curl -sS -X POST "$API/$1" -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' -d "$2")
+            id=$(echo "$res" | jq -r '.data.task_id // empty')
+            [ -n "$id" ] || { echo "create $1 failed: $(echo "$res" | jq -c 'del(.data.output)')" >&2; exit 1; }
+            echo "$id"
+          }
+          wait_task() { # id -> task json (on success)
+            local t st
+            for i in $(seq 1 180); do
+              sleep 10
+              t=$(curl -sS "$API/tasks/$1" -H "Authorization: Bearer $KEY")
+              st=$(echo "$t" | jq -r '.data.status // "?"')
+              echo "  $1 $i $st $(echo "$t" | jq -r '.data.progress // ""')" >&2
+              case "$st" in
+                success) echo "$t"; return 0 ;;
+                failed|cancelled|banned|expired|unknown) echo "$t" | jq -c '.data | del(.output)' >&2; exit 1 ;;
+              esac
+            done
+            echo "timed out" >&2; exit 1
+          }
+          url_of() { echo "$1" | jq -r '.data.output.model_url // .data.output.pbr_model // .data.output.model // empty'; }
+          credits=0
+          add_credits() { credits=$((credits + $(echo "$1" | jq -r '.data.credits_consumed // 0 | floor'))); }
+
+          # T-pose wording helps the rigger with people
+          P="$PROMPT"
+          [ "$KIND" = biped ] && P="$PROMPT, full body, standing in A-pose, arms slightly away from the body, facing forward"
+          body=$(jq -n --arg p "$P" --argjson f "$FACES" '{prompt:$p, model:"v3.1-20260211", texture:true, pbr:true, texture_quality:"detailed", face_limit:$f}')
+          id=$(post generation/text-to-model "$body"); echo "model task $id"
+          t=$(wait_task "$id"); add_credits "$t"
           img=$(echo "$t" | jq -r '.data.output.rendered_image_url // empty')
-          [ -n "$url" ] || { echo "no model url: $(echo "$t" | jq -c '.data.output | keys')"; exit 1; }
-          mkdir -p public/props tools/tripo
-          curl -sSL "$url" -o "public/props/$NAME.glb"
-          [ -n "$img" ] && curl -sSL "$img" -o "tools/tripo/$NAME.png" || true
-          jq -n --arg n "$NAME" --arg p "$PROMPT" --arg id "$id" --argjson f "$FACES" '{name:$n, prompt:$p, task:$id, faces:$f}' > "tools/tripo/$NAME.json"
-          ls -la "public/props/$NAME.glb"
+          final="$t"
+          if [ "$KIND" = biped ]; then
+            rid=$(post animations/rig "$(jq -n --arg i "$id" '{input:$i, model:"v3.0-20260909", rig_type:"biped", spec:"mixamo", out_format:"glb"}')"); echo "rig task $rid"
+            t=$(wait_task "$rid"); add_credits "$t"
+            aid=$(post animations/retarget "$(jq -n --arg i "$rid" '{input:$i, animations:["preset:idle","preset:walk"], out_format:"glb", animate_in_place:true}')"); echo "anim task $aid"
+            final=$(wait_task "$aid"); add_credits "$final"
+          elif [ "$KIND" = quadruped ]; then
+            rid=$(post animations/rig "$(jq -n --arg i "$id" '{input:$i, model:"v2.5-20260210", rig_type:"quadruped", out_format:"glb"}')"); echo "rig task $rid"
+            t=$(wait_task "$rid"); add_credits "$t"
+            aid=$(post animations/retarget "$(jq -n --arg i "$rid" '{input:$i, animation:"preset:quadruped:walk", out_format:"glb", animate_in_place:true}')"); echo "anim task $aid"
+            final=$(wait_task "$aid"); add_credits "$final"
+          fi
+          url=$(url_of "$final")
+          [ -n "$url" ] || { echo "no model url: $(echo "$final" | jq -c '.data.output | keys')"; exit 1; }
+          mkdir -p out
+          curl -sSL "$url" -o "out/$NAME.raw.glb"
+          [ -n "$img" ] && curl -sSL "$img" -o "out/$NAME.png" || true
+          jq -n --arg n "$NAME" --arg p "$PROMPT" --arg k "$KIND" --arg id "$id" --argjson f "$FACES" --argjson c "$credits" '{name:$n, kind:$k, prompt:$p, task:$id, faces:$f, credits:$c}' > "out/$NAME.json"
+          echo "credits used: $credits"
+      - name: Slim it
+        env:
+          NAME: ${{ inputs.name }}
+          TEX: ${{ inputs.texsize }}
+        run: |
+          set -euo pipefail
+          npx --yes @gltf-transform/cli@4 optimize "out/$NAME.raw.glb" "out/$NAME.glb" --texture-size "$TEX" --texture-compress webp --compress meshopt --simplify false
+          rm "out/$NAME.raw.glb"
+          ls -la out
       - name: Keep it on the tripo-models branch
         env:
           NAME: ${{ inputs.name }}
@@ -73,7 +126,15 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          mkdir -p /tmp/out && cp "public/props/$NAME.glb" tools/tripo/$NAME.* /tmp/out/
-          if git ls-remote --exit-code origin tripo-models >/dev/null; then git fetch origin tripo-models && git checkout -B tripo-models origin/tripo-models; else git checkout --orphan tripo-models && git rm -rf -q . ; fi
+          mv out /tmp/out
+          git fetch origin tripo-models
+          git checkout -B tripo-models origin/tripo-models
           mkdir -p models && cp /tmp/out/* models/
-          git add models && git commit -m "Tripo: $NAME" && git push origin tripo-models
+          git add models && git commit -m "Tripo: $NAME"
+          # several runs may finish together: rebase onto whoever pushed first and try again
+          for i in 1 2 3 4 5 6; do
+            git push origin tripo-models && exit 0
+            sleep $((RANDOM % 10 + 3))
+            git pull --rebase origin tripo-models
+          done
+          exit 1
