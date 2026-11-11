@@ -1,0 +1,8 @@
+{
+  "name": "npc-peddler",
+  "kind": "biped",
+  "prompt": "A wandering Chinese peddler carrying a tall wooden backpack frame loaded with small boxes, bells and goods, a straw hat on his back, a short grey jacket, ancient China, stylized realistic game character",
+  "task": "03c7ea33-23bd-44b5-b549-ed3f7f27a5c5",
+  "faces": 12000,
+  "credits": 75
+}
