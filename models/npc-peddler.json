@@ -1,8 +1,8 @@
 {
   "name": "npc-peddler",
   "kind": "biped",
-  "prompt": "A wandering Chinese peddler carrying a tall wooden backpack frame loaded with small boxes, bells and goods, a straw hat on his back, a short grey jacket, ancient China, stylized realistic game character",
-  "task": "03c7ea33-23bd-44b5-b549-ed3f7f27a5c5",
+  "prompt": "A wiry middle-aged Chinese travelling peddler with a wooden frame backpack loaded with small goods, a faded brown tunic and leg wraps, a cloth headscarf, a cheerful lined face, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "435c6ad1-1953-4a31-b8c1-3803986b195b",
   "faces": 12000,
   "credits": 75
 }
