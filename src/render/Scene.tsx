@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import type { Sim } from '../game/sim';
 import { groundHeight, inBuilding } from '../game/world';
+import { ROOMS, ROOM_Y } from '../game/interiors';
 import { readInput, takeMouse } from '../input';
 import { World } from './World';
 import { Rig } from './Rig';
@@ -20,6 +21,11 @@ function Loop({ sim }: { sim: Sim }) {
   const init = useRef(false);
   const scope = useRef(0);
   useFrame((_, dt) => {
+    if (sim.camSnap !== null) {
+      cam.yaw = sim.camSnap; // through a door: look the way you're walking
+      sim.camSnap = null;
+      init.current = false;
+    }
     const m = takeMouse();
     cam.yaw -= m.dx * 0.0025;
     cam.pitch = Math.max(-0.35, Math.min(1.2, cam.pitch + m.dy * 0.0025));
@@ -63,7 +69,13 @@ function Loop({ sim }: { sim: Sim }) {
         break;
       }
     }
-    c.y = Math.max(c.y, groundHeight(c.x, c.z) + 0.5);
+    const room = sim.indoor >= 0 ? ROOMS[sim.indoor] : null;
+    if (room) {
+      // in a room: the camera stays under the beams and inside the walls
+      c.y = Math.min(Math.max(c.y, ROOM_Y + 0.4), ROOM_Y + room.h - 0.5);
+      c.x = Math.min(Math.max(c.x, room.ox - room.w / 2 + 0.35), room.ox + room.w / 2 - 0.35);
+      c.z = Math.min(Math.max(c.z, room.oz - room.d / 2 + 0.35), room.oz + room.d / 2 - 0.35);
+    } else c.y = Math.max(c.y, groundHeight(c.x, c.z) + 0.5);
     camera.position.copy(c);
     camera.lookAt(tx, ty, tz);
     if (juice.push > 0.001) {

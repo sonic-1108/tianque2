@@ -7,6 +7,7 @@ import { useFrame } from '@react-three/fiber';
 import { GLTFLoader, MeshoptDecoder } from 'three-stdlib';
 import { Builder, Built } from './build';
 import { liftProp } from './propLook';
+import { fit } from '../game/props';
 import { TQ_POS, TQ_ROT, TQ_Y } from '../game/layout';
 import { tqWall } from '../game/world';
 
@@ -134,13 +135,13 @@ function Gate() {
   useEffect(() => {
     let alive = true;
     gateLoader
-      .loadAsync(import.meta.env.BASE_URL + 'props/paifang.glb')
+      .loadAsync(import.meta.env.BASE_URL + 'props/paifang-b.glb')
       .then((g) => {
         if (!alive) return;
         g.scene.traverse((o: any) => {
           if (o.isMesh) o.castShadow = o.receiveShadow = true;
         });
-        liftProp(g.scene, 'paifang.glb');
+        liftProp(g.scene, 'paifang-b.glb');
         setObj(g.scene);
       })
       .catch(() => {});
@@ -148,7 +149,8 @@ function Gate() {
       alive = false;
     };
   }, []);
-  return obj ? <primitive object={obj} position={[0, -0.3, 38]} scale={22} /> : null;
+  const g = fit('paifang-b.glb', 22);
+  return obj ? <primitive object={obj} position={[0, g.lift, 38]} rotation={[0, g.turn, 0]} scale={g.scale} /> : null;
 }
 
 export function Tianque() {

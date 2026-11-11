@@ -15,6 +15,8 @@ import type { Sim } from '../game/sim';
 
 /** a Tripo prop (public/props): loaded once, cloned per placement (geometry and textures shared) */
 import { liftProp } from './propLook';
+import { DECOR, fit } from '../game/props';
+import { Interiors } from './Interiors';
 const propCache = new Map<string, Promise<THREE.Group>>();
 const propLoader = new GLTFLoader();
 propLoader.setMeshoptDecoder(typeof MeshoptDecoder === 'function' ? (MeshoptDecoder as any)() : MeshoptDecoder);
@@ -35,7 +37,7 @@ function loadProp(file: string) {
   }
   return p;
 }
-function Prop({ file, x, z, rot, scale }: { file: string; x: number; z: number; rot: number; scale: number }) {
+export function Prop({ file, x, z, rot, scale, turn = 0, lift = -0.25 }: { file: string; x: number; z: number; rot: number; scale: number; turn?: number; lift?: number }) {
   const [obj, setObj] = useState<THREE.Object3D | null>(null);
   useEffect(() => {
     let alive = true;
@@ -47,7 +49,7 @@ function Prop({ file, x, z, rot, scale }: { file: string; x: number; z: number; 
     };
   }, [file]);
   if (!obj) return null;
-  return <primitive object={obj} position={[x, groundHeight(x, z) - 0.25, z]} rotation={[0, rot, 0]} scale={scale} />;
+  return <primitive object={obj} position={[x, groundHeight(x, z) + lift, z]} rotation={[0, rot + turn, 0]} scale={scale} />;
 }
 
 /** a seeded random in 0..1 */
@@ -177,15 +179,7 @@ function buildVillage() {
     }
     b.box('hay', x, y + 0.85, z, 1.2, 0.5, 1.6, 0.4);
   }
-  // the well
-  {
-    const y = gy(0, -3);
-    b.add('rock', new THREE.CylinderGeometry(1, 1.1, 1, 14), 0, y + 0.5, -3);
-    b.add('dark', new THREE.CylinderGeometry(0.8, 0.8, 0.05, 14), 0, y + 1.0, -3);
-    for (const s of [-1, 1]) b.box('log', s * 0.95, y + 1, -3, 0.15, 1.6, 0.15);
-    b.box('log', 0, y + 2.5, -3, 2.3, 0.14, 0.14);
-    b.box('tile', 0, y + 2.7, -3, 2.6, 0.12, 1.4);
-  }
+  // (the well is a Tripo model now: a building in world.ts)
   return b.build();
 }
 
@@ -193,7 +187,11 @@ function Village() {
   const parts = useMemo(buildVillage, []);
   return (
     <group>
-      {BUILDINGS.map((b, i) => b.model && <Prop key={i} file={b.model} x={b.x} z={b.z} rot={b.rot} scale={b.scale} />)}
+      {BUILDINGS.map((b, i) => b.model && <Prop key={i} file={b.model} x={b.x} z={b.z} rot={b.rot} scale={b.scale} turn={b.turn} lift={b.lift} />)}
+      {DECOR.map((d, i) => {
+        const g = fit(d.file, d.size);
+        return <Prop key={'d' + i} file={d.file} x={d.x} z={d.z} rot={d.rot} scale={g.scale} turn={g.turn} lift={g.lift} />;
+      })}
       <Built parts={parts} />
     </group>
   );
@@ -226,29 +224,7 @@ function buildDens() {
         const x = d.x + Math.cos(a) * R, z = d.z + Math.sin(a) * R;
         b.add('log', new THREE.CylinderGeometry(0.26, 0.28, 4, 7), x, gy(x, z) + 1.8, z);
       }
-    // tents round the fire
-    for (let k = 0; k < 3; k++) {
-      const a = k * 2.1 + i;
-      const x = d.x + Math.cos(a) * 9.5, z = d.z + Math.sin(a) * 9.5;
-      const y = gy(x, z);
-      b.add('canvas', new THREE.CylinderGeometry(1.9, 2.0, 1.1, 14, 1, true), x, y + 0.55, z);
-      b.add('canvas', new THREE.ConeGeometry(2.25, 1.5, 14, 1, true), x, y + 1.85, z);
-      b.add('log', new THREE.CylinderGeometry(0.05, 0.05, 0.6, 5), x, y + 2.75, z);
-      b.box('dark', x - Math.cos(a) * 1.96, y, z - Math.sin(a) * 1.96, 0.9, 1.05, 0.08, Math.PI / 2 - a);
-    }
-    // a watchtower by the far gate
-    {
-      const a = g0 + Math.PI / 2;
-      const x = d.x + Math.cos(a) * (R - 2.2), z = d.z + Math.sin(a) * (R - 2.2);
-      const y = gy(x, z);
-      const H = d.boss ? 6.5 : 5;
-      for (const sx of [-1, 1]) for (const sz of [-1, 1]) b.add('log', new THREE.CylinderGeometry(0.13, 0.16, H + 1.2, 6), x + sx * 1.1, y + (H + 1.2) / 2, z + sz * 1.1);
-      b.box('plank', x, y + H, z, 2.8, 0.18, 2.8);
-      for (const [ox, oz, w, dd] of [[0, 1.35, 2.8, 0.1], [0, -1.35, 2.8, 0.1], [1.35, 0, 0.1, 2.8], [-1.35, 0, 0.1, 2.8]]) b.box('plank', x + ox, y + H, z + oz, w, 0.8, dd);
-      const roof = new THREE.ConeGeometry(2.3, 1.3, 4);
-      roof.rotateY(Math.PI / 4);
-      b.add('thatch', roof, x, y + H + 1.9, z);
-    }
+    // (the tents and the watchtower are Tripo models: props.ts DECOR)
     // crates, barrels, a weapon rack
     for (let k = 0; k < 4; k++) {
       const a = i * 1.3 + k * 0.5 + 2.6;
@@ -348,6 +324,15 @@ function Sun({ sim }: { sim: Sim }) {
   );
 }
 
+/** the outdoor world, hidden while the player is in a room (nothing of it shows in there, and it costs nothing) */
+function Outdoors({ sim, children }: { sim: Sim; children: React.ReactNode }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame(() => {
+    if (ref.current) ref.current.visible = sim.indoor < 0;
+  });
+  return <group ref={ref}>{children}</group>;
+}
+
 export function World({ sim }: { sim: Sim }) {
   return (
     <>
@@ -355,12 +340,15 @@ export function World({ sim }: { sim: Sim }) {
       <fog attach="fog" args={['#c3d3e0', 240, 1500]} />
       <hemisphereLight args={['#dfeeff', '#4b5a33', 0.85]} />
       <Sun sim={sim} />
-      <Landscape sim={sim} />
-      <Village />
-      <Tianque />
-      <Gudao />
-      <Places />
-      <Dens />
+      <Outdoors sim={sim}>
+        <Landscape sim={sim} />
+        <Village />
+        <Tianque />
+        <Gudao />
+        <Places />
+        <Dens />
+      </Outdoors>
+      <Interiors sim={sim} />
     </>
   );
 }

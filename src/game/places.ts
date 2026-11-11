@@ -155,7 +155,7 @@ export function placeAt(p: Place, lx: number, lz: number): [number, number] {
 /** the two houses of a waystation, beside the inn, turned to the yard */
 export function innHouses(p: Place) {
   return [-1, 1].map((s) => {
-    const [x, z] = placeAt(p, s * 11.5, -5);
+    const [x, z] = placeAt(p, s * 14.5, -6.5);
     return { x, z, rot: p.rot - s * 0.9 };
   });
 }
@@ -207,7 +207,7 @@ export const FOLK: Folk[] = (() => {
     const [x, z] = placeAt(p, -2, 6.5);
     const k = p.road!;
     out.push({ name: `${p.name}伙计`, model: k % 2 ? 'trader.glb' : 'wanderer_m.glb', x, z, heal: '歇歇脚（回满生命和内力）', lines: [`这里是${p.name}，往村里走还有好一段路，歇歇再走吧。`, RING_TALK[k % 3], '茶水管够，就是没有好菜。'] });
-    const [x2, z2] = placeAt(p, 5, 8);
+    const [x2, z2] = placeAt(p, 2.5, 10);
     out.push({ name: '赶路人', model: ['monk.glb', 'ranger.glb', 'wanderer_m.glb'][k % 3], x: x2, z: z2, walk: 5, lines: ['我从外头来，路上的贼一伙比一伙凶。', '你也是要去天阙？那条古道上的灯，听说是自己亮的。', '歇够了，我得在天黑前赶到下一处驿站。'] });
   }
   return out;

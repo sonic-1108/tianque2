@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { mergeBufferGeometries } from 'three-stdlib';
 import { dress } from './surfaces';
 
-export type Mat = 'stone' | 'step' | 'red' | 'wall' | 'roof' | 'ridge' | 'wood' | 'bronze' | 'cloth' | 'paper' | 'dark' | 'plank' | 'log' | 'thatch' | 'tile' | 'leaf' | 'crop' | 'soil' | 'hay' | 'lamp' | 'flame' | 'canvas' | 'rock' | 'pave' | 'pave2';
+export type Mat = 'stone' | 'step' | 'red' | 'wall' | 'roof' | 'ridge' | 'wood' | 'bronze' | 'cloth' | 'paper' | 'dark' | 'plank' | 'log' | 'thatch' | 'tile' | 'leaf' | 'crop' | 'soil' | 'hay' | 'lamp' | 'flame' | 'canvas' | 'rock' | 'pave' | 'pave2' | 'plaster' | 'silk' | 'silk2' | 'fur' | 'gold' | 'white';
 const COLORS: Record<Mat, [string, number, number]> = {
   stone: ['#d4cdbd', 0.95, 0],
   step: ['#b9b2a2', 1, 0],
@@ -31,6 +31,12 @@ const COLORS: Record<Mat, [string, number, number]> = {
   rock: ['#77736b', 1, 0],
   pave: ['#8e887c', 1, 0],
   pave2: ['#a39b8b', 1, 0],
+  plaster: ['#d8ccb2', 1, 0],
+  silk: ['#b8324a', 0.6, 0],
+  silk2: ['#3a6fa8', 0.6, 0],
+  fur: ['#7a5b3e', 1, 0],
+  gold: ['#d4a23a', 0.45, 0.6],
+  white: ['#eee8dc', 0.9, 0],
 };
 
 export class Builder {
@@ -162,7 +168,16 @@ export class Builder {
   build() {
     const out: { m: Mat; g: THREE.BufferGeometry }[] = [];
     for (const [m, gs] of Object.entries(this.parts)) {
-      const g = mergeBufferGeometries(gs, false);
+      // shapes from different makers disagree (indexed or not, a uv or not): bring them all to the same form first
+      const same = gs.map((g0) => {
+        let g = g0.index ? g0.toNonIndexed() : g0;
+        for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'uv') g.deleteAttribute(k);
+        if (!g.attributes.normal) g.computeVertexNormals();
+        if (!g.attributes.uv) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
+        g.morphAttributes = {};
+        return g;
+      });
+      const g = mergeBufferGeometries(same, false);
       if (!g) continue;
       g.computeBoundingSphere();
       out.push({ m: m as Mat, g });

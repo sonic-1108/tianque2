@@ -112,3 +112,6 @@ button:not(:disabled):hover { border-color: var(--gold); }
 .bigmap canvas { width: min(90vw, 90vh); height: min(90vw, 90vh); border-radius: 50%; box-shadow: 0 0 0 2px rgba(232, 181, 74, 0.6), 0 10px 40px rgba(0, 0, 0, 0.6); }
 .bigmap-hint { margin-top: 10px; color: #e9dcc0; font-size: 13px; letter-spacing: 1px; }
 .mm-hint { position: absolute; right: 16px; bottom: 200px; width: 180px; text-align: center; color: #e9dcc0; font-size: 12px; text-shadow: 0 1px 2px #000; }
+
+.room-name { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); color: #f3e3bf; font: 600 18px serif; letter-spacing: 4px; text-shadow: 0 1px 3px #000; pointer-events: none; }
+.door-fade { position: absolute; inset: 0; background: #000; pointer-events: none; transition: opacity 0.08s linear; }

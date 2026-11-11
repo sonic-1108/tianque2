@@ -48,6 +48,14 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   (`sim.note`, `NoteCard`). Story places: 断剑冢 (beside road 2, ring 1: find the sword's other half, 铁匠 reforges it,
   `relics: ['sword']` = +10% damage) and 守阙人之墓 (by the 古道 arch); 秀兰, 铁匠, 杏娘 have story talks; 尾声 card at the end.
 
+- Interiors (`src/game/interiors.ts`, drawn by `render/Interiors.tsx`): 16 rooms (7 village houses, 酒肆, 7 inns, 土地庙)
+  entered by F at the door; rooms sit off map at x/z >= 3300, only the current one is drawn, walls and furniture are
+  BUILDINGS. `ROOM_FOLK` live inside (`ALL_FOLK`). Test: scratch rooms.mts style headless walk through every door.
+- Tripo props (`src/game/props.ts`, sizes from `propdims.json`, rerun `npx tsx tools/propdims.mts` after adding a glb):
+  new Tripo models face +x and are centred, `fit()` gives scale, turn, lift, footprint. 青石集 market (10 stalls on road 0,
+  teahouse at its end), watermill on the river, den tents and watchtowers (`DECOR`), village houses, gate, pavilions, well.
+  New rigged npc-*.glb and animals (deer, boar, rabbit, fox, ox, dog) are in public/models, not used yet.
+
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported
   from 天阙 1: same timings, reach, damage, statuses; its `vfx.*` calls become `s.vfx(name, ...args)` commands in

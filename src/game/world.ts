@@ -5,6 +5,8 @@ import { DENS, DEN_R } from './foes';
 import { ROADS, nearTq, TQ_POS, TQ_ROT, TQ_TOP, tqWorld, TQ_Y, VILLAGE_R, WORLD_R, TQ_ROAD, GD_ARCH_R, GD_PAV, GD_PAV_R, onGudao, roadFrame, roadPoint } from './layout';
 import { mapBig, mapRough, mapSnow, mapWater } from './mapsample';
 import { IN_TOWN, PLACES, PLACE_PARTS, innHouses, nearPlace, placeAt } from './places';
+import { ROOM_Y, roomSolids } from './interiors';
+import { MILL_FILE, STALLS, TEAHOUSE, fit, modelPoint } from './props';
 export { WORLD_R, VILLAGE_R } from './layout';
 
 export const WATER_Y = -2; // lakes fill the ground below this
@@ -212,6 +214,9 @@ export interface Building {
   posts?: [number, number, number][];
   /** the ground its footprint stands on (filled in on first use) */
   y0?: number;
+  /** how the model sits in its frame (props.ts fit): an extra quarter turn for Tripo's +x facing models, and its lift */
+  turn?: number;
+  lift?: number;
 }
 /** a box whose top is at most this far above your feet is a step you walk up onto, not a wall */
 export const STEP_UP = 0.6;
@@ -248,7 +253,12 @@ export const TQ_PARTS: { name: string; x: number; z: number; hx: number; hz: num
   { name: 'west', x: -24, z: 4, hx: 6, hz: 8, h: 10 },
   { name: 'east', x: 24, z: 4, hx: 6, hz: 8, h: 10 },
   { name: 'tower', x: 0, z: -32, hx: 5.5, hz: 5.5, h: 44 },
-  { name: 'gate', x: 0, z: 38, hx: 10, hz: 1.2, h: 12, posts: [[-8.1, 1.5, 0.9], [-3.3, 1.5, 0.8], [3.3, 1.5, 0.8], [8.1, 1.5, 0.9]] },
+  (() => {
+    // the stone gate (paifang-b.glb at 22 m): only its four pillars block
+    const g = fit('paifang-b.glb', 22);
+    const posts = ([[0, -0.42, 0.05], [0, -0.15, 0.075], [0, 0.15, 0.075], [0, 0.42, 0.05]] as const).map(([mx, mz, r]) => [...modelPoint('paifang-b.glb', mx, mz, g.scale), r * g.scale] as [number, number, number]);
+    return { name: 'gate', x: 0, z: 38, hx: g.hx, hz: g.hz, h: g.h, posts };
+  })(),
 ];
 export const TQ_WALL_R = 43;
 /** the mesa wall's segments in 天阙's frame: centre, length, turn */
@@ -268,6 +278,33 @@ export function tqWall() {
 const PAVILION_POSTS: [number, number, number][] = [
   [-0.1, -0.29, 0.05], [0.145, -0.25, 0.05], [-0.286, -0.1, 0.05], [0.206, -0.058, 0.05], [-0.18, 0.19, 0.05], [0.083, 0.21, 0.05],
 ];
+/** a Tripo prop as a solid building: its footprint from the model's own size */
+function propBuilding(file: string, x: number, z: number, rot: number, size: number): Building {
+  const g = fit(file, size);
+  return { x, z, rot, hx: g.hx * 0.92, hz: g.hz * 0.92, h: g.h, model: file, scale: g.scale, turn: g.turn, lift: g.lift };
+}
+/** the watermill: on the bank where a river runs closest to the village (x, z, facing the water) */
+const MILL: [number, number, number] | null = (() => {
+  let best: [number, number, number] | null = null, bd = Infinity;
+  for (let r = 70; r < 260; r += 6)
+    for (let k = 0; k < 72; k++) {
+      const a = (k / 72) * Math.PI * 2, x = Math.cos(a) * r, z = Math.sin(a) * r;
+      if (mapWater(x, z) < 0.5) continue;
+      // step back out of the water onto the bank, toward the village
+      for (let s = 2; s < 30; s += 2) {
+        const bx = x - Math.cos(a) * s, bz = z - Math.sin(a) * s;
+        if (mapWater(bx, bz) < 0.02 && pathDist(bx, bz) > 14) {
+          if (r < bd) {
+            bd = r;
+            best = [bx, bz, Math.atan2(x - bx, z - bz)];
+          }
+          break;
+        }
+      }
+    }
+  return best;
+})();
+export const MILL_AT = MILL;
 export const BUILDINGS: Building[] = (() => {
   const out: Building[] = [];
   // village houses round the square, between the roads (doors facing the well)
@@ -279,7 +316,7 @@ export const BUILDINGS: Building[] = (() => {
     const a = (a0 + a1) / 2;
     const x = Math.cos(a) * 20;
     const z = Math.sin(a) * 20;
-    out.push({ x, z, rot: Math.atan2(-x, -z), hx: 0.49 * S + 0.3, hz: 0.41 * S + 0.3, h: 0.66 * S, model: 'house.glb', scale: S });
+    out.push(propBuilding(k % 2 ? 'house-b.glb' : 'house-a.glb', x, z, Math.atan2(-x, -z), k % 2 ? 9.6 : 11));
   }
   // the stone gate (牌坊) over the road east out of the village
   {
@@ -287,7 +324,11 @@ export const BUILDINGS: Building[] = (() => {
     const [x0, z0] = ROADS[0][2];
     const [x1, z1] = ROADS[0][3];
     const rot = Math.atan2(x1 - x0, z1 - z0);
-    out.push({ x: x0, z: z0, rot, hx: 0.49 * PF, hz: 0.11 * PF, h: 0.82 * PF, model: 'paifang.glb', scale: PF, posts: [-0.37, -0.15, 0.15, 0.37].map((u) => [u * PF, 0, 0.07 * PF] as [number, number, number]) });
+    void PF;
+    const g = fit('paifang-b.glb', 15);
+    // its four pillars (with the lions at the middle two), measured off the model
+    const posts = ([[0, -0.42, 0.05], [0, -0.15, 0.075], [0, 0.15, 0.075], [0, 0.42, 0.05]] as const).map(([mx, mz, r]) => [...modelPoint('paifang-b.glb', mx, mz, g.scale), r * g.scale] as [number, number, number]);
+    out.push({ x: x0, z: z0, rot, hx: g.hx, hz: g.hz, h: g.h, model: 'paifang-b.glb', scale: g.scale, turn: g.turn, lift: g.lift, posts });
   }
   // a pavilion beside each road, 230 m out: a landmark to steer by
   const P = 9; // pavilion.glb is about 1 x 0.96 x 0.92 units
@@ -298,15 +339,31 @@ export const BUILDINGS: Building[] = (() => {
     const ux = (x1 - x0) / l, uz = (z1 - z0) / l;
     const x = x0 - uz * 12;
     const z = z0 + ux * 12;
-    out.push({ x, z, rot: Math.atan2(uz, -ux), hx: 0.46 * P, hz: 0.44 * P, h: 0.96 * P, model: 'pavilion.glb', scale: P, posts: PAVILION_POSTS.map(([a, b, r]) => [a * P, b * P, r * P] as [number, number, number]) });
+    void P;
+    const g = fit('pavilion-b.glb', 10);
+    // six columns on a ring (measured off the model), the floor open between them
+    const posts = Array.from({ length: 6 }, (_, k) => {
+      const a = (k / 6) * Math.PI * 2 + Math.PI / 2;
+      return [...modelPoint('pavilion-b.glb', Math.cos(a) * 0.24, Math.sin(a) * 0.27, g.scale), 0.04 * g.scale] as [number, number, number];
+    });
+    out.push({ x, z, rot: Math.atan2(uz, -ux), hx: g.hx, hz: g.hz, h: g.h, model: 'pavilion-b.glb', scale: g.scale, turn: g.turn, lift: g.lift, posts });
   }
+  // the village well (a Tripo model), where the square's flagstones meet
+  out.push(propBuilding('well.glb', 0, -3, 0, 3.4));
+  // 青石集: the market stalls along the east road and the teahouse at its end
+  for (const s of STALLS) out.push(propBuilding(s.file, s.x, s.z, s.rot, s.size));
+  out.push(propBuilding(TEAHOUSE.file, TEAHOUSE.x, TEAHOUSE.z, TEAHOUSE.rot, TEAHOUSE.size));
+  // the watermill on the river nearest the village
+  if (MILL) out.push(propBuilding(MILL_FILE, MILL[0], MILL[1], MILL[2], 11));
+  // the rooms off the map: their walls and furniture (render/Interiors.tsx draws them)
+  for (const r of roomSolids()) out.push({ ...r, model: '', scale: 1, y0: ROOM_Y });
   // the workshops and inns (drawn by render/Places.tsx): each one's solid parts, and the two houses at each waystation
   for (const p of PLACES) {
     for (const b of PLACE_PARTS[p.kind]) {
       const [x, z] = placeAt(p, b.x, b.z);
       out.push({ x, z, rot: p.rot + (b.ry ?? 0), hx: b.hx, hz: b.hz, h: b.h, model: '', scale: 1, posts: b.posts, y0: groundHeight(p.x, p.z) - 0.05 });
     }
-    if (p.kind === 'inn') for (const hs of innHouses(p)) out.push({ x: hs.x, z: hs.z, rot: hs.rot, hx: 0.49 * S + 0.3, hz: 0.41 * S + 0.3, h: 0.66 * S, model: 'house.glb', scale: S });
+    if (p.kind === 'inn') innHouses(p).forEach((hs, k) => out.push(propBuilding(k ? 'house-b.glb' : 'house-a.glb', hs.x, hs.z, hs.rot, k ? 8.6 : 9.4)));
   }
   // 天阙 (drawn by render/Tianque.tsx; these are only the solid footprints, in its frame, see TQ_PARTS)
   for (const t of TQ_PARTS) {

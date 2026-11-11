@@ -145,6 +145,11 @@ export const SURFACE: Record<string, [Pat, number]> = {
   bronze: ['patina', 1.5],
   soil: ['rough', 1.5],
   ridge: ['patina', 1.2],
+  plaster: ['plaster', 3],
+  silk: ['weave', 0.6],
+  silk2: ['weave', 0.6],
+  fur: ['thatch', 0.8],
+  white: ['weave', 1],
 };
 
 /** give a material its pattern (world space, three sided), a tone shift per piece and dirt toward the ground */

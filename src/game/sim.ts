@@ -6,12 +6,15 @@ import { MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, buildingFloor, clampWorld
 
 /** what a body stands on: the ground, or the lake's surface (wading / swimming) */
 /** what a body stands on: the ground (or the river's bed), or, given its feet's height, a roof, a terrace or a step it's on */
-const floorAt = (x: number, z: number, y?: number) => Math.max(groundHeight(x, z), WATER_Y - 1.1, y === undefined ? -Infinity : buildingFloor(x, z, y));
+const floorAt = (x: number, z: number, y?: number) =>
+  roomAt(x, z)
+    ? Math.max(ROOM_Y, y === undefined ? -Infinity : buildingFloor(x, z, y)) // in a room: its floor, or the bench you're on
+    : Math.max(groundHeight(x, z), WATER_Y - 1.1, y === undefined ? -Infinity : buildingFloor(x, z, y));
 import { Progress, STORY_V, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
 import { WANDERER, heroOf } from './heroes';
 import { SKILLS } from './skills';
 import { NPCS, QUESTS, fromStory2, type NpcRole } from './quests';
-import { FOLK } from './places';
+import { ALL_FOLK, ROOMS, ROOM_Y, roomAt, roomSpawn, roomExit } from './interiors';
 
 /** an ultimate goes off only after R is held this long (the owner's rule); letting go or a hit throws it away */
 export const ULT_CHARGE = 0.8;
@@ -117,6 +120,39 @@ export class Sim {
   private projSeq = 0;
   /** the villager the player stands next to (F talks), and the one being talked to */
   near = -1;
+  /** the door the player stands at: a room id (outside its door), -2 (at a room's way out) or -1 */
+  door = -1;
+  /** the room the player is in, and where they stood outside before going in */
+  indoor = -1;
+  /** the camera turns to this yaw on the next frame (going through a door), then it's cleared */
+  camSnap: number | null = null;
+  /** a short fade the UI plays when the player goes through a door */
+  fadeT = 0;
+  /** go in at the door you stand at, or out of the room you're in */
+  useDoor() {
+    const p = this.player;
+    if (this.door >= 0) {
+      const r = ROOMS[this.door];
+      const [x, z] = roomSpawn(r);
+      p.pos = [x, ROOM_Y, z];
+      p.yaw = 0; // facing into the room (-z)
+      this.indoor = r.id;
+      this.camSnap = 0;
+      this.toast(r.name);
+    } else if (this.door === -2 && this.indoor >= 0) {
+      const r = ROOMS[this.indoor];
+      const fx = Math.sin(r.doorYaw), fz = Math.cos(r.doorYaw); // the way out of the door
+      const x = r.door[0] + fx * 0.8, z = r.door[1] + fz * 0.8;
+      p.pos = [x, groundHeight(x, z), z];
+      p.yaw = Math.atan2(-fx, -fz);
+      this.camSnap = p.yaw;
+      this.indoor = -1;
+    } else return;
+    p.vel = [0, 0, 0];
+    p.grounded = true;
+    this.fadeT = 0.45;
+    this.door = -1;
+  }
   dialog = -1;
   /** the player holding R for an ultimate: seconds held (null = not charging) */
   ultCharge: number | null = null;
@@ -143,7 +179,7 @@ export class Sim {
       f.yaw = Math.atan2(n.x, n.z);
     }
     // the folk of the village and the waystations
-    FOLK.forEach((n, i) => {
+    ALL_FOLK.forEach((n, i) => {
       const f = this.make('npc', null, n.name, n.model, 10, n.x, n.z);
       f.master = true;
       f.st.invuln = 1e9;
@@ -765,12 +801,34 @@ export class Sim {
     for (const x of this.fx) x.t -= dt;
     this.fx = this.fx.filter((x) => x.t > 0);
     for (const t of this.toasts) t.t -= dt;
+    if (this.fadeT > 0) this.fadeT -= dt;
     // the villager the player stands next to
     const pl = this.player;
     this.near = -1;
+    let nearD = Infinity;
     for (const f of this.fighters)
-      if (f.master && pl.hp > 0 && this.dist(f, pl) < 3.6) this.near = f.id;
+      if (f.master && pl.hp > 0 && this.dist(f, pl) < 3.6 && this.dist(f, pl) < nearD) {
+        this.near = f.id;
+        nearD = this.dist(f, pl);
+      }
     if (this.dialog >= 0 && this.near !== this.dialog) this.dialog = -1;
+    // a door the player stands at: a room's way in (outside) or its way out (inside)
+    this.door = -1;
+    if (pl.hp > 0) {
+      const inside = roomAt(pl.pos[0], pl.pos[2]);
+      this.indoor = inside ? inside.id : -1;
+      if (inside) {
+        const [ex, ez] = roomExit(inside);
+        const dd = Math.hypot(pl.pos[0] - ex, pl.pos[2] - ez);
+        if (dd < 1.7 && dd < nearD) this.door = -2;
+      } else
+        for (const r of ROOMS) {
+          const dd = Math.hypot(pl.pos[0] - r.door[0], pl.pos[2] - r.door[1]);
+          if (dd < 2.2 && dd < nearD) this.door = r.id;
+        }
+      // whichever is closer, a door or a person, is what F does
+      if (this.door !== -1) this.near = -1;
+    }
     this.questCheck();
     this.toasts = this.toasts.filter((t) => t.t > 0);
   }
@@ -837,7 +895,8 @@ export class Sim {
       mz /= ml;
     }
     (f as any).wish = this.ultCharge !== null ? [0, 0] : [mx, mz];
-    if (inp.interact && this.near >= 0) {
+    if (inp.interact && this.near < 0 && this.door !== -1 && this.dialog < 0) this.useDoor();
+    else if (inp.interact && this.near >= 0) {
       this.dialog = this.dialog >= 0 ? -1 : this.near;
       if (this.dialog >= 0) {
         const t = this.fighters[this.dialog] as any;
@@ -910,7 +969,7 @@ export class Sim {
     const p = this.player;
     if (f.master) {
       (f as any).wish = [0, 0];
-      const folk = (f as any).folk !== undefined ? FOLK[(f as any).folk] : null;
+      const folk = (f as any).folk !== undefined ? ALL_FOLK[(f as any).folk] : null;
       const talking = p.hp > 0 && this.dist(f, p) < (folk?.walk ? 4 : 10);
       if (talking || this.fighters[this.dialog] === f) {
         this.faceTo(f, p.pos[0], p.pos[2]);
@@ -1061,7 +1120,7 @@ export class Sim {
       pushOutOfTrees(f.pos);
       pushOutOfBuildings(f.pos);
     }
-    clampWorld(f.pos);
+    if (!roomAt(f.pos[0], f.pos[2])) clampWorld(f.pos);
     // too steep to walk up: slide along the slope if one way is easier, otherwise stop (mountains are walls)
     if (f.grounded && groundHeight(ox, oz) > WATER_Y - 0.5) {
       // (out of the water you can always climb the bank)
