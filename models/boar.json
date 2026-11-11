@@ -1,0 +1,8 @@
+{
+  "name": "boar",
+  "kind": "quadruped",
+  "prompt": "A wild boar with coarse dark bristly fur, curved white tusks and a thick neck, stylized realistic game animal, standing on four legs",
+  "task": "a3f8cd39-c691-423a-a22b-f6b62630a56b",
+  "faces": 12000,
+  "credits": 65
+}
