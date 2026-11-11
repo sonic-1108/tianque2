@@ -1,0 +1,8 @@
+{
+  "name": "dog",
+  "kind": "quadruped",
+  "prompt": "A yellow Chinese village dog (Chinese rural dog) with a curled tail and pointed ears, stylized realistic game animal, standing on four legs",
+  "task": "65b72401-773f-4b50-b0d7-3e43eebb08b9",
+  "faces": 12000,
+  "credits": 65
+}
