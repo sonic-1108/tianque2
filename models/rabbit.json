@@ -1,0 +1,8 @@
+{
+  "name": "rabbit",
+  "kind": "quadruped",
+  "prompt": "A wild brown hare with long ears and a white tail, stylized realistic game animal, standing on four legs",
+  "task": "09e4eed2-36e0-467c-8cfc-f64381d15526",
+  "faces": 12000,
+  "credits": 65
+}
