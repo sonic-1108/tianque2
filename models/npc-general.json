@@ -1,8 +1,8 @@
 {
   "name": "npc-general",
   "kind": "biped",
-  "prompt": "A tall imposing ancient Chinese general in heavy golden lamellar armour, a red cape, a helmet with a red tassel, a thick black beard, stylized realistic game character, nothing in his hands",
-  "task": "36215c5f-8b88-4a4a-9f4c-c75f3e06f907",
+  "prompt": "A tall imposing middle-aged Chinese general in heavy dark iron and bronze lamellar armour with a deep red cape, a helmet with a red tassel, a thick black beard, battle-worn, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "51d33fe4-7c4d-4a5b-a369-ee7b5418a4f5",
   "faces": 12000,
   "credits": 75
 }
