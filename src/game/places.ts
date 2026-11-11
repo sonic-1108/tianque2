@@ -7,6 +7,7 @@ import { ROADS, ROAD_N, roadFrame, TQ_POS, TQ_ROAD } from './layout';
 import { mapWater } from './mapsample';
 import { STALLS, MARKET_ROAD, MARKET_FROM, MARKET_TO, fit } from './props';
 import { ctWorld, WALL_FRONT } from './court';
+import type { LifeKind } from './life';
 
 export type PlaceKind = 'smithy' | 'tavern' | 'shrine' | 'inn' | 'jianzhong' | 'tomb';
 /** the village's own workshops (their yards sit at the village's level) */
@@ -174,6 +175,8 @@ export interface Folk {
   lines: string[];
   /** called out to whoever passes (a slip over the head): a crier's wares, a song */
   cry?: string[];
+  /** keeps their own hours (life.ts): where they are depends on the time, the weather and the festival */
+  life?: LifeKind;
 }
 const RING_TALK = [
   '往外走二里地就是黑风寨的人了，夜里别赶路。',
@@ -225,10 +228,10 @@ export const FOLK: Folk[] = (() => {
     out.push({ name: '庙祝 · 慧觉', model: 'monk.glb', x, z, lines: ['土地爷保佑青石村，也保佑你。', '香火钱随缘。你身上的杀气，倒是比香火重。', '这庙比村子还老。墙上那块碑，写的是天阙七家的名字，后来被人凿掉了。'] });
   }
   // round the square
-  out.push({ name: '货郎', model: 'npc-peddler.glb', x: 5, z: 10, walk: 9, cry: ['针头线脑，胭脂水粉！', '拨浪鼓响，货郎来啦！'], lines: ['针头线脑、胭脂水粉，要啥有啥！', '山贼把路堵了，我的货都运不出去。', '外地人？我走南闯北，没见过你这样的眼神。'] });
-  out.push({ name: '樵夫 · 老周', model: 'npc-farmer.glb', x: -12, z: -10, walk: 7, lines: ['林子里的狼少了，人倒是多了。', '往西北走，山越来越陡，路只剩一条。', '砍了四十年柴，没见过天阙的门开过。'] });
+  out.push({ name: '货郎', model: 'npc-peddler.glb', x: 5, z: 10, walk: 9, life: 'stroll', cry: ['针头线脑，胭脂水粉！', '拨浪鼓响，货郎来啦！'], lines: ['针头线脑、胭脂水粉，要啥有啥！', '山贼把路堵了，我的货都运不出去。', '外地人？我走南闯北，没见过你这样的眼神。'] });
+  out.push({ name: '樵夫 · 老周', model: 'npc-farmer.glb', x: -12, z: -10, walk: 7, life: 'woodcutter', lines: ['林子里的狼少了，人倒是多了。', '往西北走，山越来越陡，路只剩一条。', '砍了四十年柴，没见过天阙的门开过。'] });
   out.push({ name: '村妇 · 秀兰', model: 'ranger.glb', x: 13, z: -12, walk: 6, lines: ['孩子他爹被抓去寨子里干活，到现在没回来。', '谢谢你帮村里出头。', '石伯捡到你那天，雪下了三尺厚。'] });
-  out.push({ name: '更夫', model: 'dixian.glb', x: -4, z: 13, walk: 10, cry: ['天干物燥，小心火烛！'], lines: ['天干物燥，小心火烛。', '半夜我常听见北边有钟声，可天阙早没人了啊。', '咚，咚……习惯了，白天也想敲。'] });
+  out.push({ name: '更夫', model: 'dixian.glb', x: -4, z: 13, walk: 10, life: 'watchman', cry: ['天干物燥，小心火烛！', '咚！咚！一更天咯～'], lines: ['天干物燥，小心火烛。', '半夜我常听见北边有钟声，可天阙早没人了啊。', '咚，咚……习惯了，白天也想敲。'] });
   // a keeper at every waystation, and a traveller resting there
   for (const p of PLACES) {
     if (p.kind !== 'inn') continue;
@@ -236,7 +239,7 @@ export const FOLK: Folk[] = (() => {
     const k = p.road!;
     out.push({ name: `${p.name}伙计`, model: k % 2 ? 'trader.glb' : 'wanderer_m.glb', x, z, heal: '歇歇脚（回满生命和内力）', lines: [`这里是${p.name}，往村里走还有好一段路，歇歇再走吧。`, RING_TALK[k % 3], '茶水管够，就是没有好菜。'] });
     const [x2, z2] = placeAt(p, 2.5, 10);
-    out.push({ name: '赶路人', model: ['npc-novice.glb', 'ranger.glb', 'npc-peddler.glb', 'wanderer_m.glb'][k % 4], x: x2, z: z2, walk: 5, lines: ['我从外头来，路上的贼一伙比一伙凶。', '你也是要去天阙？那条古道上的灯，听说是自己亮的。', '歇够了，我得在天黑前赶到下一处驿站。'] });
+    out.push({ name: '赶路人', model: ['npc-novice.glb', 'ranger.glb', 'npc-peddler.glb', 'wanderer_m.glb'][k % 4], x: x2, z: z2, walk: 5, life: 'stroll', lines: ['我从外头来，路上的贼一伙比一伙凶。', '你也是要去天阙？那条古道上的灯，听说是自己亮的。', '歇够了，我得在天黑前赶到下一处驿站。'] });
   }
   // 青石集: a keeper beside every stall, calling out, and townsfolk strolling the street
   const KEEPERS: Record<string, Omit<Folk, 'x' | 'z'>> = {
@@ -257,7 +260,7 @@ export const FOLK: Folk[] = (() => {
     // beside the stall, half a step toward the street, facing it
     const g = fit(s.file, s.size), side = g.hx + 0.9;
     const x = s.x + Math.cos(s.rot) * side + Math.sin(s.rot) * 0.4, z = s.z - Math.sin(s.rot) * side + Math.cos(s.rot) * 0.4;
-    out.push({ ...k, x, z });
+    out.push({ ...k, x, z, life: 'stall' });
   }
   const street = (r: number): [number, number] => {
     const f = roadFrame(MARKET_ROAD, r);
@@ -273,17 +276,17 @@ export const FOLK: Folk[] = (() => {
   ];
   for (const [name, model, r, lines, cry] of STROLL) {
     const [x, z] = street(r);
-    out.push({ name, model, x, z, walk: 11, lines, cry });
+    out.push({ name, model, x, z, walk: 11, lines, cry, life: 'stroll' });
   }
   // the old fisherman on the bank by his boat
   if (FISH_SPOT) {
     const [x, z] = FISH_SPOT;
-    out.push({ name: '渔翁 · 老钓', model: 'npc-fisherman.glb', x, z, lines: ['钓鱼要有耐心，报仇也是。', '这河一直流到永安城，朝廷的人喝的也是这水。', '前些年河里漂下来一面七家的旗子，我捞起来藏好了。'], cry: ['鲜鱼！刚钓上来的鲜鱼！', '鱼咬钩咯～'] });
+    out.push({ name: '渔翁 · 老钓', model: 'npc-fisherman.glb', x, z, lines: ['钓鱼要有耐心，报仇也是。', '这河一直流到永安城，朝廷的人喝的也是这水。', '前些年河里漂下来一面七家的旗子，我捞起来藏好了。'], cry: ['鲜鱼！刚钓上来的鲜鱼！', '鱼咬钩咯～'], life: 'fisher' });
   }
   // 永安城 · 朝廷 and the street outside its gate (court.ts)
   const COURT: [string, string, number, number, number | undefined, string[], string[]?][] = [
-    ['宫门禁军', 'npc-palaceguard.glb', -5, WALL_FRONT + 19, undefined, ['站住！……哦，进去吧，别乱跑。', '宫门卯时开，酉时闭。', '天阙那位下了旨：凡是从青石村来的，都要盘问。我没看见你。'], ['宫门重地，闲人回避！']],
-    ['宫门禁军', 'npc-palaceguard.glb', 5, WALL_FRONT + 19, undefined, ['你身上有血腥味。别在宫里惹事。', '我从小在这宫门口站岗，站了十年了。', '将军今天心情不好，别去惹他。']],
+    ['宫门禁军', 'npc-palaceguard.glb', -3.2, WALL_FRONT + 17, undefined, ['站住！……哦，进去吧，别乱跑。', '宫门卯时开，酉时闭。', '天阙那位下了旨：凡是从青石村来的，都要盘问。我没看见你。'], ['宫门重地，闲人回避！']],
+    ['宫门禁军', 'npc-palaceguard.glb', 3.2, WALL_FRONT + 17, undefined, ['你身上有血腥味。别在宫里惹事。', '我从小在这宫门口站岗，站了十年了。', '将军今天心情不好，别去惹他。']],
     ['镇国大将军 · 霍铮', 'npc-general.glb', -22, 6, 6, ['我带兵打过七家的人。打完才知道，他们护着的是天下。', '要是有一天你上了天阙，替我向那个人问一句：值得吗？', '朝廷的兵不敢上天阙。不是怕死，是不知道该向谁拔刀。'], ['列阵！……唉，练兵也没用。']],
     ['长公主 · 萧清徽', 'npc-princess.glb', 24, -14, 7, ['皇兄从前不是这样的。他是为了救一个人，才去了天阙。', '你是守阙人的孩子？……我认得这块玉。', '宫里的花一年四季都开，可我更想看看青石村的杏花。']],
     ['宫女 · 小荷', 'npc-maid.glb', 28, -10, 5, ['公主又在发呆了，她一发呆就是一下午。', '我是从南边卖进宫的，好多年没回家了。', '冯公公来了！快走快走。']],
@@ -298,7 +301,9 @@ export const FOLK: Folk[] = (() => {
   ];
   for (const [name, model, lx, lz, walk, lines, cry] of COURT) {
     const [x, z] = ctWorld(lx, lz);
-    out.push({ name, model, x, z, walk, lines, cry });
+    // the guards keep the gate day and night; the court keeps palace hours; the street, a working day
+    const life: LifeKind | undefined = model === 'npc-palaceguard.glb' ? undefined : lz > WALL_FRONT + 20 ? 'street' : 'court';
+    out.push({ name, model, x, z, walk, lines, cry, life });
   }
   return out;
 })();

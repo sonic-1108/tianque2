@@ -4,6 +4,7 @@ import type { Sim } from '../game/sim';
 import { NPCS, QUESTS, TELLER_LINES } from '../game/quests';
 import { save } from '../game/progress';
 import { ALL_FOLK } from '../game/interiors';
+import { worldRemark } from '../game/life';
 
 export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => void; onChange: () => void }) {
   const f = sim.fighters[sim.dialog];
@@ -13,10 +14,17 @@ export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => vo
   const folk = f && (f as any).folk !== undefined ? ALL_FOLK[(f as any).folk] : null;
   const [pick] = useState(() => Math.random());
   if (f && folk) {
-    const said = folk.lines[Math.floor(pick * folk.lines.length)];
+    // now and then they talk about the world: the weather, the season, the festival, what you've been up to
+    const deeds = sim.chronicle.filter((e) => e.talk).map((e) => e.talk!);
+    const remark = pick < 0.45 ? worldRemark(sim.clock, sim.weather, deeds, pick / 0.45) : null;
+    const said = remark ?? folk.lines[Math.floor(pick * folk.lines.length)];
+    const act = (f as any).plan?.act;
     return (
       <div className="dialog">
-        <div className="dialog-name">{folk.name}</div>
+        <div className="dialog-name">
+          {folk.name}
+          {act && <span className="dialog-act"> · {act}</span>}
+        </div>
         <div className="dialog-body">{said}</div>
         <div className="dialog-btns">
           {folk.heal && (

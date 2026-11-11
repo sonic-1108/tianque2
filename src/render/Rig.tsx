@@ -313,7 +313,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     if (!g) return;
     const p = sim.player;
     const far = Math.hypot(f.pos[0] - p.pos[0], f.pos[2] - p.pos[2]) > 95;
-    g.visible = !far && !(f.team !== 'player' && f.hp <= 0 && f.actT > 3) && !(f.team === 'player' && f.run?.id === 'snipe'); // the fallen fade from the field until they come back; down your own scope your body would block it
+    g.visible = !far && !(f as any).away && !(f.team !== 'player' && f.hp <= 0 && f.actT > 3) && !(f.team === 'player' && f.run?.id === 'snipe'); // the fallen fade from the field until they come back; down your own scope your body would block it
     if (!g.visible) return;
     g.position.set(f.pos[0], f.pos[1] - (f.act === 'burrow' ? 1.3 : 0), f.pos[2]);
     g.rotation.y = f.yaw + Math.PI;

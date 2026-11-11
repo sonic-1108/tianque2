@@ -69,7 +69,9 @@ export function Calls({ sim }: { sim: Sim }) {
         const i = (f as any).folk;
         if (i === undefined) continue;
         const cry = ALL_FOLK[i].cry;
-        if (!cry?.length || sim.dialog === f.id) continue;
+        if (!cry?.length || sim.dialog === f.id || (f as any).away) continue;
+        // those who keep hours call only while at it (the stall open, the watchman on his round)
+        if (ALL_FOLK[i].life && !(f as any).plan?.cry) continue;
         const d = Math.hypot(f.pos[0] - p[0], f.pos[2] - p[2]);
         if (d > CRY_R) continue;
         const ph = sim.time + i * 2.7;

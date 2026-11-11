@@ -19,6 +19,7 @@ import { DECOR, fit } from '../game/props';
 import { Animals } from './Animals';
 import { CT_POS, CT_ROT, CT_Y, WALL_X } from '../game/court';
 import { Climate } from './Climate';
+import { Festive } from './Festive';
 import { Calls } from './Calls';
 import { Interiors } from './Interiors';
 const propCache = new Map<string, Promise<THREE.Group>>();
@@ -349,6 +350,7 @@ export function World({ sim }: { sim: Sim }) {
         <Landscape sim={sim} />
         <Village />
         <Court />
+        <Festive sim={sim} />
         <Tianque />
         <Gudao />
         <Places />

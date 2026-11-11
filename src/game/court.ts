@@ -66,7 +66,7 @@ export const COURT_PIECES: CourtPiece[] = (() => {
   out.push({ file: 'court-yamen.glb', lx: 37, lz: 18, rot: -Math.PI / 2, size: 22 });
   // lions at the gate, outside and in, and before the hall
   for (const s of [-1, 1]) {
-    out.push({ file: 'court-lion.glb', lx: s * 10, lz: WALL_FRONT + 18, rot: 0, size: 3.2 });
+    out.push({ file: 'court-lion.glb', lx: s * 6.4, lz: WALL_FRONT + 20, rot: 0, size: 3.2 });
     out.push({ file: 'court-lion.glb', lx: s * 9, lz: HALL.lz + 31, rot: 0, size: 3 });
   }
   out.push({ file: 'court-incense.glb', lx: 0, lz: -12, rot: 0, size: 3.6 });

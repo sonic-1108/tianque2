@@ -1,7 +1,9 @@
 // The whole game world, stepped once per frame: the player, the bandits in their dens, projectiles, zones on
 // the ground and the little effects the renderer draws. Pure logic: no React, no three.js.
 import { makeAnimals, stepAnimals, type Animal } from './animals';
-import { clockOf, newWeather, stepWeather, type ClockInfo, type Weather } from './clock';
+import { clockOf, newWeather, stepWeather, SEASONS, type ClockInfo, type Weather } from './clock';
+import { dateOf, hauntsFor, planFor, type Entry, type Plan } from './life';
+import type { Folk } from './places';
 import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } from './types';
 import { DENS, DEN_R, FOE_KINDS, bossNameOf, menNameOf } from './foes';
 import { MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, buildingFloor, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
@@ -133,6 +135,10 @@ export class Sim {
   weather: Weather = newWeather();
   clock: ClockInfo = clockOf(0);
   private worldSaveT = 0;
+  /** 江湖志: what happened and when (the year turning, festivals, first snow, what the player did) */
+  chronicle: Entry[] = [];
+  /** what the chronicle has already written (so a visit doesn't write the same festival twice) */
+  private marks = { season: -1, fest: -1, snowY: -1, stormD: -1, quest: -1 };
   private boarSeen = false;
   private goreAt = -9;
   /** the camera turns to this yaw on the next frame (going through a door), then it's cleared */
@@ -177,6 +183,8 @@ export class Sim {
       if (w && typeof w.t === 'number' && isFinite(w.t)) {
         this.worldT = w.t;
         if (w.w?.kind) this.weather = { ...newWeather(), ...w.w };
+        if (Array.isArray(w.c)) this.chronicle = w.c;
+        if (w.m) this.marks = { ...this.marks, ...w.m };
       }
     } catch {}
     this.clock = clockOf(this.worldT);
@@ -548,6 +556,7 @@ export class Sim {
     if (att.id === PLAYER) {
       const P = this.progress;
       this.questKill(def);
+      if ((def as any).boss) this.chron(`你击败了${def.name}。`, `听说${def.name}栽在一个年轻人手里了，是你吧？`);
       // a foe far below you is worth little
       const gap = Math.max(0, P.level - def.level - 3);
       const xp = Math.max(3, Math.round((18 + def.level * 10) * ((def as any).boss ? 5 : 1) * Math.pow(0.75, gap)));
@@ -560,6 +569,7 @@ export class Sim {
         p.hp = p.maxHp;
         this.toast(`升级！${P.level} 级 · 技能点 +${ups * 2}，按 K 加点`);
         this.emit({ k: 'level', x: p.pos[0], y: p.pos[1], z: p.pos[2], id: PLAYER });
+        if (P.level % 5 === 0) this.chron(`你的功夫练到了 ${P.level} 级。`);
         if (P.level === 30) this.toast(P.hero ? '30 级：大招解锁了，按 K 学' : '30 级：可以转职了，按 K 打开技能树');
         if (P.level === 10 && P.hero) this.toast('10 级：第四招解锁了');
         this.addFx({ kind: 'ring', x: p.pos[0], y: p.pos[1] + 0.1, z: p.pos[2], max: 0.8, r: 4, color: '#ffe08a' });
@@ -807,9 +817,10 @@ export class Sim {
     for (let i = 0; i < F.length; i++) {
       const a = F[i];
       if (a.hp <= 0 || a.act === 'burrow' || a.st.invuln > 0) continue; // a roll or a blink goes through bodies
+      if ((a as any).away) continue;
       for (let j = i + 1; j < F.length; j++) {
         const b = F[j];
-        if (b.hp <= 0 || b.act === 'burrow' || (b.st.invuln > 0 && !b.master)) continue;
+        if (b.hp <= 0 || b.act === 'burrow' || (b.st.invuln > 0 && !b.master) || (b as any).away) continue;
         const dx = b.pos[0] - a.pos[0];
         if (dx > 0.9 || dx < -0.9) continue;
         const dz = b.pos[2] - a.pos[2];
@@ -835,10 +846,11 @@ export class Sim {
     this.worldT += dt;
     this.clock = clockOf(this.worldT);
     stepWeather(this.weather, dt, this.clock);
+    this.writeChronicle();
     if ((this.worldSaveT -= dt) <= 0) {
       this.worldSaveT = 10;
       try {
-        localStorage.setItem('tq2_world_v1', JSON.stringify({ t: this.worldT, w: this.weather }));
+        localStorage.setItem('tq2_world_v1', JSON.stringify({ t: this.worldT, w: this.weather, c: this.chronicle.slice(-200), m: this.marks }));
       } catch {}
     }
     {
@@ -854,7 +866,7 @@ export class Sim {
     this.near = -1;
     let nearD = Infinity;
     for (const f of this.fighters)
-      if (f.master && pl.hp > 0 && this.dist(f, pl) < 3.6 && this.dist(f, pl) < nearD) {
+      if (f.master && !(f as any).away && pl.hp > 0 && this.dist(f, pl) < 3.6 && this.dist(f, pl) < nearD) {
         this.near = f.id;
         nearD = this.dist(f, pl);
       }
@@ -1010,38 +1022,139 @@ export class Sim {
     });
   }
 
+  /** writes the year into the chronicle as it happens */
+  chron(text: string, talk?: string) {
+    this.chronicle.push({ d: dateOf(this.clock), text, talk });
+    if (this.chronicle.length > 240) this.chronicle.splice(0, this.chronicle.length - 200);
+  }
+  private writeChronicle() {
+    const c = this.clock, m = this.marks, w = this.weather;
+    const NOTE = ['草长莺飞，杏花开满了青石村。', '日头毒起来，蝉叫了一整天。', '山上的叶子一夜之间红了。', '北风起，雪线往山下压。'];
+    if (c.season !== m.season) {
+      if (m.season >= 0 || !this.chronicle.length) this.chron(`${SEASONS[c.season]}天到了。${NOTE[c.season]}`);
+      m.season = c.season;
+    }
+    if (c.festival && m.fest !== c.day) {
+      m.fest = c.day;
+      this.chron(`${c.festival.name}。${c.festival.note}`);
+      this.toast(`今日 ${c.festival.name}：${c.festival.note}`);
+    }
+    if (w.kind === 'snow' && w.amt > 0.5 && m.snowY !== c.year) {
+      m.snowY = c.year;
+      this.chron('今冬第一场雪落下来了。', '下雪了。听说每年头一场雪，那个戴面具的客人就会来杏花酒肆。');
+    }
+    if (w.kind === 'storm' && w.amt > 0.5 && m.stormD !== c.day) {
+      m.stormD = c.day;
+      this.chron('雷雨大作，河水涨了。');
+    }
+    const qi = this.progress.quest.idx;
+    if (qi !== m.quest) {
+      const ch = QUESTS[qi]?.chapter;
+      if (ch && m.quest >= 0) this.chron(`【${ch.name}】`);
+      m.quest = qi;
+    }
+  }
+  /** wander round a spot: walk to a point near it, stand a while, pick another */
+  private stroll(f: Fighter, base: [number, number], radius: number, dt: number) {
+    const a = f as any;
+    if (!a.goal || (a.wait ?? 0) > 0 || Math.hypot(a.goal[0] - base[0], a.goal[1] - base[1]) > radius + 0.5) {
+      a.wait = (a.wait ?? 0) - dt;
+      if (a.wait <= 0 || !a.goal || Math.hypot(a.goal[0] - base[0], a.goal[1] - base[1]) > radius + 0.5) {
+        const r = Math.random() * radius, t = Math.random() * Math.PI * 2;
+        a.goal = [base[0] + Math.cos(t) * r, base[1] + Math.sin(t) * r];
+        a.wait = 0;
+      }
+      if (a.wait > 0) return;
+    }
+    const dx = a.goal[0] - f.pos[0], dz = a.goal[1] - f.pos[2];
+    const d = Math.hypot(dx, dz);
+    if (d < 0.6) {
+      a.wait = 2 + Math.random() * 5;
+      return;
+    }
+    a.wish = [(dx / d) * 0.3, (dz / d) * 0.3];
+  }
+  /** a folk's day: where the hour, the weather and the festival want them (life.ts), and getting there */
+  private live(f: Fighter, folk: Folk, dt: number) {
+    const a = f as any, p = this.player;
+    if ((a.planT = (a.planT ?? 0) - dt) <= 0) {
+      a.planT = 0.8 + Math.random() * 0.6;
+      a.plan = planFor(folk, (a.haunts ??= hauntsFor(folk)), this.clock, this.weather);
+    }
+    const pl: Plan = a.plan;
+    const dx = pl.at[0] - f.pos[0], dz = pl.at[1] - f.pos[2];
+    const d = Math.hypot(dx, dz);
+    // nobody near enough to see: they're simply where the day says
+    if (this.indoor >= 0 || this.dist(f, p) > 150) {
+      if (d > Math.max(2, pl.roam + 1)) {
+        f.pos = [pl.at[0], floorAt(pl.at[0], pl.at[1]), pl.at[1]];
+        f.vel = [0, 0, 0];
+        a.goal = null;
+      }
+      a.away = pl.away;
+      return;
+    }
+    if (d > Math.max(1.4, pl.roam + 0.5)) {
+      // on the way there; a step aside when something stands in the way
+      a.away = false;
+      // a trip that goes on too long has met a house it can't get round: when you're not right there, they're simply there
+      a.tripT = (a.tripT ?? 0) + dt;
+      if (a.tripT > 50 && this.dist(f, p) > 25) {
+        f.pos = [pl.at[0], floorAt(pl.at[0], pl.at[1]), pl.at[1]];
+        f.vel = [0, 0, 0];
+        a.tripT = 0;
+        return;
+      }
+      a.stuckT = (a.stuckT ?? 0) + dt;
+      if (a.stuckT > 2.2) {
+        const moved = a.stuckAt ? Math.hypot(f.pos[0] - a.stuckAt[0], f.pos[2] - a.stuckAt[1]) : 9;
+        a.stuckAt = [f.pos[0], f.pos[2]];
+        a.stuckT = 0;
+        if (moved < 0.6) {
+          a.sideT = 1.4;
+          a.side = Math.random() < 0.5 ? 1 : -1;
+        }
+      }
+      let ux = dx / d, uz = dz / d;
+      if ((a.sideT ?? 0) > 0) {
+        a.sideT -= dt;
+        const s = a.side;
+        [ux, uz] = [ux * 0.3 - uz * s, uz * 0.3 + ux * s];
+      }
+      a.wish = [ux * 0.45, uz * 0.45];
+      return;
+    }
+    a.tripT = 0;
+    if (pl.away) {
+      a.away = true;
+      return;
+    }
+    a.away = false;
+    if (pl.roam > 0.9) this.stroll(f, pl.at, pl.roam, dt);
+  }
+
   /** disciples and masters */
   private think(f: Fighter, dt: number) {
     if (f.hp <= 0) return;
     const p = this.player;
     if (f.master) {
-      (f as any).wish = [0, 0];
-      const folk = (f as any).folk !== undefined ? ALL_FOLK[(f as any).folk] : null;
-      const talking = p.hp > 0 && this.dist(f, p) < (folk?.walk ? 4 : 10);
+      const a = f as any;
+      a.wish = [0, 0];
+      const folk = a.folk !== undefined ? ALL_FOLK[a.folk] : null;
+      // those who keep their own hours go about their day (life.ts); the hidden ones are at home
+      if (folk?.life) {
+        this.live(f, folk, dt);
+        if (a.away) return;
+      }
+      const talking = p.hp > 0 && this.dist(f, p) < (folk?.walk || folk?.life ? 4 : 10);
       if (talking || this.fighters[this.dialog] === f) {
+        a.wish = [0, 0];
         this.faceTo(f, p.pos[0], p.pos[2]);
         return;
       }
+      if (folk?.life) return;
       // a stroller: walks to a spot near home, stands a while, picks another
-      if (folk?.walk && f.home) {
-        const a = f as any;
-        if (!a.goal || (a.wait ?? 0) > 0) {
-          a.wait = (a.wait ?? 0) - dt;
-          if (a.wait <= 0 || !a.goal) {
-            const r = Math.random() * folk.walk, t = Math.random() * Math.PI * 2;
-            a.goal = [f.home[0] + Math.cos(t) * r, f.home[1] + Math.sin(t) * r];
-            a.wait = 0;
-          }
-          if (a.wait > 0) return;
-        }
-        const dx = a.goal[0] - f.pos[0], dz = a.goal[1] - f.pos[2];
-        const d = Math.hypot(dx, dz);
-        if (d < 0.6) {
-          a.wait = 2 + Math.random() * 5;
-          return;
-        }
-        a.wish = [(dx / d) * 0.3, (dz / d) * 0.3];
-      }
+      if (folk?.walk && f.home) this.stroll(f, f.home, folk.walk, dt);
       return;
     }
     const home = f.home!;
