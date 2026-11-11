@@ -1,8 +1,8 @@
 {
   "name": "npc-nun",
   "kind": "biped",
-  "prompt": "A calm middle-aged ancient Chinese Taoist nun in a light grey robe with a black collar, hair in a top knot pinned with a wooden hairpin, stylized realistic game character, nothing in her hands",
-  "task": "c32e96c7-30bf-4def-baef-aa6e5558bfb5",
+  "prompt": "A calm middle-aged Chinese Taoist nun in a light grey robe with a black collar, hair in a top knot pinned with a wooden hairpin, a serene face, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "729685d4-8957-48e0-bc2c-febc4fe54f35",
   "faces": 12000,
   "credits": 75
 }
