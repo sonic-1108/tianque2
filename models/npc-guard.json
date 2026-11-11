@@ -1,8 +1,8 @@
 {
   "name": "npc-guard",
   "kind": "biped",
-  "prompt": "A village militia guard in a padded red vest over a grey tunic, a round leather helmet, leather bracers and boots, ancient China, stylized realistic game character, nothing in his hands",
-  "task": "331b0206-41fe-4434-9e34-33919a00b23d",
+  "prompt": "A Chinese county constable (bukuai) in a dark red and black uniform robe with a black sash, a black soft official cap, leather boots, a stern young face, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "0b1901d4-aee6-4bf8-a915-bfdecffb3615",
   "faces": 12000,
   "credits": 75
 }
