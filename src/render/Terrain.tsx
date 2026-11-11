@@ -1,5 +1,6 @@
 // The 2 km landscape: the ground in 125 m chunks whose detail drops with distance (rebuilt a few per frame as you
 // move), coloured by height and slope with fine noise in the shader; lakes; forests of instanced trees; the sky.
+import { SEASON_U, withSnow } from './season';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -107,6 +108,9 @@ function groundMaterial() {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.97, metalness: 0 });
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uSnow = { value: SNOW_Y };
+    sh.uniforms.uSeason = SEASON_U.uSeason;
+    sh.uniforms.uSnowCover = SEASON_U.uSnowCover;
+    sh.uniforms.uWet = SEASON_U.uWet;
     sh.uniforms.uWater = { value: WATER_Y };
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vWP;\nvarying vec3 vWN;')
@@ -117,6 +121,9 @@ function groundMaterial() {
         `#include <common>
 uniform float uSnow;
 uniform float uWater;
+uniform vec4 uSeason;
+uniform float uSnowCover;
+uniform float uWet;
 varying vec3 vWP;
 varying vec3 vWN;
 float h21(vec2 p){ vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
@@ -142,7 +149,13 @@ grass = mix(grass, dry, smoothstep(0.52, 0.78, macro) * 0.75 + smoothstep(40.0, 
 grass *= 0.86 + 0.24 * mix(0.5, small, fine) + 0.1 * (tiny - 0.5) * fine;
 // little flowers and clover in the grass up close
 float spot = step(0.93, vn(vWP.xz * 1.9)) * fine * (1.0 - smoothstep(0.25, 0.4, slope));
-grass = mix(grass, mix(vec3(0.85, 0.82, 0.55), vec3(0.75, 0.55, 0.75), step(0.5, h21(floor(vWP.xz * 1.9)))), spot * 0.35);
+grass = mix(grass, mix(vec3(0.85, 0.82, 0.55), vec3(0.75, 0.55, 0.75), step(0.5, h21(floor(vWP.xz * 1.9)))), spot * 0.35 * (1.0 + uSeason.x * 1.4) * (1.0 - uSeason.w));
+// the seasons: fresh in spring, deep in summer, gold and russet in autumn, dun and bare in winter
+vec3 gSpring = grass * vec3(1.02, 1.12, 0.86);
+vec3 gSummer = grass * vec3(0.88, 1.0, 0.82);
+vec3 gAutumn = mix(grass, mix(vec3(0.58, 0.44, 0.15), vec3(0.62, 0.30, 0.12), smoothstep(0.35, 0.75, mid)) * (0.8 + 0.4 * small), 0.72);
+vec3 gWinter = mix(grass, vec3(0.40, 0.37, 0.27) * (0.85 + 0.3 * small), 0.78);
+grass = gSpring * uSeason.x + gSummer * uSeason.y + gAutumn * uSeason.z + gWinter * uSeason.w;
 // earth
 vec3 earth = mix(vec3(0.360, 0.290, 0.200), vec3(0.480, 0.400, 0.290), mid);
 earth *= 0.85 + 0.25 * mix(0.5, small, fine) + 0.12 * (tiny - 0.5) * fine;
@@ -178,12 +191,18 @@ col = mix(col, earth * (0.95 + 0.1 * tiny), bare * 0.9);
 col = mix(col, sand, vColor.b);
 // wet and dark just above the water line
 col *= 1.0 - 0.35 * (1.0 - smoothstep(uWater - 0.1, uWater + 0.5, vWP.y));
+// rain darkens it; lying snow covers the flat ground (thinner where feet have trodden the paths)
+float wetK = uWet * (1.0 - snowW);
+col *= 1.0 - wetK * 0.3;
+float cover = uSnowCover * smoothstep(0.25, 0.7, vWN.y) * smoothstep(0.15, 0.55, uSnowCover * 1.2 + (mid - 0.5) * 0.6 + (small - 0.5) * 0.25) * (1.0 - road * 0.45);
+col = mix(col, snow, clamp(cover, 0.0, 1.0));
+snowW = max(snowW, cover);
 diffuseColor.rgb = col;`,
       )
       .replace(
         '#include <roughnessmap_fragment>',
         `#include <roughnessmap_fragment>
-roughnessFactor = mix(0.97, 0.55, snowW) ;`,
+roughnessFactor = mix(mix(0.97, 0.45, wetK), 0.55, snowW) ;`,
       );
   };
   return m;
@@ -314,12 +333,33 @@ gl_FragColor.a = mix(0.7, 0.95, fr);`,
 
 /** trees: pines of drooping tiers, round broadleaf crowns of several lumps, bare dead trees; every one a slightly
  *  different green, smooth shaded (the faceted cones read as low-poly toys) */
+/** broadleaf crowns through the year: light green and a few in peach blossom in spring, deep green in summer,
+ *  orange, red and gold in autumn, thin brown in winter (each tree its own shade, from its instance colour) */
+function seasonalLeaves(m: THREE.MeshStandardMaterial) {
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uSeason = SEASON_U.uSeason;
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec4 uSeason;').replace(
+      '#include <color_fragment>',
+      `#include <color_fragment>
+vec3 lb = diffuseColor.rgb;
+float hv = fract(sin(dot(vColor.rgb, vec3(129.898, 782.33, 377.19))) * 43758.5453);
+vec3 lSpring = mix(lb * vec3(1.05, 1.3, 0.85), vec3(0.96, 0.62, 0.72), step(0.7, hv) * 0.85);
+vec3 lSummer = lb * vec3(0.85, 1.0, 0.8);
+vec3 lAutumn = mix(mix(vec3(0.86, 0.45, 0.08), vec3(0.72, 0.16, 0.06), hv), vec3(0.85, 0.68, 0.16), step(0.62, hv)) * (0.55 + length(lb) * 1.3);
+vec3 lWinter = mix(lb * 0.55, vec3(0.36, 0.29, 0.22), 0.75);
+diffuseColor.rgb = lSpring * uSeason.x + lSummer * uSeason.y + lAutumn * uSeason.z + lWinter * uSeason.w;`,
+    );
+  };
+  m.customProgramCacheKey = () => 'leaves';
+}
 function Trees() {
   const meshes = useMemo(() => {
     const bark = new THREE.MeshStandardMaterial({ color: '#4a3526', roughness: 1 });
     const needles = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.92 });
     const leaves = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9 });
     const dead = new THREE.MeshStandardMaterial({ color: '#6b5b4b', roughness: 1 });
+    seasonalLeaves(leaves);
+    for (const m of [bark, needles, leaves, dead]) withSnow(m);
     const trunk = new THREE.CylinderGeometry(0.18, 0.42, 5, 7).translate(0, 2.5, 0);
     const tiers: THREE.BufferGeometry[] = [];
     for (let k = 0; k < 5; k++) {
@@ -397,7 +437,7 @@ function Rocks() {
       spots.push({ x, z, s, y: h });
     }
     const geo = lumpy(1, 2, 0.3, 5).scale(1, 0.62, 1);
-    const im = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.95 }), spots.length);
+    const im = new THREE.InstancedMesh(geo, withSnow(new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.95 })), spots.length);
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
     const e = new THREE.Euler();
@@ -452,6 +492,8 @@ function bladeTexture() {
 const GRASS_N = 20000;
 const GRASS_R = 44;
 /** grass tufts round the player, swaying in the wind; laid again as he walks (same tufts in the same places) */
+/** the grass blades' material: the climate tints it with the season */
+export const GRASS: { mat: THREE.MeshStandardMaterial | null } = { mat: null };
 function Grass({ sim }: { sim: Sim }) {
   const st = useMemo(() => {
     const q1 = new THREE.PlaneGeometry(1.1, 0.55).translate(0, 0.26, 0);
@@ -473,16 +515,32 @@ function Grass({ sim }: { sim: Sim }) {
     geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
     const mat = new THREE.MeshStandardMaterial({ map: bladeTexture(), alphaTest: 0.45, side: THREE.DoubleSide, roughness: 1 });
+    GRASS.mat = mat;
     mat.onBeforeCompile = (sh) => {
       sh.uniforms.uTime = { value: 0 };
+      sh.uniforms.uSeason = SEASON_U.uSeason;
+      sh.uniforms.uSnowCover = SEASON_U.uSnowCover;
       mat.userData.sh = sh;
       // both faces lit as the ground under them (the back faces used to turn black)
-      sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_begin>', '#include <normal_fragment_begin>\nnormal = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);');
-      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uTime;').replace(
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <normal_fragment_begin>', '#include <normal_fragment_begin>\nnormal = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);')
+        .replace('#include <common>', '#include <common>\nuniform vec4 uSeason;\nuniform float uSnowCover;')
+        .replace(
+          '#include <color_fragment>',
+          `#include <color_fragment>
+// the blades with the seasons: lush in spring and summer, straw and russet in autumn, dun in winter, frosted white in snow
+float gl = dot(diffuseColor.rgb, vec3(0.3, 0.5, 0.2));
+vec3 gc = diffuseColor.rgb * (uSeason.x * vec3(1.0, 1.1, 0.85) + uSeason.y * vec3(0.9, 1.0, 0.85));
+gc += uSeason.z * mix(diffuseColor.rgb, vec3(0.78, 0.6, 0.24) * gl * 2.6, 0.75);
+gc += uSeason.w * mix(diffuseColor.rgb, vec3(0.5, 0.45, 0.33) * gl * 2.4, 0.8);
+diffuseColor.rgb = mix(gc, vec3(0.9, 0.93, 0.97), uSnowCover * 0.75);`,
+        );
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uTime;\nuniform float uSnowCover;').replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
 vec4 ip = instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
 float sway = sin(uTime * 1.7 + ip.x * 0.35 + ip.z * 0.27) * 0.5 + sin(uTime * 3.1 + ip.x * 0.9) * 0.2;
+transformed.y *= 1.0 - uSnowCover * 0.55; // half buried in snow
 transformed.x += sway * 0.18 * uv.y;
 transformed.z += sway * 0.08 * uv.y;`,
       );
@@ -548,6 +606,8 @@ transformed.z += sway * 0.08 * uv.y;`,
   return <primitive object={st.im} />;
 }
 
+/** the sky dome, for the climate to move its sun and thicken its haze */
+export const SKY: { sky: Sky | null } = { sky: null };
 function SkyDome() {
   const sky = useMemo(() => {
     const s = new Sky();
@@ -559,6 +619,7 @@ function SkyDome() {
     u.mieDirectionalG.value = 0.85;
     const sun = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(62), THREE.MathUtils.degToRad(210));
     u.sunPosition.value.copy(sun);
+    SKY.sky = s;
     return s;
   }, []);
   return <primitive object={sky} />;

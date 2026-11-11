@@ -115,3 +115,8 @@ button:not(:disabled):hover { border-color: var(--gold); }
 
 .room-name { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); color: #f3e3bf; font: 600 18px serif; letter-spacing: 4px; text-shadow: 0 1px 3px #000; pointer-events: none; }
 .door-fade { position: absolute; inset: 0; background: #000; pointer-events: none; transition: opacity 0.08s linear; }
+
+.world-clock { position: absolute; right: 16px; bottom: 218px; width: 180px; text-align: center; color: #f3e3bf; text-shadow: 0 1px 3px #000; pointer-events: none; font-family: serif; }
+.wc-date { font-size: 13px; letter-spacing: 1px; }
+.wc-time { font-size: 15px; font-weight: 600; letter-spacing: 2px; margin-top: 2px; }
+.wc-fest { font-size: 12px; color: #ffcf7a; margin-top: 2px; }

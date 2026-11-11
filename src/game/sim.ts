@@ -1,6 +1,7 @@
 // The whole game world, stepped once per frame: the player, the bandits in their dens, projectiles, zones on
 // the ground and the little effects the renderer draws. Pure logic: no React, no three.js.
 import { makeAnimals, stepAnimals, type Animal } from './animals';
+import { clockOf, newWeather, stepWeather, type ClockInfo, type Weather } from './clock';
 import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } from './types';
 import { DENS, DEN_R, FOE_KINDS, bossNameOf, menNameOf } from './foes';
 import { MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, buildingFloor, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
@@ -127,6 +128,11 @@ export class Sim {
   indoor = -1;
   /** the beasts on the map (animals.ts) */
   animals: Animal[] = makeAnimals();
+  /** the world's clock (game seconds since it began) and its weather, kept between visits */
+  worldT = 0;
+  weather: Weather = newWeather();
+  clock: ClockInfo = clockOf(0);
+  private worldSaveT = 0;
   private boarSeen = false;
   private goreAt = -9;
   /** the camera turns to this yaw on the next frame (going through a door), then it's cleared */
@@ -166,6 +172,14 @@ export class Sim {
 
   constructor(progress?: Progress) {
     this.progress = progress ?? load();
+    try {
+      const w = JSON.parse(localStorage.getItem('tq2_world_v1') ?? 'null');
+      if (w && typeof w.t === 'number' && isFinite(w.t)) {
+        this.worldT = w.t;
+        if (w.w?.kind) this.weather = { ...newWeather(), ...w.w };
+      }
+    } catch {}
+    this.clock = clockOf(this.worldT);
     if (this.progress.storyV === -2) {
       // a story 2 save: the same quests with new ones slotted in between
       const Q = this.progress.quest;
@@ -817,6 +831,16 @@ export class Sim {
     for (const f of this.fighters) this.acts(f, dt);
     this.projectiles(dt);
     this.zoneStep(dt);
+    // the world turns: the hour, the season, the weather
+    this.worldT += dt;
+    this.clock = clockOf(this.worldT);
+    stepWeather(this.weather, dt, this.clock);
+    if ((this.worldSaveT -= dt) <= 0) {
+      this.worldSaveT = 10;
+      try {
+        localStorage.setItem('tq2_world_v1', JSON.stringify({ t: this.worldT, w: this.weather }));
+      } catch {}
+    }
     {
       const pl = this.player;
       stepAnimals(this.animals, dt, { px: pl.pos[0], pz: pl.pos[2], here: pl.hp > 0 && this.indoor < 0, loud: pl.act === 'attack' || !!pl.run, gore: (a) => this.gore(a) });

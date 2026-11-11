@@ -1,5 +1,6 @@
 // On-screen: health and inner strength, level and experience, the six-slot bar with cooldowns, the target, messages,
 // a minimap. Reads the sim ten times a second.
+import { ERA, SEASONS, weatherName } from '../game/clock';
 import { useEffect, useRef } from 'react';
 import type { Sim } from '../game/sim';
 import { ULT_CHARGE } from '../game/sim';
@@ -133,6 +134,7 @@ function Minimap({ sim }: { sim: Sim }) {
     <>
       <canvas ref={ref} className="minimap" width={180} height={180} />
       <div className="mm-hint">M 打开大地图</div>
+      <WorldClock sim={sim} />
     </>
   );
 }
@@ -161,6 +163,24 @@ function QuestTracker({ sim }: { sim: Sim }) {
       <div className="quest-title">主线 · {q.title}</div>
       <div className="quest-what">{what}</div>
       {tgt && dist > 6 && <div className="quest-dist">距离 {dist} 米 · 跟着金色光柱走</div>}
+    </div>
+  );
+}
+
+const NUM = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+const cnNum = (n: number) => (n <= 10 ? NUM[n] : n < 20 ? '十' + NUM[n - 10] : NUM[Math.floor(n / 10)] + '十' + (n % 10 ? NUM[n % 10] : ''));
+/** the date, the watch and the weather, over the minimap */
+function WorldClock({ sim }: { sim: Sim }) {
+  const c = sim.clock;
+  return (
+    <div className="world-clock">
+      <div className="wc-date">
+        {ERA}{cnNum(c.year)}年 · {SEASONS[c.season]} · {c.term}
+      </div>
+      <div className="wc-time">
+        {c.shichen}时 · {weatherName(sim.weather)}
+      </div>
+      {c.festival && <div className="wc-fest">今日 {c.festival.name}</div>}
     </div>
   );
 }

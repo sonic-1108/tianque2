@@ -2,6 +2,7 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
 import { mergeBufferGeometries } from 'three-stdlib';
+import { withSnow } from './season';
 import { dress } from './surfaces';
 
 export type Mat = 'stone' | 'step' | 'red' | 'wall' | 'roof' | 'ridge' | 'wood' | 'bronze' | 'cloth' | 'paper' | 'dark' | 'plank' | 'log' | 'thatch' | 'tile' | 'leaf' | 'crop' | 'soil' | 'hay' | 'lamp' | 'flame' | 'canvas' | 'rock' | 'pave' | 'pave2' | 'plaster' | 'silk' | 'silk2' | 'fur' | 'gold' | 'white';
@@ -205,6 +206,7 @@ export function matOf(m: Mat) {
       out.emissiveIntensity = LIFT[m]!;
     }
     if (out instanceof THREE.MeshStandardMaterial && m !== 'paper' && m !== 'lamp') dress(out, m);
+    if (out instanceof THREE.MeshStandardMaterial && m !== 'paper' && m !== 'lamp') withSnow(out);
     matCache.set(m, out);
   }
   return out;

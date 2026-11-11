@@ -17,6 +17,7 @@ import type { Sim } from '../game/sim';
 import { liftProp } from './propLook';
 import { DECOR, fit } from '../game/props';
 import { Animals } from './Animals';
+import { Climate } from './Climate';
 import { Calls } from './Calls';
 import { Interiors } from './Interiors';
 const propCache = new Map<string, Promise<THREE.Group>>();
@@ -295,37 +296,6 @@ function Dens() {
 }
 
 /** sun that follows the player so shadows stay sharp near them */
-function Sun({ sim }: { sim: Sim }) {
-  const light = useRef<THREE.DirectionalLight>(null);
-  const target = useMemo(() => new THREE.Object3D(), []);
-  useFrame(() => {
-    const p = sim.player.pos;
-    if (!light.current) return;
-    light.current.position.set(p[0] + 40, p[1] + 70, p[2] + 25);
-    target.position.set(p[0], p[1], p[2]);
-    target.updateMatrixWorld();
-  });
-  return (
-    <>
-      <primitive object={target} />
-      <directionalLight
-        ref={light}
-        target={target}
-        intensity={2.2}
-        color="#fff1d6"
-        castShadow
-        shadow-mapSize={[2048, 2048]}
-        shadow-camera-left={-45}
-        shadow-camera-right={45}
-        shadow-camera-top={45}
-        shadow-camera-bottom={-45}
-        shadow-camera-far={200}
-        shadow-bias={-0.0005}
-      />
-    </>
-  );
-}
-
 /** the outdoor world, hidden while the player is in a room (nothing of it shows in there, and it costs nothing) */
 function Outdoors({ sim, children }: { sim: Sim; children: React.ReactNode }) {
   const ref = useRef<THREE.Group>(null);
@@ -340,8 +310,7 @@ export function World({ sim }: { sim: Sim }) {
     <>
       {/* a long clear view: the rim's mountains and 天阙 stand in the haze from the village */}
       <fog attach="fog" args={['#c3d3e0', 240, 1500]} />
-      <hemisphereLight args={['#dfeeff', '#4b5a33', 0.85]} />
-      <Sun sim={sim} />
+      <Climate sim={sim} />
       <Outdoors sim={sim}>
         <Landscape sim={sim} />
         <Village />
