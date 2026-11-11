@@ -1,8 +1,8 @@
 {
   "name": "npc-eunuch",
   "kind": "biped",
-  "prompt": "A thin ancient Chinese palace eunuch in a dark green robe with a red sash, a black soft cap, a smooth beardless face with a sly smile, stylized realistic game character, nothing in his hands",
-  "task": "bd730e6a-5084-4f86-87ea-71461f7a3f14",
+  "prompt": "A thin middle-aged Chinese palace eunuch in a dark green silk robe with a red sash and a black soft hat, a smooth beardless pale face with a sly narrow-eyed smile, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "109a4744-a72e-417b-a88b-a7c0ae278601",
   "faces": 12000,
   "credits": 75
 }
