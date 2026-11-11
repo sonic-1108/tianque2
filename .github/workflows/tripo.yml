@@ -29,6 +29,9 @@ on:
       region:
         description: ov (developers.tripo3d.ai, the owner's account) or cn (developers.tripo3d.com)
         default: ov
+      negative:
+        description: what the model must not look like (sent as negative_prompt when given)
+        default: ''
 permissions:
   contents: write
 concurrency:
@@ -52,6 +55,7 @@ jobs:
           KIND: ${{ inputs.kind }}
           FACES: ${{ inputs.faces }}
           REGION: ${{ inputs.region }}
+          NEG: ${{ inputs.negative }}
         run: |
           set -euo pipefail
           [ -n "$KEY" ] || { echo "TRIPO_API_KEY is not set"; exit 1; }
@@ -93,6 +97,7 @@ jobs:
           P="$PROMPT"
           [ "$KIND" = biped ] && P="$PROMPT, full body, standing in A-pose, arms slightly away from the body, facing forward"
           body=$(jq -n --arg p "$P" --argjson f "$FACES" '{prompt:$p, model:"v3.1-20260211", texture:true, pbr:true, texture_quality:"detailed", face_limit:$f}')
+          [ -n "$NEG" ] && body=$(echo "$body" | jq --arg n "$NEG" '. + {negative_prompt:$n}')
           id=$(post generation/text-to-model "$body"); echo "model task $id"
           t=$(wait_task "$id"); add_credits "$t"
           img=$(echo "$t" | jq -r '.data.output.rendered_image_url // empty')
