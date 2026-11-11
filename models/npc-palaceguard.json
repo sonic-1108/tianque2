@@ -1,8 +1,8 @@
 {
   "name": "npc-palaceguard",
   "kind": "biped",
-  "prompt": "An ancient Chinese imperial palace guard in shining silver and red armour with a round helmet, a red tassel on top, stern young face, stylized realistic game character, nothing in his hands",
-  "task": "4aad4b2b-451f-4e01-9f3e-11ff2baa4f09",
+  "prompt": "A Chinese imperial palace guard in polished steel lamellar armour over a dark red robe, a round steel helmet with a red plume, a stern young face, leather boots, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "b2c465b5-69d4-4248-b80a-30e67fc05c51",
   "faces": 12000,
   "credits": 75
 }
