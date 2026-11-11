@@ -45,7 +45,12 @@ const CRY_R = 16;
 const PERIOD = 8;
 const SHOWN = 3.6;
 /** how tall the speaker stands (children and grannies are shorter), for where the slip floats */
-export const SPEAKER_H: Record<string, number> = { 'npc-girl.glb': 1.15, 'npc-boy.glb': 1.3, 'npc-granny.glb': 1.5, 'npc-novice.glb': 1.5 };
+export const SPEAKER_H: Record<string, number> = {
+  'npc-girl.glb': 1.2, 'npc-boy.glb': 1.35, 'npc-kid2.glb': 1.22, 'npc-novice.glb': 1.6,
+  'npc-granny.glb': 1.5, 'npc-oldman.glb': 1.62, 'npc-beggar.glb': 1.68,
+  'npc-lady.glb': 1.64, 'npc-courtesan.glb': 1.63, 'npc-dancer.glb': 1.62, 'npc-princess.glb': 1.64, 'npc-maid.glb': 1.58, 'npc-nun.glb': 1.63, 'npc-merchantwoman.glb': 1.58,
+  'npc-butcher.glb': 1.9, 'npc-general.glb': 1.92, 'npc-palaceguard.glb': 1.84, 'npc-noodle.glb': 1.72,
+};
 
 export function Calls({ sim }: { sim: Sim }) {
   const sprites = useMemo(
