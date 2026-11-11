@@ -5,6 +5,7 @@
 // from world.ts (it imports this).
 import { ROADS } from './layout';
 import { TEAHOUSE, fit } from './props';
+import { CT_ROT, HALL_DOOR, ctWorld } from './court';
 import { PLACES, placeAt, type Place } from './places';
 import { FOLK, type Folk } from './places';
 
@@ -36,6 +37,12 @@ export const FURN = {
   coop: [0.6, 0.4, 0.8],
   pelts: [0.9, 0.1, 1.6], // furs stretched on a frame
   map: [1.2, 0.05, 1.6], // a painted map on the wall
+  // 金銮殿
+  dais: [3.2, 2.4, 0.5], // the raised floor the throne stands on (a step up)
+  throne: [0.9, 0.7, 1.7], // the dragon throne
+  pillar: [0.45, 0.45, 7], // red and gold columns
+  cauldron: [0.6, 0.6, 1.3], // bronze tripods with incense
+  carpet: [1.4, 6, 0.02], // the red way to the throne (lies flat, blocks nothing)
 } as const;
 export type FurnKind = keyof typeof FURN;
 export interface Furn {
@@ -44,7 +51,7 @@ export interface Furn {
   z: number;
   ry?: number;
 }
-export type RoomTheme = 'elder' | 'hunter' | 'weaver' | 'herbalist' | 'carpenter' | 'scholar' | 'elders' | 'tavern' | 'inn' | 'shrine' | 'teahouse';
+export type RoomTheme = 'elder' | 'hunter' | 'weaver' | 'herbalist' | 'carpenter' | 'scholar' | 'elders' | 'tavern' | 'inn' | 'shrine' | 'teahouse' | 'throne';
 export interface Room {
   id: number;
   name: string;
@@ -162,6 +169,17 @@ const LAYOUT: Record<RoomTheme, { w: number; d: number; furn: Furn[]; floor?: 'p
       { k: 'barrel', x: 6, z: 4.8 },
     ],
   },
+  // 金銮殿: the dragon throne on its dais under a golden screen, two rows of red pillars, bronze tripods, the red way
+  throne: {
+    w: 22, d: 20, floor: 'stone',
+    furn: [
+      { k: 'screen', x: 0, z: -9.4 }, { k: 'dais', x: 0, z: -7.4 }, { k: 'throne', x: 0, z: -7.6 },
+      { k: 'carpet', x: 0, z: 1.5 },
+      ...[-6.5, -1.5, 3.5].flatMap((z) => [-5, 5].map((x) => ({ k: 'pillar' as const, x, z }))),
+      { k: 'cauldron', x: -4.2, z: -4 }, { k: 'cauldron', x: 4.2, z: -4 },
+      { k: 'desk', x: -8, z: -6, ry: Math.PI / 2 }, { k: 'shelf', x: 10.4, z: -4, ry: Math.PI / 2 },
+    ],
+  },
   // 土地庙: the god on his plinth, the altar, lanterns, a fortune-stick table
   shrine: {
     w: 8, d: 8, floor: 'stone',
@@ -173,7 +191,7 @@ const LAYOUT: Record<RoomTheme, { w: number; d: number; furn: Furn[]; floor?: 'p
 const HOUSE_THEMES: RoomTheme[] = ['hunter', 'weaver', 'herbalist', 'carpenter', 'scholar', 'elders'];
 const HOUSE_NAMES: Record<RoomTheme, string> = {
   elder: '石伯家', hunter: '猎户韩家', weaver: '织娘柳家', herbalist: '药农孙家', carpenter: '木匠鲁家', scholar: '书生顾家', elders: '王家老两口',
-  tavern: '杏花酒肆', inn: '驿站', shrine: '土地庙', teahouse: '清风茶楼',
+  tavern: '杏花酒肆', inn: '驿站', shrine: '土地庙', teahouse: '清风茶楼', throne: '金銮殿',
 };
 function villageHouses() {
   const out: { x: number; z: number; rot: number }[] = [];
@@ -194,7 +212,7 @@ export const ROOMS: Room[] = (() => {
     const L = LAYOUT[theme];
     const id = out.length;
     out.push({
-      id, name, theme, ox: BASE_X + (id % 6) * 40, oz: BASE_Z + Math.floor(id / 6) * 40, w: L.w, d: L.d, h: theme === 'tavern' || theme === 'teahouse' ? 5.5 : 4.2,
+      id, name, theme, ox: BASE_X + (id % 6) * 40, oz: BASE_Z + Math.floor(id / 6) * 40, w: L.w, d: L.d, h: theme === 'throne' ? 9 : theme === 'tavern' || theme === 'teahouse' ? 5.5 : 4.2,
       door, doorYaw, furn: L.furn, floor: L.floor ?? 'plank', wall: L.wall ?? 'wall',
     });
   };
@@ -218,6 +236,8 @@ export const ROOMS: Room[] = (() => {
     const T = TEAHOUSE, g = fit(T.file, T.size), r = g.hz + 0.9;
     add('teahouse', '清风茶楼', [T.x + Math.sin(T.rot) * r, T.z + Math.cos(T.rot) * r], T.rot);
   }
+  // the throne hall of 永安城: its door at the foot of the terrace's front
+  add('throne', '金銮殿', ctWorld(HALL_DOOR.lx, HALL_DOOR.lz), CT_ROT);
   return out;
 })();
 
@@ -243,7 +263,7 @@ export function roomSolids() {
     out.push({ x: r.ox - r.w / 2 - 1, z: r.oz, rot: 0, hx: 1, hz: r.d / 2 + 2, h: H });
     out.push({ x: r.ox + r.w / 2 + 1, z: r.oz, rot: 0, hx: 1, hz: r.d / 2 + 2, h: H });
     for (const f of r.furn) {
-      if (f.k === 'map') continue; // on the wall
+      if (f.k === 'map' || f.k === 'carpet') continue; // on the wall, on the floor
       const [hx, hz, h] = FURN[f.k];
       out.push({ x: r.ox + f.x, z: r.oz + f.z, rot: f.ry ?? 0, hx, hz, h });
     }
@@ -298,6 +318,12 @@ export const ROOM_FOLK: (Folk & { room: number })[] = (() => {
         put('茶博士', 'npc-noodle.glb', -2.4, 1.2, ['龙井、碧螺春、山里的野茶，您要哪样？', '先生的书一天两场，下一场午后开。', '小心烫，这壶刚沏的。'], { walk: 3, cry: ['来嘞，热茶一壶！', '续水续水！'] });
         put('听书的老客', 'dixian.glb', 3.8, 2.2, ['我听这段书听了二十年，每回结局都不一样。', '年轻人，坐下听听，比打打杀杀强。', '先生说天阙要出人了，我看就是你。']);
         put('小少爷', 'npc-scholar.glb', -3.8, -1.4, ['爹不让我练武，我偷偷来听书。', '你会飞吗？说书的说大侠都会飞。', '等我长大了，也去天阙看看。']);
+        break;
+    case 'throne':
+        put('丞相 · 魏如晦', 'npc-official.glb', -3.2, -3.4, ['龙椅空了三年了。圣上……圣上在天阙上，不肯下来。', '朝中的事，老夫一个人撑着。你从山那边来？那边的百姓，还好吗？', '天阙七家？嘘，这四个字在朝中说不得。'], { cry: ['肃静！', '有本早奏，无本退朝……唉，哪还有人上朝。'] });
+        put('掌印太监 · 冯保', 'npc-eunuch.glb', 3.2, -4.4, ['咱家奉的是天阙的旨意，这殿里一举一动，都瞒不过上头。', '小子，龙椅前头站得那么近，不怕掉脑袋？', '丞相？哼，老糊涂一个。'], { walk: 2 });
+        put('殿前禁军', 'npc-palaceguard.glb', -2.4, 7.6, ['殿内不得带刀……算了，看你也不像刺客。', '我们轮值三班，一班四个时辰。', '这殿里夜里有动静，像有人在龙椅上叹气。']);
+        put('殿前禁军', 'npc-palaceguard.glb', 2.4, 7.6, ['站好，别乱走。', '丞相大人是好人，就是太累了。', '听说天阙的那位，不吃不睡，就坐着等一个人。']);
         break;
     case 'shrine':
         put('求签的妇人', 'ranger.glb', 1.2, -0.6, ['菩萨保佑，让我家那口子平安回来。', '这签说"守得云开"，你说准不准？', '你也来求一支吧，很灵的。']);

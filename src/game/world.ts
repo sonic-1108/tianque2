@@ -4,9 +4,10 @@
 import { DENS, DEN_R } from './foes';
 import { ROADS, nearTq, TQ_POS, TQ_ROT, TQ_TOP, tqWorld, TQ_Y, VILLAGE_R, WORLD_R, TQ_ROAD, GD_ARCH_R, GD_PAV, GD_PAV_R, onGudao, roadFrame, roadPoint } from './layout';
 import { mapBig, mapRough, mapSnow, mapWater } from './mapsample';
-import { IN_TOWN, PLACES, PLACE_PARTS, innHouses, nearPlace, placeAt } from './places';
+import { FISH_SPOT, IN_TOWN, PLACES, PLACE_PARTS, innHouses, nearPlace, placeAt } from './places';
 import { ROOM_Y, roomSolids } from './interiors';
 import { MILL_FILE, STALLS, TEAHOUSE, fit, modelPoint } from './props';
+import { COURT_PIECES, CT_PAD, CT_POS, CT_ROT, CT_Y, ctWorld, nearCourt } from './court';
 export { WORLD_R, VILLAGE_R } from './layout';
 
 export const WATER_Y = -2; // lakes fill the ground below this
@@ -165,6 +166,11 @@ function rawHeight(x: number, z: number): number {
       const top = TQ_Y * (1 - smooth(TQ_TOP - 4, 210, Math.hypot(rx - TQ_POS[0], rz - TQ_POS[1])));
       h = Math.max(h, top * (1 - smooth(9, 22, dp)) + (h * smooth(9, 22, dp)));
     }
+  }
+  // 永安城: the court's plain, levelled
+  {
+    const dd = Math.hypot(x - CT_POS[0], z - CT_POS[1]);
+    if (dd < CT_PAD + 40) h += (CT_Y - h) * (1 - smooth(CT_PAD, CT_PAD + 40, dd));
   }
   // the edge of the map: a wall of peaks
   const e = Math.max(Math.abs(x), Math.abs(z));
@@ -350,6 +356,19 @@ export const BUILDINGS: Building[] = (() => {
   }
   // the village well (a Tripo model), where the square's flagstones meet
   out.push(propBuilding('well.glb', 0, -3, 0, 3.4));
+  // the fisherman's boat, pulled up on the bank beside him
+  if (FISH_SPOT) {
+    const [x, z, a] = FISH_SPOT;
+    const ux = Math.cos(a), uz = Math.sin(a);
+    out.push(propBuilding('inn-boat.glb', x - uz * 3.5, z + ux * 3.5, Math.atan2(ux, uz), 6));
+  }
+  // 永安城 · 朝廷 (court.ts): the wall, the gate (open between its piers), the hall, the towers, the street outside
+  for (const c of COURT_PIECES) {
+    const [x, z] = ctWorld(c.lx, c.lz);
+    const b = propBuilding(c.file, x, z, CT_ROT + c.rot, c.size);
+    if (c.posts) b.posts = c.posts;
+    out.push(b);
+  }
   // 青石集: the market stalls along the east road and the teahouse at its end
   for (const s of STALLS) out.push(propBuilding(s.file, s.x, s.z, s.rot, s.size));
   out.push(propBuilding(TEAHOUSE.file, TEAHOUSE.x, TEAHOUSE.z, TEAHOUSE.rot, TEAHOUSE.size));
@@ -475,7 +494,7 @@ export const TREES: Tree[] = (() => {
     // forests come in patches
     if (noise(x * 0.008 + 9, z * 0.008 - 4) < -0.05) continue;
     if (CAMPS.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < DEN_R + 8)) continue;
-    if (nearTq(x, z, 52) || BUILDINGS.some((b) => Math.hypot(b.x - x, b.z - z) < Math.max(b.hx, b.hz) + 7)) continue;
+    if (nearTq(x, z, 52) || nearCourt(x, z, CT_PAD + 6) || BUILDINGS.some((b) => Math.hypot(b.x - x, b.z - z) < Math.max(b.hx, b.hz) + 7)) continue;
     if (pathDist(x, z) < 7 || onGudao(x, z, pathDist(x, z)) || nearPlace(x, z, 4)) continue;
     const h = groundHeight(x, z);
     if (h < WATER_Y + 0.5 || h > SNOW_Y + 10) continue;

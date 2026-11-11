@@ -5,8 +5,10 @@
 import { groundHeight, inBuilding, WATER_Y, VILLAGE_R } from './world';
 import { DENS, DEN_R } from './foes';
 import { WORLD_R, nearTq } from './layout';
+import { ctWorld } from './court';
+import { PLACES, placeAt } from './places';
 
-export type AnimalKind = 'deer' | 'rabbit' | 'fox' | 'boar' | 'ox' | 'dog';
+export type AnimalKind = 'deer' | 'rabbit' | 'fox' | 'boar' | 'ox' | 'dog' | 'hen' | 'crane' | 'horse';
 export interface AnimalSpec {
   file: string;
   name: string;
@@ -28,6 +30,9 @@ export const ANIMALS: Record<AnimalKind, AnimalSpec> = {
   boar: { file: 'boar.glb', name: '野猪', h: 0.95, walk: 1.0, run: 7, fear: 0, roam: 22, stride: 1.0 },
   ox: { file: 'ox.glb', name: '老黄牛', h: 1.55, walk: 0.7, run: 2, fear: 0, roam: 9, stride: 0.9 },
   dog: { file: 'dog.glb', name: '大黄', h: 0.7, walk: 1.3, run: 5.5, fear: 0, roam: 14, stride: 1.1 },
+  hen: { file: 'chicken.glb', name: '母鸡', h: 0.42, walk: 0.5, run: 3.5, fear: 3, roam: 9, stride: 0.45 },
+  crane: { file: 'crane.glb', name: '仙鹤', h: 1.4, walk: 0.6, run: 2.6, fear: 7, roam: 16, stride: 0.6 },
+  horse: { file: 'horse.glb', name: '驿马', h: 1.65, walk: 0.8, run: 3, fear: 0, roam: 5, stride: 1.0 },
 };
 
 export interface Animal {
@@ -79,7 +84,7 @@ export function makeAnimals(): Animal[] {
   };
   /** a spot in the ring [r0, r1] that passes okSpot */
   /** keeps its kind this far apart (each herd, each fox, each boar has its own ground) */
-  const SPREAD: Record<AnimalKind, number> = { deer: 70, rabbit: 18, fox: 60, boar: 70, ox: 10, dog: 6 };
+  const SPREAD: Record<AnimalKind, number> = { deer: 70, rabbit: 18, fox: 60, boar: 70, ox: 10, dog: 6, hen: 1.5, crane: 3, horse: 3 };
   const find = (r0: number, r1: number, kind: AnimalKind, village = false): [number, number] | null => {
     for (let k = 0; k < 80; k++, seed++) {
       const a = rnd(seed, 1) * Math.PI * 2, r = r0 + rnd(seed, 2) * (r1 - r0);
@@ -117,6 +122,23 @@ export function makeAnimals(): Animal[] {
     if (c) add('ox', c[0], c[1]);
   }
   for (const [x, z] of [[8, 6], [-10, 4]] as const) if (okSpot(x, z, true)) add('dog', x, z);
+  // hens pecking round the houses
+  for (let k = 0; k < 9; k++) {
+    const a = rnd(k, 21) * Math.PI * 2, r = 9 + rnd(k, 22) * 16;
+    const x = Math.cos(a) * r, z = Math.sin(a) * r;
+    if (okSpot(x, z, true)) add('hen', x, z);
+  }
+  // the palace's cranes strolling its courtyard
+  for (const [lx, lz] of [[-30, -16], [-24, -22], [30, -20], [26, -26]] as const) {
+    const [x, z] = ctWorld(lx, lz);
+    if (okSpot(x, z)) add('crane', x, z);
+  }
+  // a horse tethered at every waystation
+  for (const p of PLACES) {
+    if (p.kind !== 'inn') continue;
+    const [x, z] = placeAt(p, -9.2, 5.5);
+    if (okSpot(x, z)) add('horse', x, z);
+  }
   return out;
 }
 
@@ -138,7 +160,7 @@ function setGoal(a: Animal, s: AnimalSpec) {
   for (let k = 0; k < 8; k++) {
     const t = Math.random() * Math.PI * 2, r = s.roam * (0.3 + Math.random() * 0.7);
     const x = a.home[0] + Math.cos(t) * r, z = a.home[1] + Math.sin(t) * r;
-    if (okSpot(x, z, a.kind === 'dog' || a.kind === 'ox')) {
+    if (okSpot(x, z, a.kind === 'dog' || a.kind === 'ox' || a.kind === 'hen')) {
       a.goal = [x, z];
       return true;
     }
@@ -189,6 +211,8 @@ export function stepAnimals(list: Animal[], dt: number, w: AnimalWorld) {
           break;
         }
         if (a.kind === 'ox' && Math.random() < dt * 0.04) speak(a, '哞～', 2);
+        if (a.kind === 'hen' && Math.random() < dt * 0.03) speak(a, '咯咯哒！', 1.4);
+        if (a.kind === 'horse' && Math.random() < dt * 0.02) speak(a, '咴儿～', 1.6);
         if (a.t <= 0) {
           if (setGoal(a, s)) a.state = 'walk';
           a.t = 6 + Math.random() * 6;
@@ -268,7 +292,7 @@ export function stepAnimals(list: Animal[], dt: number, w: AnimalWorld) {
     }
     // step, unless the way is blocked (water, a wall, a cliff, a den's palisade): then turn aside
     const nx = a.x + Math.sin(a.yaw) * a.speed * dt, nz = a.z + Math.cos(a.yaw) * a.speed * dt;
-    const village = a.kind === 'dog' || a.kind === 'ox';
+    const village = a.kind === 'dog' || a.kind === 'ox' || a.kind === 'hen';
     const ny = groundHeight(nx, nz);
     const blocked =
       ny < WATER_Y + 0.3 ||

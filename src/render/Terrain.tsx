@@ -1,5 +1,6 @@
 // The 2 km landscape: the ground in 125 m chunks whose detail drops with distance (rebuilt a few per frame as you
 // move), coloured by height and slope with fine noise in the shader; lakes; forests of instanced trees; the sky.
+import { CT_PAD, nearCourt } from '../game/court';
 import { SEASON_U, withSnow } from './season';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
@@ -429,7 +430,7 @@ function Rocks() {
       const z = (hash(k * 1.3, 9.1) * 2 - 1) * R;
       const h = groundHeight(x, z);
       if (h < WATER_Y + 0.5 || Math.hypot(x, z) < VILLAGE_R + 15 || pathDist(x, z) < 3.5) continue;
-      if (nearTq(x, z, 47) || onGudao(x, z, pathDist(x, z)) || nearPlace(x, z, 2) || DENS.some((d) => Math.hypot(d.x - x, d.z - z) < DEN_R + 4)) continue;
+      if (nearTq(x, z, 47) || nearCourt(x, z, CT_PAD) || onGudao(x, z, pathDist(x, z)) || nearPlace(x, z, 2) || DENS.some((d) => Math.hypot(d.x - x, d.z - z) < DEN_R + 4)) continue;
       const sl = slopeAt(x, z);
       const want = sl > 0.35 ? 0.9 : h > 40 ? 0.6 : pathDist(x, z) < 12 ? 0.5 : 0.18;
       if (hash(x, z) > want) continue;
@@ -570,6 +571,7 @@ transformed.z += sway * 0.08 * uv.y;`,
     const near = DENS.filter((d) => Math.abs(d.x - cx) < GRASS_R + DEN_R + 4 && Math.abs(d.z - cz) < GRASS_R + DEN_R + 4);
     const town = Math.hypot(cx, cz) < GRASS_R + VILLAGE_R + 8;
     const tq = nearTq(cx, cz, 300);
+    const ct = nearCourt(cx, cz, 200);
     for (let gx = Math.floor((cx - GRASS_R) / S); gx <= Math.ceil((cx + GRASS_R) / S) && n < GRASS_N; gx++)
       for (let gz = Math.floor((cz - GRASS_R) / S); gz <= Math.ceil((cz + GRASS_R) / S) && n < GRASS_N; gz++) {
         const x = (gx + hash(gx, gz)) * S, z = (gz + hash(gz, gx)) * S;
@@ -585,7 +587,7 @@ transformed.z += sway * 0.08 * uv.y;`,
         const h = groundHeight(x, z);
         if (h < WATER_Y + 0.4 || h > SNOW_Y - 20) continue;
         const pd = pathDist(x, z);
-        if (pd < 3.2 || (tq && (nearTq(x, z, 46) || onGudao(x, z, pd)))) continue;
+        if (pd < 3.2 || (tq && (nearTq(x, z, 46) || onGudao(x, z, pd))) || (ct && nearCourt(x, z, 92))) continue;
         if (slopeAt(x, z) > 0.55 || nearPlace(x, z, -3)) continue;
         q.setFromAxisAngle(Y, hash(x, z) * 6.28);
         // smaller toward the patch's rim, so it ends softly instead of in a ring

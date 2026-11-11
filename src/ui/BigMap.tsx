@@ -1,5 +1,6 @@
 // The whole map (M): the land, the seven roads, 青石村, every den with its level (grey once cleared), the
 // waystations and story places, 天阙, where the quest wants you and where you are. Click or M / Esc to close.
+import { CT_POS } from '../game/court';
 import { useEffect, useRef } from 'react';
 import type { Sim } from '../game/sim';
 import { DENS, FOE_KINDS, bossNameOf, menNameOf } from '../game/foes';
@@ -100,6 +101,17 @@ export function BigMap({ sim, onClose }: { sim: Sim; onClose: () => void }) {
         g.strokeRect(x - 8 * u, y - 8 * u, 16 * u, 16 * u);
         label(m, x, y + 5 * u, 12, '#5a2a10');
         label(pl.name, x, y + 21 * u, 11);
+      }
+      // 永安城: the court
+      {
+        const x = X(CT_POS[0]), y = Z(CT_POS[1]);
+        g.fillStyle = '#c8322a';
+        g.strokeStyle = '#ffd36a';
+        g.lineWidth = 2 * u;
+        g.fillRect(x - 11 * u, y - 11 * u, 22 * u, 22 * u);
+        g.strokeRect(x - 11 * u, y - 11 * u, 22 * u, 22 * u);
+        label('朝', x, y + 6 * u, 15, '#ffe9a8');
+        label('永安城 · 朝廷', x, y + 27 * u, 13, '#ffd36a');
       }
       // the quest's goal
       const qt = questTarget(sim);

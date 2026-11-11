@@ -120,6 +120,48 @@ function piece(f: Furn, theme: RoomTheme, seed: number): Builder {
       }
       break;
     }
+    case 'dais': {
+      // three stone steps up to the throne's floor, a gilt edge
+      for (let k = 0; k < 3; k++) b.box(k === 2 ? 'red' : 'stone', 0, 0, (k - 1) * -0.5, 6.4 - k * 0.5, 0.17 * (k + 1), 4.8 - k * 1.2);
+      b.box('gold', 0, 0.5, 0.95, 5.4, 0.04, 0.06);
+      break;
+    }
+    case 'throne': {
+      // the dragon throne: a broad gilt seat, a high carved back crowned with a dragon's arch, armrests rolled like clouds
+      b.box('gold', 0, 0.5, 0, 1.7, 0.55, 1.1);
+      b.box('red', 0, 1.05, 0.05, 1.5, 0.08, 0.95); // the cushion
+      b.box('gold', 0, 1.05, -0.5, 1.8, 1.9, 0.18);
+      b.box('red', 0, 1.35, -0.4, 1.2, 1.2, 0.04);
+      b.add('gold', new THREE.TorusGeometry(0.75, 0.09, 8, 18, Math.PI), 0, 2.85, -0.5);
+      b.add('gold', new THREE.SphereGeometry(0.16, 10, 8), 0, 3.6, -0.5); // the pearl the dragon holds
+      for (const s of [-1, 1]) {
+        b.box('gold', s * 0.88, 1.05, 0.05, 0.14, 0.55, 1.0);
+        b.add('gold', new THREE.CylinderGeometry(0.14, 0.14, 0.2, 10).rotateZ(Math.PI / 2), s * 0.88, 1.6, 0.5);
+      }
+      break;
+    }
+    case 'pillar': {
+      b.add('stone', new THREE.CylinderGeometry(0.55, 0.62, 0.4, 14), 0, 0.2, 0);
+      b.add('red', new THREE.CylinderGeometry(0.38, 0.4, 6.6, 16), 0, 3.7, 0);
+      // a gilt dragon coiling up it: a ribbon of rings
+      for (let k = 0; k < 14; k++) b.add('gold', new THREE.TorusGeometry(0.41, 0.045, 6, 14), 0, 1.0 + k * 0.38, 0, k * 0.45);
+      b.add('gold', new THREE.CylinderGeometry(0.5, 0.42, 0.3, 14), 0, 7.0, 0);
+      break;
+    }
+    case 'cauldron': {
+      b.add('bronze', new THREE.SphereGeometry(0.55, 14, 10, 0, Math.PI * 2, Math.PI * 0.3, Math.PI * 0.7), 0, 0.85, 0);
+      for (let k = 0; k < 3; k++) {
+        const a = (k / 3) * Math.PI * 2;
+        b.box('bronze', Math.cos(a) * 0.38, 0, Math.sin(a) * 0.38, 0.1, 0.55, 0.1);
+      }
+      for (const s of [-1, 1]) b.add('bronze', new THREE.TorusGeometry(0.14, 0.035, 6, 10), s * 0.5, 1.35, 0, Math.PI / 2);
+      b.add('flame', new THREE.ConeGeometry(0.06, 0.25, 6), 0, 1.38, 0);
+      break;
+    }
+    case 'carpet':
+      b.box('red', 0, 0.005, 0, 2.6, 0.02, 12);
+      for (const s of [-1, 1]) b.box('gold', s * 1.25, 0.012, 0, 0.1, 0.02, 12);
+      break;
     case 'statue': {
       // 土地公: a round old man seated on his plinth, gold robed, white bearded, a staff
       b.box('stone', 0, 0, 0, 1.2, 0.9, 0.9);
@@ -343,6 +385,13 @@ function buildRoom(r: Room) {
   // theme touches: the tavern's 酒 banner, rugs, the shrine's red hangings
   if (r.theme === 'tavern') b.box('silk', -3, 2.0, -d / 2 + 0.05, 1.0, 2.4, 0.03);
   if (r.theme === 'shrine') for (const s of [-1, 1]) b.box('silk', s * 1.6, 1.2, -d / 2 + 0.05, 0.6, 2.6, 0.03);
+  // the throne hall: gold hangings down the back wall, a golden plaque, a ceiling of gilt beams
+  if (r.theme === 'throne') {
+    for (const s of [-1, 1]) for (const k of [0, 1]) b.box('gold', s * (3.8 + k * 2.6), 1.2, -d / 2 + 0.06, 1.1, 5.2, 0.03);
+    b.box('dark', 0, 6.6, -d / 2 + 0.08, 4, 1.2, 0.06);
+    b.box('gold', 0, 6.6, -d / 2 + 0.1, 3.6, 0.9, 0.04);
+    for (let k = -4; k <= 4; k++) b.box('gold', k * 2.4, r.h - 0.35, 0, 0.18, 0.2, d - 0.6);
+  }
   if (r.theme === 'elder' || r.theme === 'scholar' || r.theme === 'weaver') b.box('silk2', 0.8, 0.01, 0.5, 3, 0.02, 2.2);
   // the furniture
   r.furn.forEach((f, i) => b.merge(piece(f, r.theme, r.id * 31 + i), f.x, 0, f.z, f.ry ?? 0));

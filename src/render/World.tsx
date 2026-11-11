@@ -17,6 +17,7 @@ import type { Sim } from '../game/sim';
 import { liftProp } from './propLook';
 import { DECOR, fit } from '../game/props';
 import { Animals } from './Animals';
+import { CT_POS, CT_ROT, CT_Y, WALL_X } from '../game/court';
 import { Climate } from './Climate';
 import { Calls } from './Calls';
 import { Interiors } from './Interiors';
@@ -40,9 +41,20 @@ function loadProp(file: string) {
   }
   return p;
 }
+/** a model on the map: loaded once the camera comes within reach, drawn only while it's near enough to matter
+ *  (big buildings from far off, a lion or a stall only close by) */
 export function Prop({ file, x, z, rot, scale, turn = 0, lift = -0.25 }: { file: string; x: number; z: number; rot: number; scale: number; turn?: number; lift?: number }) {
   const [obj, setObj] = useState<THREE.Object3D | null>(null);
+  const [near, setNear] = useState(false);
+  const ref = useRef<THREE.Object3D>(null);
+  const view = scale >= 9 ? 720 : 320;
+  useFrame(({ camera }) => {
+    const d = Math.hypot(camera.position.x - x, camera.position.z - z);
+    if (!near && d < view + 120) setNear(true);
+    if (ref.current) ref.current.visible = d < view;
+  });
   useEffect(() => {
+    if (!near) return;
     let alive = true;
     loadProp(file)
       .then((s) => alive && setObj(s.clone()))
@@ -50,9 +62,9 @@ export function Prop({ file, x, z, rot, scale, turn = 0, lift = -0.25 }: { file:
     return () => {
       alive = false;
     };
-  }, [file]);
+  }, [file, near]);
   if (!obj) return null;
-  return <primitive object={obj} position={[x, groundHeight(x, z) + lift, z]} rotation={[0, rot + turn, 0]} scale={scale} />;
+  return <primitive ref={ref} object={obj} position={[x, groundHeight(x, z) + lift, z]} rotation={[0, rot + turn, 0]} scale={scale} />;
 }
 
 /** a seeded random in 0..1 */
@@ -186,6 +198,28 @@ function buildVillage() {
   return b.build();
 }
 
+/** 永安城's paving (court.ts has its buildings): the great courtyard of flagstones, the imperial way down its middle,
+ *  stone lanterns along it, and the street outside the gate */
+function buildCourt() {
+  const L = new Builder();
+  const y = CT_Y;
+  L.box('pave', 0, y - 0.08, -14, WALL_X * 2 - 4, 0.14, 80);
+  L.box('pave2', 0, y - 0.04, 1, 11, 0.12, 102);
+  // kerbs along the way
+  for (const s of [-1, 1]) L.box('stone', s * 5.8, y - 0.04, 1, 0.5, 0.2, 102);
+  for (const lz of [33, 19, 5, -9]) for (const s of [-1, 1]) L.lantern(s * 14, y, lz);
+  // outside: the street of 关厢
+  L.box('pave', 0, y - 0.08, 88, 18, 0.14, 70);
+  for (const lz of [64, 80, 96, 112]) for (const s of [-1, 1]) L.lantern(s * 8.5, y, lz);
+  const W = new Builder();
+  W.merge(L, CT_POS[0], 0, CT_POS[1], CT_ROT);
+  return W.build();
+}
+function Court() {
+  const parts = useMemo(buildCourt, []);
+  return <Built parts={parts} />;
+}
+
 function Village() {
   const parts = useMemo(buildVillage, []);
   return (
@@ -314,6 +348,7 @@ export function World({ sim }: { sim: Sim }) {
       <Outdoors sim={sim}>
         <Landscape sim={sim} />
         <Village />
+        <Court />
         <Tianque />
         <Gudao />
         <Places />

@@ -69,6 +69,12 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   on Builder materials, props, trees, rocks; ground, grass and leaves have their own season blends in Terrain.tsx).
   The HUD shows date, watch and weather over the minimap. Test a moment: set `__T2.worldT` and `__T2.weather`.
 
+- 永安城 · 朝廷 (`src/game/court.ts`, frame `ctWorld`, at the end of road 1, r 835): walls, the great gate (open
+  between its piers: `posts` rows), 金銮殿 (a room: the empty dragon throne on its dais), drum tower, six ministries,
+  lions, banners, the street 关厢 outside; paving and lanterns in World.tsx `buildCourt`; people in places.ts `COURT`.
+  The plain is levelled in rawHeight (`CT_PAD`). Map props load when the camera comes near and hide past 320 / 720 m.
+- More beasts: hens in the village, cranes in the palace yard, a horse at every waystation. 渔翁 by the river (`FISH_SPOT`).
+
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported
   from 天阙 1: same timings, reach, damage, statuses; its `vfx.*` calls become `s.vfx(name, ...args)` commands in

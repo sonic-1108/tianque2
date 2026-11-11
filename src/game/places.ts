@@ -6,6 +6,7 @@ import { DENS, DEN_R } from './foes';
 import { ROADS, ROAD_N, roadFrame, TQ_POS, TQ_ROAD } from './layout';
 import { mapWater } from './mapsample';
 import { STALLS, MARKET_ROAD, MARKET_FROM, MARKET_TO, fit } from './props';
+import { ctWorld, WALL_FRONT } from './court';
 
 export type PlaceKind = 'smithy' | 'tavern' | 'shrine' | 'inn' | 'jianzhong' | 'tomb';
 /** the village's own workshops (their yards sit at the village's level) */
@@ -179,6 +180,30 @@ const RING_TALK = [
   '再往外是七家的旧地，那些人的招式邪门得很。',
   '最外头靠着雪线，听说连官兵都不敢去。',
 ];
+/** the old fisherman's spot: the second nearest bank to the village (the nearest has the watermill), dry ground just
+ *  short of the water, with the bearing toward it; world.ts beaches his boat beside him */
+export const FISH_SPOT: [number, number, number] | null = (() => {
+  const hits: [number, number][] = [];
+  for (let k = 0; k < 120; k++) {
+    const a = (k / 120) * Math.PI * 2;
+    for (let r = 60; r < 260; r += 3) {
+      if (mapWater(Math.cos(a) * r, Math.sin(a) * r) > 0.5) {
+        hits.push([a, r]);
+        break;
+      }
+    }
+  }
+  hits.sort((p, q) => p[1] - q[1]);
+  const first = hits[0];
+  const pick = hits.find((h) => first && Math.abs(Math.atan2(Math.sin(h[0] - first[0]), Math.cos(h[0] - first[0]))) > 0.35);
+  if (!pick) return null;
+  const [a, r] = pick;
+  for (let k = 3; k < 30; k++) {
+    const x = Math.cos(a) * (r - k), z = Math.sin(a) * (r - k);
+    if (mapWater(x, z) < 0.02) return [x, z, a];
+  }
+  return null;
+})();
 export const FOLK: Folk[] = (() => {
   const out: Folk[] = [];
   const by = (kind: PlaceKind) => PLACES.find((p) => p.kind === kind)!;
@@ -249,6 +274,31 @@ export const FOLK: Folk[] = (() => {
   for (const [name, model, r, lines, cry] of STROLL) {
     const [x, z] = street(r);
     out.push({ name, model, x, z, walk: 11, lines, cry });
+  }
+  // the old fisherman on the bank by his boat
+  if (FISH_SPOT) {
+    const [x, z] = FISH_SPOT;
+    out.push({ name: '渔翁 · 老钓', model: 'npc-fisherman.glb', x, z, lines: ['钓鱼要有耐心，报仇也是。', '这河一直流到永安城，朝廷的人喝的也是这水。', '前些年河里漂下来一面七家的旗子，我捞起来藏好了。'], cry: ['鲜鱼！刚钓上来的鲜鱼！', '鱼咬钩咯～'] });
+  }
+  // 永安城 · 朝廷 and the street outside its gate (court.ts)
+  const COURT: [string, string, number, number, number | undefined, string[], string[]?][] = [
+    ['宫门禁军', 'npc-palaceguard.glb', -5, WALL_FRONT + 19, undefined, ['站住！……哦，进去吧，别乱跑。', '宫门卯时开，酉时闭。', '天阙那位下了旨：凡是从青石村来的，都要盘问。我没看见你。'], ['宫门重地，闲人回避！']],
+    ['宫门禁军', 'npc-palaceguard.glb', 5, WALL_FRONT + 19, undefined, ['你身上有血腥味。别在宫里惹事。', '我从小在这宫门口站岗，站了十年了。', '将军今天心情不好，别去惹他。']],
+    ['镇国大将军 · 霍铮', 'npc-general.glb', -22, 6, 6, ['我带兵打过七家的人。打完才知道，他们护着的是天下。', '要是有一天你上了天阙，替我向那个人问一句：值得吗？', '朝廷的兵不敢上天阙。不是怕死，是不知道该向谁拔刀。'], ['列阵！……唉，练兵也没用。']],
+    ['长公主 · 萧清徽', 'npc-princess.glb', 24, -14, 7, ['皇兄从前不是这样的。他是为了救一个人，才去了天阙。', '你是守阙人的孩子？……我认得这块玉。', '宫里的花一年四季都开，可我更想看看青石村的杏花。']],
+    ['宫女 · 小荷', 'npc-maid.glb', 28, -10, 5, ['公主又在发呆了，她一发呆就是一下午。', '我是从南边卖进宫的，好多年没回家了。', '冯公公来了！快走快走。']],
+    ['宫女 · 碧桃', 'npc-maid.glb', -26, -18, 8, ['御花园的仙鹤又跑出来了。', '听说外头集上有糖葫芦，你能给我捎一串吗？', '嘘，这里说话要小声。'], ['公主，该用膳了～']],
+    ['御医 · 钱济生', 'npc-doctor.glb', 40, 30, 4, ['丞相大人的病，是心病，药治不好。', '你脉象虽乱，底子却好，像练过天阙的心法。', '宫里人人有病，就是没人肯说。']],
+    ['女冠 · 玄素', 'npc-nun.glb', -38, 32, 4, ['鼓楼的鼓一响，就是天阙出事了。三年前响过一次。', '七家散了，道还在。', '你命里有一座山，你会上去，也会下来。']],
+    ['击鼓鸣冤的老汉', 'npc-oldman.glb', 31, 32, undefined, ['我儿子被伪……被朝廷的兵抓去修天阙的台阶，一年了，没回来。', '这鼓我敲了三个月，没人出来过。', '你要是上天阙，帮我找找他，他叫王小石。'], ['冤枉啊！青天大老爷！']],
+    ['卖艺的 · 红绫', 'npc-dancer.glb', 6, 86, 6, ['看一看瞧一瞧，红绫姑娘的绸子舞！', '我在京城跳，在县里跳，哪里有钱哪里跳。', '那个戴斗笠的剑客，天天来看我跳舞，又不给钱。'], ['好！再来一个！', '红绫起舞，看官赏钱～']],
+    ['游侠 · 沈孤', 'npc-swordsman.glb', -9, 92, 5, ['剑是用来护人的，不是用来杀人的。我这么说，你信吗？', '天阙？我去过一次，没敢进门。', '我在等一个人，等了很多年。'], undefined],
+    ['胭脂铺 · 柳嫂', 'npc-merchantwoman.glb', -16, 100, 3, ['宫里的娘娘们都用我家的胭脂。', '大侠买一盒送心上人？', '公主最喜欢桃花色的。'], ['上好的胭脂水粉，宫里同款！']],
+    ['顽童 · 狗蛋', 'npc-kid2.glb', 2, 104, 12, ['略略略，你抓不到我！', '我长大要当大将军！', '那个跳舞的姐姐是我姐。'], ['冲啊！']],
+  ];
+  for (const [name, model, lx, lz, walk, lines, cry] of COURT) {
+    const [x, z] = ctWorld(lx, lz);
+    out.push({ name, model, x, z, walk, lines, cry });
   }
   return out;
 })();

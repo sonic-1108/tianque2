@@ -1,5 +1,6 @@
 // On-screen: health and inner strength, level and experience, the six-slot bar with cooldowns, the target, messages,
 // a minimap. Reads the sim ten times a second.
+import { CT_POS } from '../game/court';
 import { ERA, SEASONS, weatherName } from '../game/clock';
 import { useEffect, useRef } from 'react';
 import type { Sim } from '../game/sim';
@@ -86,6 +87,11 @@ function Minimap({ sim }: { sim: Sim }) {
         g.fillStyle = '#5a2a10';
         g.fillText(MARK[pl.kind]!, X(pl.x) - 4.5, Z(pl.z) + 3.5);
       }
+      // the court
+      g.fillStyle = '#c8322a';
+      g.fillRect(X(CT_POS[0]) - 6, Z(CT_POS[1]) - 6, 12, 12);
+      g.fillStyle = '#ffe9a8';
+      g.fillText('朝', X(CT_POS[0]) - 4.5, Z(CT_POS[1]) + 3.5);
       const qt = questTarget(sim);
       if (qt) {
         // the quest target: a gold star (pinned to the edge when it's off this window)
