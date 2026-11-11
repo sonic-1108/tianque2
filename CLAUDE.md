@@ -79,7 +79,8 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   hours: `planFor` says where (spot, evening spot, home door, nearest shelter in rain or snow) and what (`act`, shown
   in the talk hint and dialog); at home they're `away` (hidden, not talked to). Sim `live()` walks them there (a
   sidestep when blocked; out of the player's sight they're simply there; a trip over 50 s snaps when nobody's near).
-  Festivals change hours (元宵 keeps the market open at night). Story folk (秀兰, 铁匠, 杏娘, healers, guards) have no
+  Festivals change hours (元宵 keeps the market open at night). `MORE` (places.ts) adds villagers, the 戏班 and a market crowd; `TRAVEL` folk
+  have life `road` and a `route` of two road points: they walk legs by day and lodge at the nearest inn at night. Story folk (秀兰, 铁匠, 杏娘, healers, guards) have no
   life, so quests can always find them. Folk also remark on weather, season, festival and your deeds (`worldRemark`).
 - 江湖志 (J): `sim.chronicle` writes the seasons, festivals, first snow, storms, chapters, bosses beaten and level
   milestones with their dates; saved with the world clock. Festival dressing in render/Festive.tsx (lanterns, fireworks).
