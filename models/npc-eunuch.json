@@ -1,0 +1,8 @@
+{
+  "name": "npc-eunuch",
+  "kind": "biped",
+  "prompt": "A thin ancient Chinese palace eunuch in a dark green robe with a red sash, a black soft cap, a smooth beardless face with a sly smile, stylized realistic game character, nothing in his hands",
+  "task": "bd730e6a-5084-4f86-87ea-71461f7a3f14",
+  "faces": 12000,
+  "credits": 75
+}
