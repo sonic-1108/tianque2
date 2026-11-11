@@ -1,8 +1,8 @@
 {
   "name": "npc-girl",
   "kind": "biped",
-  "prompt": "A cheerful little Chinese girl about eight years old with two round hair buns tied with red ribbons, a red padded jacket and green trousers, ancient China, stylized realistic game character, nothing in her hands",
-  "task": "1cd9c0d0-0ae4-4522-8b5d-8cc1ec5f0a33",
+  "prompt": "A realistic Chinese village girl about eight years old with realistic child proportions, hair in two small buns, a faded red cotton jacket and green trousers, cloth shoes, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "e4b7dd63-325c-4879-a9f4-e8616d252e08",
   "faces": 12000,
   "credits": 75
 }
