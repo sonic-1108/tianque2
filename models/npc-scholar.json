@@ -1,8 +1,8 @@
 {
   "name": "npc-scholar",
   "kind": "biped",
-  "prompt": "A thin young Chinese scholar in a pale blue long robe with wide sleeves, a black soft cloth cap, a jade pendant at the belt, ancient China, stylized realistic game character, nothing in his hands",
-  "task": "4fd5a465-b09f-4c9b-8455-eddd610933a8",
+  "prompt": "A slim young Chinese scholar in a long pale blue-grey robe with a dark sash, a black cloth scholar cap, a thin face with a neat small moustache, cloth shoes, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "3ed7fdb4-9d4f-438d-a2d8-4fc8d9398ba2",
   "faces": 12000,
   "credits": 75
 }
