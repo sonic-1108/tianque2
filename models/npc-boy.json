@@ -1,8 +1,8 @@
 {
   "name": "npc-boy",
   "kind": "biped",
-  "prompt": "A mischievous little Chinese boy about seven with a shaved head and one tuft of hair, a blue jacket and patched trousers, barefoot, ancient China, stylized realistic game character, nothing in his hands",
-  "task": "11558824-b671-48b1-9890-6a79e8c4d922",
+  "prompt": "A realistic Chinese village boy about ten years old with realistic child proportions, a shaved head with a small tuft, a faded blue cotton jacket and black trousers, cloth shoes, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "47e1e4fd-a90b-4a22-bf36-81e08a0b8af6",
   "faces": 12000,
   "credits": 75
 }
