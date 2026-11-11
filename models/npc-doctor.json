@@ -1,0 +1,8 @@
+{
+  "name": "npc-doctor",
+  "kind": "biped",
+  "prompt": "A gentle middle-aged ancient Chinese physician in a grey-green long robe, a small cloth cap, a neat long black beard, a cloth medicine bag over the shoulder, stylized realistic game character, nothing in his hands",
+  "task": "fe5e7e95-51bc-4d96-baf2-e8d40359cb93",
+  "faces": 12000,
+  "credits": 75
+}
