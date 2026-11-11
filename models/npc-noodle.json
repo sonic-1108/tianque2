@@ -1,8 +1,8 @@
 {
   "name": "npc-noodle",
   "kind": "biped",
-  "prompt": "A cheerful plump middle-aged Chinese street noodle vendor from ancient China, white cloth headband, rolled-up sleeves, apron over a faded blue cotton tunic and trousers, cloth shoes, stylized realistic game character",
-  "task": "b0521cfb-35fd-4fd2-9e0e-b124cd01e82a",
+  "prompt": "A plump middle-aged Chinese street noodle cook with a round face and stubble, a white cloth headband, a faded blue cotton jacket with a stained apron, rolled sleeves, cloth shoes, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "a26fd65f-77aa-4097-b1ba-5ab1e72d0875",
   "faces": 12000,
   "credits": 75
 }
