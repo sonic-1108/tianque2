@@ -1,8 +1,8 @@
 {
   "name": "npc-maid",
   "kind": "biped",
-  "prompt": "A young ancient Chinese palace maid in a pale green and white simple hanfu dress, hair in two buns tied with ribbons, stylized realistic game character, nothing in her hands",
-  "task": "bedf362f-cb20-4dc4-ac85-9c798d4d9fe6",
+  "prompt": "A young Chinese palace maid in a pale green and white simple hanfu dress, hair in two buns tied with green ribbons, a modest gentle face, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "d81c4503-04b5-4ff6-bfe7-54375610c581",
   "faces": 12000,
   "credits": 75
 }
