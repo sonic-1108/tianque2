@@ -1,8 +1,8 @@
 {
   "name": "npc-novice",
   "kind": "biped",
-  "prompt": "A young bald Buddhist novice monk about twelve years old in a saffron and brown robe, prayer beads around the neck, ancient China, stylized realistic game character, nothing in his hands",
-  "task": "bbc9830a-3079-4d18-b536-2e7646618de0",
+  "prompt": "A young Chinese Buddhist novice monk about fifteen years old with a shaved head, a plain grey monk robe and wooden prayer beads, straw sandals, a gentle face, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "7406045f-12bc-4131-9acf-2c2a8ddb69f7",
   "faces": 12000,
   "credits": 75
 }
