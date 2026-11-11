@@ -1,8 +1,8 @@
 {
   "name": "npc-fisherman",
   "kind": "biped",
-  "prompt": "An old weathered Chinese fisherman with a straw rain cape over his shoulders, a conical bamboo hat, rolled up trousers, bare feet, white stubble, sun-darkened skin, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
-  "task": "35930f86-a1a8-4a32-a594-4fc5053cd8b5",
+  "prompt": "An old weathered Chinese fisherman with a brown woven straw rain cape over his shoulders, a yellow conical bamboo hat, a faded indigo blue cotton tunic, rolled up brown trousers, bare feet, white stubble, sun-tanned skin, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, natural colours, worn fabric with realistic folds and stitching, fully painted colour texture, nothing in the hands",
+  "task": "8ce58812-cc60-4180-b84d-8635b463f2c9",
   "faces": 12000,
   "credits": 75
 }
