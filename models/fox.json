@@ -1,0 +1,8 @@
+{
+  "name": "fox",
+  "kind": "quadruped",
+  "prompt": "A red fox with a bushy white-tipped tail, stylized realistic game animal, standing on four legs",
+  "task": "ea61b63b-e6bb-424d-b730-1b0164888cac",
+  "faces": 12000,
+  "credits": 65
+}
