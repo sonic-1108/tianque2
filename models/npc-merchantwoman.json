@@ -1,8 +1,8 @@
 {
   "name": "npc-merchantwoman",
   "kind": "biped",
-  "prompt": "A plump cheerful ancient Chinese merchant woman in a rich purple jacket and dark skirt, gold earrings, hair in a neat bun with a jade pin, stylized realistic game character, nothing in her hands",
-  "task": "9d021cf5-caec-41f9-bb7f-d492b322348e",
+  "prompt": "A plump middle-aged Chinese merchant woman in a dark purple padded jacket and dark skirt, gold earrings, hair in a neat bun with a jade pin, a shrewd smile, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "392b12e0-4cd4-4f8c-a6a9-21a94fa79bd7",
   "faces": 12000,
   "credits": 75
 }
