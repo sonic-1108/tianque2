@@ -1,8 +1,8 @@
 {
   "name": "npc-lady",
   "kind": "biped",
-  "prompt": "An elegant young Chinese lady in a flowing pink and white silk hanfu dress, hair up with a golden hairpin and flowers, ancient China, stylized realistic game character, nothing in her hands",
-  "task": "261810cb-9f41-4364-b68c-bf7d5734738b",
+  "prompt": "An elegant Chinese silk merchant woman in her thirties in a muted rose and cream layered hanfu, hair in a neat high bun with a jade hairpin, calm composed face, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "cf76ac88-aec6-4a4d-a3f0-5a4c2cc92350",
   "faces": 12000,
   "credits": 75
 }
