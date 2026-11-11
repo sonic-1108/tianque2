@@ -1,0 +1,8 @@
+{
+  "name": "npc-beggar",
+  "kind": "biped",
+  "prompt": "A ragged old Chinese beggar with messy grey hair and beard, a patched faded robe tied with a rope, a gourd hanging at his belt, barefoot, ancient China, stylized realistic game character, nothing in his hands",
+  "task": "bb164598-1146-4db0-9613-ca145e49e4d5",
+  "faces": 12000,
+  "credits": 75
+}
