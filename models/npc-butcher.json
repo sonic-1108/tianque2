@@ -1,8 +1,8 @@
 {
   "name": "npc-butcher",
   "kind": "biped",
-  "prompt": "A big burly bald Chinese butcher with a thick black beard, a sleeveless vest and a stained leather apron, strong arms, ancient China, stylized realistic game character, nothing in his hands",
-  "task": "a065e420-fcc9-49e1-bea2-9fae82e3cb80",
+  "prompt": "A burly bald Chinese butcher and weapon seller with a thick black beard, a sleeveless brown leather vest over a bare muscular chest, a leather apron, thick arms, a scar on his cheek, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "1e9e4423-08fc-476a-8d02-06eeee47e305",
   "faces": 12000,
   "credits": 75
 }
