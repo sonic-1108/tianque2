@@ -36,7 +36,7 @@ concurrency:
 jobs:
   make:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,12 +59,17 @@ jobs:
           case "$KIND" in prop|biped|quadruped) ;; *) echo "bad kind"; exit 1 ;; esac
           # keys only work on their own region's server
           if [ "$REGION" = cn ]; then API=https://openapi.tripo3d.com/v3; else API=https://openapi.tripo3d.ai/v3; fi
-          post() { # path body -> task id
-            local res id
-            res=$(curl -sS -X POST "$API/$1" -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' -d "$2")
-            id=$(echo "$res" | jq -r '.data.task_id // empty')
-            [ -n "$id" ] || { echo "create $1 failed: $(echo "$res" | jq -c 'del(.data.output)')" >&2; exit 1; }
-            echo "$id"
+          post() { # path body -> task id; Tripo caps how many run at once (code 2000): wait and queue up again
+            local res id code
+            for i in $(seq 1 90); do
+              res=$(curl -sS -X POST "$API/$1" -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' -d "$2")
+              id=$(echo "$res" | jq -r '.data.task_id // empty')
+              [ -n "$id" ] && { echo "$id"; return 0; }
+              code=$(echo "$res" | jq -r '.code // ""')
+              if [ "$code" = 2000 ]; then echo "  busy, waiting ($i)" >&2; sleep $((25 + RANDOM % 20)); continue; fi
+              echo "create $1 failed: $(echo "$res" | jq -c 'del(.data.output)')" >&2; exit 1
+            done
+            echo "create $1: still busy after an hour" >&2; exit 1
           }
           wait_task() { # id -> task json (on success)
             local t st
