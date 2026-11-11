@@ -2,8 +2,8 @@
 // Pure logic. One game day is DAY_S real seconds; a season is SEASON_DAYS days; the year turns with them.
 // The clock and the weather keep going between visits (saved in localStorage `tq2_world_v1`).
 
-export const DAY_S = 1800; // half an hour a day (the owner found ten minutes too quick)
-export const SEASON_DAYS = 3;
+export const DAY_S = 900; // a quarter hour a day (owner: ten minutes too quick, thirty too slow)
+export const SEASON_DAYS = 2; // a season lasts half an hour (owner)
 export const YEAR_DAYS = SEASON_DAYS * 4;
 export const SEASONS = ['春', '夏', '秋', '冬'] as const;
 export type Season = 0 | 1 | 2 | 3;
@@ -11,16 +11,16 @@ export type Season = 0 | 1 | 2 | 3;
 export const ERA = '承乾';
 /** the twelve two-hour watches, from 子 (23 to 1) */
 const SHICHEN = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-/** the 24 solar terms, from 立春: two per game day */
+/** the 24 solar terms, from 立春: three per game day */
 const TERMS = ['立春', '雨水', '惊蛰', '春分', '清明', '谷雨', '立夏', '小满', '芒种', '夏至', '小暑', '大暑', '立秋', '处暑', '白露', '秋分', '寒露', '霜降', '立冬', '小雪', '大雪', '冬至', '小寒', '大寒'];
 /** festivals by day of the year (a day each) */
 export const FESTIVALS: Record<number, { name: string; note: string }> = {
   0: { name: '春节', note: '家家贴春联，放爆竹，村里吃团圆饭。' },
   1: { name: '元宵灯会', note: '入夜满街花灯，青石集猜灯谜。' },
-  4: { name: '端午', note: '河边赛龙舟，门上挂艾草，人人吃粽子。' },
-  7: { name: '中秋', note: '月圆之夜，吃月饼，赏月，想家。' },
-  8: { name: '重阳', note: '登高望远，插茱萸，敬老人。' },
-  10: { name: '冬至', note: '冬至大如年，家家包饺子。' },
+  2: { name: '端午', note: '河边赛龙舟，门上挂艾草，人人吃粽子。' },
+  4: { name: '中秋', note: '月圆之夜，吃月饼，赏月，想家。' },
+  5: { name: '重阳', note: '登高望远，插茱萸，敬老人。' },
+  7: { name: '冬至', note: '冬至大如年，家家包饺子。' },
 };
 
 export interface ClockInfo {
@@ -51,7 +51,7 @@ export function clockOf(t: number): ClockInfo {
   const yday = ((day % YEAR_DAYS) + YEAR_DAYS) % YEAR_DAYS;
   const season = Math.floor(yday / SEASON_DAYS) as Season;
   const seasonT = (yday - season * SEASON_DAYS + hour / 24) / SEASON_DAYS;
-  const term = TERMS[Math.min(23, Math.floor((yday + hour / 24) * 2))];
+  const term = TERMS[Math.min(23, Math.floor(((yday + hour / 24) * 24) / YEAR_DAYS))];
   // the sun is up from 6 to 18 (a little longer in summer, shorter in winter)
   const len = [12, 13.5, 12, 10.5][season];
   const rise = 12 - len / 2;

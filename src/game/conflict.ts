@@ -132,7 +132,7 @@ export function shiftDread(s: Sim, by: number) {
 export function stepWar(s: Sim, dt: number) {
   const W = s.war, c = s.clock, p = s.player;
   // it creeps up by itself: about a tier every four days
-  shiftDread(s, (9 * dt) / DAY_S);
+  shiftDread(s, (6 * dt) / DAY_S);
   const tier = TIERS.filter((t) => W.dread >= t.at).length;
   if (tier !== W.lastTier) {
     const t = tier > W.lastTier ? TIERS[tier - 1].up : TIERS[tier].down;
