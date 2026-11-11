@@ -205,7 +205,7 @@ export class Sim {
         if (w.p?.id) this.policy = w.p;
         if (w.war) {
           const W = this.war;
-          if (typeof w.war.d === 'number') W.dread = w.war.d;
+          if (typeof w.war.d === 'number') W.dread = w.war.v2 ? w.war.d : Math.max(w.war.d, 30);
           W.after = w.war.a ?? null;
           W.lastTier = w.war.lt ?? 0;
           W.raidDay = w.war.rd ?? -1;
@@ -942,7 +942,7 @@ export class Sim {
     if ((this.worldSaveT -= dt) <= 0) {
       this.worldSaveT = 10;
       try {
-        localStorage.setItem('tq2_world_v1', JSON.stringify({ t: this.worldT, w: this.weather, c: this.chronicle.slice(-200), m: this.marks, p: this.policy, war: { d: this.war.dread, a: this.war.after, lt: this.war.lastTier, rd: this.war.raidDay, pd: this.war.posts.map((p) => p.down) } }));
+        localStorage.setItem('tq2_world_v1', JSON.stringify({ t: this.worldT, w: this.weather, c: this.chronicle.slice(-200), m: this.marks, p: this.policy, war: { v2: 1, d: this.war.dread, a: this.war.after, lt: this.war.lastTier, rd: this.war.raidDay, pd: this.war.posts.map((p) => p.down) } }));
       } catch {}
     }
     {
@@ -1288,9 +1288,10 @@ export class Sim {
     const pInVillage = Math.hypot(p.pos[0], p.pos[2]) < VILLAGE_R + 10;
     const mode = (f as any).mode;
     if (mode === 'raid') f.aggro = p.hp > 0 && this.indoor < 0 && d < 22;
+    else if (mode === 'hunt') f.aggro = p.hp > 0 && this.indoor < 0 && d < 160;
     else if (mode) {
       if (p.hp <= 0 || pFromHome > 60 || this.indoor >= 0) f.aggro = false;
-      else if (d < 17) f.aggro = true;
+      else if (d < 24) f.aggro = true;
     } else if (p.hp <= 0 || pInVillage || pFromHome > DEN_R + 28 || fromHome > 38) f.aggro = false;
     else if (d < 15 && pFromHome < DEN_R + 16) f.aggro = true;
     let wx = 0;

@@ -100,7 +100,11 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   r 330), 60 天阙税 (prices x1.2), 80 the dark. Every third night (`raidNight`) raiders warn at dusk and fall on
   青石村 at 21:00 in three waves; unopposed raiders at the house doors burn the village (bar on the HUD); won:
   next day a feast (half price) and a title; lost: the stalls stay shut a day. Folk run indoors during a raid.
-  The men come from benched pools (`makePools`, `mode` patrol / post / raid in the bandit AI). Test: scratch war.mts.
+  The men come from benched pools (`makePools`, `mode` patrol / post / raid / hunt in the bandit AI). Test: scratch war.mts.
+- 追杀 (owner: something must come for you): out on the land (not the village, the court plain, a room) a band of
+  three runs at you from behind every two or three minutes (faster at night and as 声势 grows): 截道的山贼 by day,
+  夜行刺客 by night, 金甲卫 from 声势 40. Wipe them for coins; get 140 m away or into the village and they go.
+  声势 now starts at 30 (old saves raised to 30 once, `war.v2`), raids every other night (and the first evening).
 - Townsfolk style (owner's rule): realistic like the heroes (portraits/), never cartoon. Tripo prompts end with the
   realistic style line and the workflow's `negative` input (cartoon, chibi, stylized, big head ...).
 

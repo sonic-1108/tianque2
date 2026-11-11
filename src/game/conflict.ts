@@ -11,8 +11,10 @@ import { FOE_KINDS, type FoeKind } from './foes';
 import { groundHeight, VILLAGE_R } from './world';
 import { earn, giveXp } from './play';
 import { ROOMS } from './interiors';
+import { nearCourt } from './court';
+const nearCourtPlain = (x: number, z: number) => nearCourt(x, z, 140);
 
-export const DREAD_START = 15;
+export const DREAD_START = 30;
 /** what it brings at each step */
 export const TIERS: { at: number; up: string; down: string }[] = [
   { at: 20, up: '伪朝禁军开始沿驿道巡逻，见了带刀的就拦。', down: '驿道上的伪朝巡逻少了。' },
@@ -62,14 +64,18 @@ export interface War {
   posts: Post[];
   raid: Raid | null;
   /** pools of benched fighters */
-  pool: { patrol: number[]; post: number[]; raid: number[] };
+  pool: { patrol: number[]; post: number[]; raid: number[]; hunt: number[] };
+  /** 追杀: the band hunting you now, the countdown to the next, how many came */
+  hunt: { ids: number[]; t: number; kind: string } | null;
+  huntT: number;
+  hunts: number;
   /** what the market does on a given day after a raid: 'shut' (burned) or 'feast' (saved) */
   after: { day: number; kind: 'shut' | 'feast' } | null;
   lastTier: number;
   raidDay: number;
 }
 export function newWar(): War {
-  return { dread: DREAD_START, patrols: [], posts: POST_ROADS.map(() => ({ ids: [], active: false, down: 0 })), raid: null, pool: { patrol: [], post: [], raid: [] }, after: null, lastTier: 0, raidDay: -1 };
+  return { dread: DREAD_START, patrols: [], posts: POST_ROADS.map(() => ({ ids: [], active: false, down: 0 })), raid: null, pool: { patrol: [], post: [], raid: [], hunt: [] }, after: null, lastTier: 0, raidDay: -1, hunt: null, huntT: 50, hunts: 0 };
 }
 /** the benched men, made once with the sim */
 export function makePools(s: Sim) {
@@ -87,9 +93,12 @@ export function makePools(s: Sim) {
   for (let k = 0; k < 12; k++) W.pool.post.push(bench(GUARD(), '关卡禁军'));
   const raiders = [FOE_KINDS[0], FOE_KINDS[0], FOE_KINDS[1], FOE_KINDS[0], FOE_KINDS[3], FOE_KINDS[0], FOE_KINDS[1], FOE_KINDS[3], FOE_KINDS[0], FOE_KINDS[0]];
   for (const k of raiders) W.pool.raid.push(bench(k, '劫村的' + k.name));
+  // the hunters: bandits who stop you on the road, assassins in the dark, the false court's 金甲卫
+  for (const k of [FOE_KINDS[0], FOE_KINDS[0], FOE_KINDS[1], FOE_KINDS[3], FOE_KINDS[3], FOE_KINDS[3]]) W.pool.hunt.push(bench(k, k.name));
+  for (let k = 0; k < 3; k++) W.pool.hunt.push(bench(GUARD(), '金甲卫'));
 }
 /** calls a benched man up: his name, his level, where he stands, what he's doing */
-function call(s: Sim, id: number, name: string, level: number, x: number, z: number, mode: 'patrol' | 'post' | 'raid', hpMul = 0.85) {
+function call(s: Sim, id: number, name: string, level: number, x: number, z: number, mode: 'patrol' | 'post' | 'raid' | 'hunt', hpMul = 0.85) {
   const f = s.fighters[id];
   const a = f as any;
   f.name = name;
@@ -135,7 +144,7 @@ export function stepWar(s: Sim, dt: number) {
   const want = patrolsFor(W.dread);
   while (W.patrols.length < want) {
     const k = W.patrols.length;
-    W.patrols.push({ road: PATROL_ROADS[k], r: 200 + k * 60, dir: 1, ids: [], down: 0 });
+    W.patrols.push({ road: PATROL_ROADS[k], r: 140 + k * 70, dir: 1, ids: [], down: 0 });
   }
   W.patrols.forEach((pt, k) => {
     const active = k < want;
@@ -156,7 +165,7 @@ export function stepWar(s: Sim, dt: number) {
     if (!pt.ids.length) {
       // they march out (far from where you are, so nobody pops up before your eyes)
       const [x, z] = roadPoint(pt.road, pt.r);
-      if (near(s, x, z, 90)) return;
+      if (near(s, x, z, 70)) return;
       pt.ids = W.pool.patrol.slice(k * 3, k * 3 + 3);
       pt.ids.forEach((id, j) => call(s, id, j === 0 ? '伪朝巡逻队长' : '伪朝巡逻', lvl + (j === 0 ? 2 : 0) + Math.floor(W.dread / 30), x, z, 'patrol', j === 0 ? 1.2 : 0.85));
     }
@@ -164,7 +173,7 @@ export function stepWar(s: Sim, dt: number) {
     const fighting = pt.ids.some((id) => s.fighters[id].aggro && s.fighters[id].hp > 0);
     if (!fighting) {
       pt.r += pt.dir * 1.5 * dt;
-      if (pt.r > 470 || pt.r < 170) pt.dir *= -1;
+      if (pt.r > 470 || pt.r < 120) pt.dir *= -1;
     }
     const [x, z] = roadPoint(pt.road, pt.r);
     const [x2, z2] = roadPoint(pt.road, pt.r + pt.dir);
@@ -208,18 +217,20 @@ export function stepWar(s: Sim, dt: number) {
       po.ids = [];
     }
   });
-  // ---- the night raid on 青石村: every third night, warned at dusk
+  // ---- the night raid on 青石村: every other night, warned at dusk
   stepRaid(s, dt, c, p);
+  stepHunt(s, dt);
 }
 
 /** the houses' doors: where the raiders go to set fires */
 const DOORS = ROOMS.filter((r) => r.theme !== 'tavern' && r.theme !== 'inn' && r.theme !== 'shrine' && r.theme !== 'teahouse' && r.theme !== 'throne' && Math.hypot(r.door[0], r.door[1]) < 40).map((r) => r.door);
-export const raidNight = (day: number) => day % 3 === 2;
+export const raidNight = (day: number) => day % 2 === 1;
 function stepRaid(s: Sim, dt: number, c: Sim['clock'], p: Fighter) {
   const W = s.war;
   const R = W.raid;
   if (!R) {
-    if (!raidNight(c.day) || W.raidDay === c.day) return;
+    // every other night; and the first evening you're about, whatever night it is
+    if ((!raidNight(c.day) && W.raidDay >= 0) || W.raidDay === c.day) return;
     if (c.hour >= 17.5 && c.hour < 21) {
       W.raid = { stage: 'warned', wave: 0, waveT: 0, ids: [], hp: 100, road: [2, 3, 5, 6][c.day % 4], t: 0 };
       W.raidDay = c.day;
@@ -311,3 +322,63 @@ export function warPrice(s: Sim) {
 /** the market is shut the day after the village burned; everyone hides while raiders are in it */
 export const marketShut = (s: Sim) => s.war.after?.day === s.clock.day && s.war.after.kind === 'shut';
 export const raidOn = (s: Sim) => s.war.raid?.stage === 'on';
+
+// ---------------------------------------------------------------- 追杀: they come for you
+const HUNTS = {
+  road: { say: '有人从林子里窜出来：“此山是我开！留下买路钱！”', ids: [0, 1, 2], names: ['截道的山贼', '截道的山贼', '截道的女飞贼'] },
+  dark: { say: '黑暗里刀光一闪……有人要你的命！', ids: [3, 4, 5], names: ['夜行刺客', '夜行刺客', '夜行刺客'] },
+  court: { say: '金甲卫：“奉旨缉拿守阙人余孽！拿下！”', ids: [6, 7, 8], names: ['金甲卫', '金甲卫', '金甲卫统领'] },
+} as const;
+/** out on the land (not in the village, the court, a room, a raid or a bout) nobody's safe for long */
+function exposed(s: Sim) {
+  const p = s.player.pos;
+  return s.player.hp > 0 && s.indoor < 0 && !s.spar && !s.war.raid && Math.hypot(p[0], p[2]) > VILLAGE_R + 25 && !nearCourtPlain(p[0], p[2]) && s.dialog < 0 && !s.game;
+}
+function stepHunt(s: Sim, dt: number) {
+  const W = s.war, p = s.player;
+  const H = W.hunt;
+  if (H) {
+    H.t += dt;
+    const live = alive(s, H.ids);
+    const far = live.every((id) => s.fighters[id].pos && Math.hypot(s.fighters[id].pos[0] - p.pos[0], s.fighters[id].pos[2] - p.pos[2]) > 140);
+    if (!live.length) {
+      W.hunt = null;
+      W.huntT = 120 + Math.random() * 90;
+      shiftDread(s, -2);
+      earn(s, 25, '杀退了追兵！');
+      s.chron(H.kind === 'court' ? '你杀退了来缉拿你的金甲卫。' : H.kind === 'dark' ? '夜里有刺客来取你性命，被你反杀了。' : '你在路上打退了一伙截道的山贼。', H.kind === 'court' ? '听说朝廷……不，天阙那边派人抓你，全让你打跑了！' : undefined);
+    } else if (far || !exposed(s) && H.t > 8 || H.t > 150) {
+      // you got away (or into safety): they melt back into the land
+      for (const id of live) bench(s, id);
+      W.hunt = null;
+      W.huntT = 90 + Math.random() * 60;
+      if (far) s.toast('你甩掉了追兵。');
+    }
+    return;
+  }
+  if (!exposed(s)) return;
+  // the countdown runs faster at night and as the false court grows bolder
+  const rate = (s.clock.night ? 1.6 : 1) * (1 + W.dread / 100);
+  W.huntT -= dt * rate;
+  if (W.huntT > 0) return;
+  const kind: keyof typeof HUNTS = W.dread >= 40 && Math.random() < 0.4 ? 'court' : s.clock.night ? 'dark' : 'road';
+  const h = HUNTS[kind];
+  const lvl = Math.max(2, s.progress.level);
+  // they come from behind you, out of sight, already running
+  const yaw = s.player.yaw;
+  const bx = -Math.sin(yaw), bz = -Math.cos(yaw);
+  const ids: number[] = [];
+  h.ids.forEach((pi, j) => {
+    const id = W.pool.hunt[pi];
+    const side = (j - 1) * 4;
+    const x = p.pos[0] + bx * 34 + bz * side, z = p.pos[2] + bz * 34 - bx * side;
+    const lead = j === 2 && kind === 'court';
+    const f = call(s, id, h.names[j], lvl + (lead ? 3 : j === 0 ? 1 : 0) + Math.floor(W.dread / 35), x, z, 'hunt' as any, lead ? 1.5 : 0.85);
+    f.aggro = true;
+    ids.push(id);
+  });
+  W.hunt = { ids, t: 0, kind };
+  W.hunts++;
+  s.toast(h.say);
+  s.say(s.fighters[ids[0]].pos[0], s.fighters[ids[0]].pos[1] + 2.6, s.fighters[ids[0]].pos[2], kind === 'court' ? '拿下！' : kind === 'dark' ? '……' : '站住！');
+}
