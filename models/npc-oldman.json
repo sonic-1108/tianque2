@@ -1,8 +1,8 @@
 {
   "name": "npc-oldman",
   "kind": "biped",
-  "prompt": "A very old ancient Chinese village elder with a long white beard and bald head, a brown patched robe, leaning slightly forward, stylized realistic game character, nothing in his hands",
-  "task": "c785f2d2-cdde-4eb6-a393-f1f186e45291",
+  "prompt": "A very old Chinese man with a long thin white beard and bald head, a patched brown cotton robe, leaning slightly forward, deeply wrinkled grieving face, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "6a7b6224-4d98-480d-9f83-046babe47ca7",
   "faces": 12000,
   "credits": 75
 }
