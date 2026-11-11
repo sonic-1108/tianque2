@@ -4,6 +4,7 @@
 // (world.ts adds them to BUILDINGS), so the camera stops at the walls and a bench is a step. Pure data: no imports
 // from world.ts (it imports this).
 import { ROADS } from './layout';
+import { TEAHOUSE, fit } from './props';
 import { PLACES, placeAt, type Place } from './places';
 import { FOLK, type Folk } from './places';
 
@@ -43,7 +44,7 @@ export interface Furn {
   z: number;
   ry?: number;
 }
-export type RoomTheme = 'elder' | 'hunter' | 'weaver' | 'herbalist' | 'carpenter' | 'scholar' | 'elders' | 'tavern' | 'inn' | 'shrine';
+export type RoomTheme = 'elder' | 'hunter' | 'weaver' | 'herbalist' | 'carpenter' | 'scholar' | 'elders' | 'tavern' | 'inn' | 'shrine' | 'teahouse';
 export interface Room {
   id: number;
   name: string;
@@ -149,6 +150,18 @@ const LAYOUT: Record<RoomTheme, { w: number; d: number; furn: Furn[]; floor?: 'p
       { k: 'screen', x: 2.4, z: -1, ry: Math.PI / 2 }, { k: 'bed', x: 4.8, z: -3.4 }, { k: 'bed', x: 4.8, z: 0.4 }, { k: 'chest', x: 3.6, z: 3.8 },
     ],
   },
+  // 清风茶楼: the storyteller's desk before a painted screen, tea tables all round, the tea counter and its caddies
+  teahouse: {
+    w: 14, d: 12,
+    furn: [
+      { k: 'screen', x: 0, z: -5.4 }, { k: 'desk', x: 0, z: -4.2 }, { k: 'counter', x: -4.2, z: -4.8 }, { k: 'jars', x: -4.2, z: -5.6 },
+      { k: 'shelf', x: 5.6, z: -2.4, ry: Math.PI / 2 },
+      ...[-3.8, 0, 3.8].flatMap((x) => [-0.6, 3].flatMap((z) => [
+        { k: 'table' as const, x, z }, { k: 'stool' as const, x: x - 0.9, z }, { k: 'stool' as const, x: x + 0.9, z },
+      ])),
+      { k: 'barrel', x: 6, z: 4.8 },
+    ],
+  },
   // 土地庙: the god on his plinth, the altar, lanterns, a fortune-stick table
   shrine: {
     w: 8, d: 8, floor: 'stone',
@@ -160,7 +173,7 @@ const LAYOUT: Record<RoomTheme, { w: number; d: number; furn: Furn[]; floor?: 'p
 const HOUSE_THEMES: RoomTheme[] = ['hunter', 'weaver', 'herbalist', 'carpenter', 'scholar', 'elders'];
 const HOUSE_NAMES: Record<RoomTheme, string> = {
   elder: '石伯家', hunter: '猎户韩家', weaver: '织娘柳家', herbalist: '药农孙家', carpenter: '木匠鲁家', scholar: '书生顾家', elders: '王家老两口',
-  tavern: '杏花酒肆', inn: '驿站', shrine: '土地庙',
+  tavern: '杏花酒肆', inn: '驿站', shrine: '土地庙', teahouse: '清风茶楼',
 };
 function villageHouses() {
   const out: { x: number; z: number; rot: number }[] = [];
@@ -181,7 +194,7 @@ export const ROOMS: Room[] = (() => {
     const L = LAYOUT[theme];
     const id = out.length;
     out.push({
-      id, name, theme, ox: BASE_X + (id % 6) * 40, oz: BASE_Z + Math.floor(id / 6) * 40, w: L.w, d: L.d, h: theme === 'tavern' ? 5.5 : 4.2,
+      id, name, theme, ox: BASE_X + (id % 6) * 40, oz: BASE_Z + Math.floor(id / 6) * 40, w: L.w, d: L.d, h: theme === 'tavern' || theme === 'teahouse' ? 5.5 : 4.2,
       door, doorYaw, furn: L.furn, floor: L.floor ?? 'plank', wall: L.wall ?? 'wall',
     });
   };
@@ -199,6 +212,11 @@ export const ROOMS: Room[] = (() => {
     if (p.kind === 'tavern') add('tavern', '杏花酒肆', front(p, 4.3), p.rot);
     if (p.kind === 'inn') add('inn', p.name, front(p, 3.9), p.rot);
     if (p.kind === 'shrine') add('shrine', '土地庙', front(p, 3.2), p.rot);
+  }
+  // the teahouse at the market's end: its door on the model's front, facing the street
+  {
+    const T = TEAHOUSE, g = fit(T.file, T.size), r = g.hz + 0.9;
+    add('teahouse', '清风茶楼', [T.x + Math.sin(T.rot) * r, T.z + Math.cos(T.rot) * r], T.rot);
   }
   return out;
 })();
@@ -250,32 +268,38 @@ export const ROOM_FOLK: (Folk & { room: number })[] = (() => {
         put('猎户 · 韩老三', 'berserker.glb', 0.6, -1, ['今年的鹿比往年少，林子里不太平。', '野猪发起疯来比山贼还凶，见了别硬碰。', '墙上那张狼皮？那头狼咬死了我家两条狗。'], { walk: 1.5 });
         break;
       case 'weaver':
-        put('织娘 · 柳三娘', 'ranger.glb', -2.4, -0.6, ['这匹是给县里绣庄的，三个月才织得出来。', '天阙还在的时候，七家的旗子都是我们柳家织的。', '你这身衣裳破成这样，脱下来我给你补补。']);
+        put('织娘 · 柳三娘', 'npc-lady.glb', -2.4, -0.6, ['这匹是给县里绣庄的，三个月才织得出来。', '天阙还在的时候，七家的旗子都是我们柳家织的。', '你这身衣裳破成这样，脱下来我给你补补。']);
         break;
       case 'herbalist':
-        put('药农 · 孙伯', 'dixian.glb', 1.4, 1.6, ['这是当归，那是川芎，别乱碰，有毒的也不少。', '慧明大师的药，一半是我从山上挖来的。', '雪线上有一种白花，听说能续断骨。我没敢去采。'], { walk: 1.5 });
+        put('药农 · 孙伯', 'npc-farmer.glb', 1.4, 1.6, ['这是当归，那是川芎，别乱碰，有毒的也不少。', '慧明大师的药，一半是我从山上挖来的。', '雪线上有一种白花，听说能续断骨。我没敢去采。'], { walk: 1.5 });
         break;
       case 'carpenter':
         put('木匠 · 鲁小斧', 'wanderer_m.glb', -1.6, -1.6, ['这把椅子是给石伯做的，他那把坐了三十年了。', '村口那座牌坊的木头是我爷爷换的。', '刨花别踩，滑。'], { walk: 1.2 });
         break;
       case 'scholar':
-        put('书生 · 顾青衫', 'wanderer_m.glb', -0.8, 0.6, ['"天阙在上，七家在下"，这句在县志里被人涂掉了，你说怪不怪？', '我考了三次都没中，不如在村里教孩子识字。', '这字帖是前朝的，你别碰墨。']);
+        put('书生 · 顾青衫', 'npc-scholar.glb', -0.8, 0.6, ['"天阙在上，七家在下"，这句在县志里被人涂掉了，你说怪不怪？', '我考了三次都没中，不如在村里教孩子识字。', '这字帖是前朝的，你别碰墨。']);
         break;
       case 'elders':
-        put('王婆婆', 'ranger.glb', -1.8, -1.6, ['孩子，吃了没？锅里还有粥。', '我家老头子年轻时给天阙挑过水呢。', '鸡又跑出去了，看见帮我赶回来。'], { walk: 1.2 });
+        put('王婆婆', 'npc-granny.glb', -1.8, -1.6, ['孩子，吃了没？锅里还有粥。', '我家老头子年轻时给天阙挑过水呢。', '鸡又跑出去了，看见帮我赶回来。'], { walk: 1.2 });
         put('王老汉', 'dixian.glb', 2.2, 1.4, ['咳咳，人老了，坐着都累。', '那年天阙的火，烧了三天三夜，山下都看得见。', '你像一个人……算了，老眼昏花。']);
         break;
       case 'tavern':
-        put('跑堂 · 小六子', 'wanderer_m.glb', 0.5, -3.4, ['客官里边请！要酒要菜您吩咐！', '掌柜的在外头招呼，里头有我。', '那桌划拳的已经喝了三坛了。'], { walk: 4 });
+        put('跑堂 · 小六子', 'npc-noodle.glb', 0.5, -3.4, ['客官里边请！要酒要菜您吩咐！', '掌柜的在外头招呼，里头有我。', '那桌划拳的已经喝了三坛了。'], { walk: 4 });
         put('赌客 · 钱八', 'trader.glb', -5.2, 0.2, ['押大押小？输了别哭。', '我上个月赢了一头牛，这个月输了两头。', '去去去，别挡我财路。']);
-        put('醉汉', 'berserker.glb', 3.2, 2, ['我……我当年一刀劈开过一块大石头！', '再来一坛！记账！', '天阙？天阙早没了……嗝。']);
-        put('卖唱的 · 阿萝', 'ranger.glb', 5.6, -1.2, ['客官想听哪一曲？《雪夜归》还是《七家谣》？', '"七家散，天阙寒，钟不鸣，人不还……"', '赏几个铜板吧，唱得口都干了。']);
+        put('醉汉', 'npc-beggar.glb', 3.2, 2, ['我……我当年一刀劈开过一块大石头！', '再来一坛！记账！', '天阙？天阙早没了……嗝。']);
+        put('卖唱的 · 阿萝', 'npc-courtesan.glb', 5.6, -1.2, ['客官想听哪一曲？《雪夜归》还是《七家谣》？', '"七家散，天阙寒，钟不鸣，人不还……"', '赏几个铜板吧，唱得口都干了。'], { cry: ['♪ 七家散，天阙寒 ♪', '♪ 钟不鸣，人不还 ♪', '♪ 雪夜归人路漫漫 ♪'] });
         break;
       case 'inn':
         put('行商', 'trader.glb', -2.4, 1.2, ['这一路三个寨子，我交了三回过路钱。', '茶叶、盐巴、针线，换不换？', '前面驿站的伙计说，雪线那边的路塌了。']);
-        put('赶考的书生', 'wanderer_m.glb', -2.4, 3.6, ['离京城还有八百里，盘缠只够一半了。', '你会武功？那陪我走一段吧。', '听说天阙上有一部藏书，比翰林院的还多。']);
+        put('赶考的书生', 'npc-scholar.glb', -2.4, 3.6, ['离京城还有八百里，盘缠只够一半了。', '你会武功？那陪我走一段吧。', '听说天阙上有一部藏书，比翰林院的还多。']);
         break;
-      case 'shrine':
+      case 'teahouse':
+        put('说书先生 · 铁嘴张', 'npc-fortune.glb', 0, -3.4, ['今儿个说的是天阙七家，明儿个说的还是天阙七家，谁让大伙爱听呢。', '我这张嘴，说过的大侠没有一千也有八百，就是没见过真的。', '你要是真去了天阙，回来讲给我听，我给你编一段书。'], { cry: ['啪！话说当年天阙七家……', '那一剑下去，山都裂了！', '列位看官，且听下回分解！', '伪帝萧承乾，坐的是谁家的江山？'] });
+        put('茶博士', 'npc-noodle.glb', -2.4, 1.2, ['龙井、碧螺春、山里的野茶，您要哪样？', '先生的书一天两场，下一场午后开。', '小心烫，这壶刚沏的。'], { walk: 3, cry: ['来嘞，热茶一壶！', '续水续水！'] });
+        put('听书的老客', 'dixian.glb', 3.8, 2.2, ['我听这段书听了二十年，每回结局都不一样。', '年轻人，坐下听听，比打打杀杀强。', '先生说天阙要出人了，我看就是你。']);
+        put('小少爷', 'npc-scholar.glb', -3.8, -1.4, ['爹不让我练武，我偷偷来听书。', '你会飞吗？说书的说大侠都会飞。', '等我长大了，也去天阙看看。']);
+        break;
+    case 'shrine':
         put('求签的妇人', 'ranger.glb', 1.2, -0.6, ['菩萨保佑，让我家那口子平安回来。', '这签说"守得云开"，你说准不准？', '你也来求一支吧，很灵的。']);
         put('签筒', 'monk.glb', 2.4, 0.4, [
           '上上签：「云开月出照山河，归人自有归处。」',

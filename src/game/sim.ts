@@ -1,5 +1,6 @@
 // The whole game world, stepped once per frame: the player, the bandits in their dens, projectiles, zones on
 // the ground and the little effects the renderer draws. Pure logic: no React, no three.js.
+import { makeAnimals, stepAnimals, type Animal } from './animals';
 import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } from './types';
 import { DENS, DEN_R, FOE_KINDS, bossNameOf, menNameOf } from './foes';
 import { MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, buildingFloor, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
@@ -124,6 +125,10 @@ export class Sim {
   door = -1;
   /** the room the player is in, and where they stood outside before going in */
   indoor = -1;
+  /** the beasts on the map (animals.ts) */
+  animals: Animal[] = makeAnimals();
+  private boarSeen = false;
+  private goreAt = -9;
   /** the camera turns to this yaw on the next frame (going through a door), then it's cleared */
   camSnap: number | null = null;
   /** a short fade the UI plays when the player goes through a door */
@@ -494,6 +499,20 @@ export class Sim {
     }
     return dmg;
   }
+  /** a boar's tusks: a heavy shove and a bruise (never the last of your life) */
+  private gore(a: Animal) {
+    const p = this.player;
+    if (p.st.invuln > 0 || p.act === 'dodge' || p.hp <= 1 || this.time - this.goreAt < 2) return;
+    this.goreAt = this.time;
+    const att = { id: -7, team: 'sect', name: '野猪', pos: [a.x, a.y, a.z], hp: 1, maxHp: 1, st: { rage: 0, crit: 0, buffAtk: 0, weak: 0 } } as unknown as Fighter;
+    const dmg = Math.min(p.hp - 1, Math.round(p.maxHp * 0.09));
+    this.hit(att, p, dmg, { noScale: true, knock: 10, heavy: true, dur: 0.5 });
+    this.shake(0.5, a.x, a.z);
+    if (!this.boarSeen) {
+      this.toast('野猪发了疯，一头撞了上来！');
+      this.boarSeen = true;
+    }
+  }
   /** the effect slot a fighter's per-body effects use (vortex, bell, pillar) */
   slotOf(f: Fighter) {
     return f.id === PLAYER ? 0 : 1 + (f.id % 11);
@@ -798,6 +817,10 @@ export class Sim {
     for (const f of this.fighters) this.acts(f, dt);
     this.projectiles(dt);
     this.zoneStep(dt);
+    {
+      const pl = this.player;
+      stepAnimals(this.animals, dt, { px: pl.pos[0], pz: pl.pos[2], here: pl.hp > 0 && this.indoor < 0, loud: pl.act === 'attack' || !!pl.run, gore: (a) => this.gore(a) });
+    }
     for (const x of this.fx) x.t -= dt;
     this.fx = this.fx.filter((x) => x.t > 0);
     for (const t of this.toasts) t.t -= dt;

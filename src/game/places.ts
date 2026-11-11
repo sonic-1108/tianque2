@@ -5,6 +5,7 @@
 import { DENS, DEN_R } from './foes';
 import { ROADS, ROAD_N, roadFrame, TQ_POS, TQ_ROAD } from './layout';
 import { mapWater } from './mapsample';
+import { STALLS, MARKET_ROAD, MARKET_FROM, MARKET_TO, fit } from './props';
 
 export type PlaceKind = 'smithy' | 'tavern' | 'shrine' | 'inn' | 'jianzhong' | 'tomb';
 /** the village's own workshops (their yards sit at the village's level) */
@@ -170,6 +171,8 @@ export interface Folk {
   walk?: number;
   heal?: string;
   lines: string[];
+  /** called out to whoever passes (a slip over the head): a crier's wares, a song */
+  cry?: string[];
 }
 const RING_TALK = [
   '往外走二里地就是黑风寨的人了，夜里别赶路。',
@@ -197,10 +200,10 @@ export const FOLK: Folk[] = (() => {
     out.push({ name: '庙祝 · 慧觉', model: 'monk.glb', x, z, lines: ['土地爷保佑青石村，也保佑你。', '香火钱随缘。你身上的杀气，倒是比香火重。', '这庙比村子还老。墙上那块碑，写的是天阙七家的名字，后来被人凿掉了。'] });
   }
   // round the square
-  out.push({ name: '货郎', model: 'wanderer_m.glb', x: 5, z: 10, walk: 9, lines: ['针头线脑、胭脂水粉，要啥有啥！', '山贼把路堵了，我的货都运不出去。', '外地人？我走南闯北，没见过你这样的眼神。'] });
-  out.push({ name: '樵夫 · 老周', model: 'wanderer_m.glb', x: -12, z: -10, walk: 7, lines: ['林子里的狼少了，人倒是多了。', '往西北走，山越来越陡，路只剩一条。', '砍了四十年柴，没见过天阙的门开过。'] });
+  out.push({ name: '货郎', model: 'npc-peddler.glb', x: 5, z: 10, walk: 9, cry: ['针头线脑，胭脂水粉！', '拨浪鼓响，货郎来啦！'], lines: ['针头线脑、胭脂水粉，要啥有啥！', '山贼把路堵了，我的货都运不出去。', '外地人？我走南闯北，没见过你这样的眼神。'] });
+  out.push({ name: '樵夫 · 老周', model: 'npc-farmer.glb', x: -12, z: -10, walk: 7, lines: ['林子里的狼少了，人倒是多了。', '往西北走，山越来越陡，路只剩一条。', '砍了四十年柴，没见过天阙的门开过。'] });
   out.push({ name: '村妇 · 秀兰', model: 'ranger.glb', x: 13, z: -12, walk: 6, lines: ['孩子他爹被抓去寨子里干活，到现在没回来。', '谢谢你帮村里出头。', '石伯捡到你那天，雪下了三尺厚。'] });
-  out.push({ name: '更夫', model: 'dixian.glb', x: -4, z: 13, walk: 10, lines: ['天干物燥，小心火烛。', '半夜我常听见北边有钟声，可天阙早没人了啊。', '咚，咚……习惯了，白天也想敲。'] });
+  out.push({ name: '更夫', model: 'dixian.glb', x: -4, z: 13, walk: 10, cry: ['天干物燥，小心火烛！'], lines: ['天干物燥，小心火烛。', '半夜我常听见北边有钟声，可天阙早没人了啊。', '咚，咚……习惯了，白天也想敲。'] });
   // a keeper at every waystation, and a traveller resting there
   for (const p of PLACES) {
     if (p.kind !== 'inn') continue;
@@ -208,7 +211,44 @@ export const FOLK: Folk[] = (() => {
     const k = p.road!;
     out.push({ name: `${p.name}伙计`, model: k % 2 ? 'trader.glb' : 'wanderer_m.glb', x, z, heal: '歇歇脚（回满生命和内力）', lines: [`这里是${p.name}，往村里走还有好一段路，歇歇再走吧。`, RING_TALK[k % 3], '茶水管够，就是没有好菜。'] });
     const [x2, z2] = placeAt(p, 2.5, 10);
-    out.push({ name: '赶路人', model: ['monk.glb', 'ranger.glb', 'wanderer_m.glb'][k % 3], x: x2, z: z2, walk: 5, lines: ['我从外头来，路上的贼一伙比一伙凶。', '你也是要去天阙？那条古道上的灯，听说是自己亮的。', '歇够了，我得在天黑前赶到下一处驿站。'] });
+    out.push({ name: '赶路人', model: ['npc-novice.glb', 'ranger.glb', 'npc-peddler.glb', 'wanderer_m.glb'][k % 4], x: x2, z: z2, walk: 5, lines: ['我从外头来，路上的贼一伙比一伙凶。', '你也是要去天阙？那条古道上的灯，听说是自己亮的。', '歇够了，我得在天黑前赶到下一处驿站。'] });
+  }
+  // 青石集: a keeper beside every stall, calling out, and townsfolk strolling the street
+  const KEEPERS: Record<string, Omit<Folk, 'x' | 'z'>> = {
+    'stall-fruit.glb': { name: '菜农 · 老刘', model: 'npc-farmer.glb', cry: ['新摘的桃，甜过蜜！', '水灵灵的白菜，三文一颗！'], lines: ['自家地里的，没上过粪……呃，上过一点。', '山贼不抢菜，这年头就菜最安全。', '你脸色不好，吃个桃补补。'] },
+    'stall-pottery.glb': { name: '窑工 · 陶三', model: 'wanderer_m.glb', cry: ['坛子罐子，摔不烂的瓦罐！', '腌菜坛子，买二送一！'], lines: ['这釉色是我烧了三窑才烧出来的。', '杏娘的酒坛都是我做的。', '别敲，敲碎了要赔。'] },
+    'stall-silk.glb': { name: '绸缎庄 · 苏娘子', model: 'npc-lady.glb', cry: ['苏杭的绸，江南的缎！', '扯块花布，做身新衣裳！'], lines: ['这料子是柳三娘织的，城里卖三倍价。', '大侠穿这身破衣裳，可惜了这张脸。', '红的配你，信我。'] },
+    'stall-lantern.glb': { name: '灯笼匠 · 胡老爹', model: 'dixian.glb', cry: ['走夜路，带盏灯！', '红灯笼，照得鬼都不敢来！'], lines: ['天阙古道上的灯，就是我师父挂上去的。', '灯笼纸要刷三遍桐油，雨打不透。', '夜里别去北边，灯也照不亮那里。'] },
+    'stall-medicine.glb': { name: '云游道人 · 卖药', model: 'npc-fortune.glb', cry: ['跌打损伤，一贴就好！', '祖传膏药，专治刀伤！'], lines: ['贫道这膏药，治得了刀伤，治不了心病。', '你印堂发亮，此去必有奇遇。', '孙伯的草药好，可惜他不会吆喝。'] },
+    'stall-noodle.glb': { name: '面摊 · 胖大海', model: 'npc-noodle.glb', cry: ['热汤面，加个蛋！', '大碗面，管饱！'], lines: ['我这碗面，石伯吃了三十年。', '吃饱了才有力气打山贼。', '辣子自己加，别客气。'] },
+    'stall-tanghulu.glb': { name: '糖葫芦 · 小石头', model: 'npc-boy.glb', cry: ['糖葫芦，又酸又甜！', '冰糖葫芦，一文一串！'], lines: ['我爹说我卖完这一捆就能去学武了。', '你是大侠吗？给我签个名吧。', '这串给你，不要钱，你帮村里打过山贼。'] },
+    'stall-birds.glb': { name: '鸟贩 · 八哥张', model: 'trader.glb', cry: ['画眉百灵，会说话的八哥！', '鸟儿叫一声，好运跟一年！'], lines: ['这只八哥会说"天阙"两个字，不知道跟谁学的。', '鸟比人老实，你喂它，它就跟你。', '买只鸟吧，路上有个伴。'] },
+    'stall-weapons.glb': { name: '卖刀的 · 屠铁塔', model: 'npc-butcher.glb', cry: ['好刀好剑，削铁如泥！', '杀猪刀改的宝剑，便宜卖！'], lines: ['我以前是杀猪的，后来发现卖刀比杀猪赚钱。', '张大锤打的才是真家伙，我这些嘛，看着唬人。', '野猪？我一刀一个。你别学我，你去找铁匠。'] },
+    'stall-books.glb': { name: '书摊 · 老夫子', model: 'npc-scholar.glb', cry: ['话本兵书，一文三本！', '《天阙志》残本，只此一册！'], lines: ['这本《天阙志》缺了最后三页，被人撕的。', '读书和练武一样，都是熬出来的。', '你识字吗？不识也没关系，有画。'] },
+  };
+  for (const s of STALLS) {
+    const k = KEEPERS[s.file];
+    if (!k) continue;
+    // beside the stall, half a step toward the street, facing it
+    const g = fit(s.file, s.size), side = g.hx + 0.9;
+    const x = s.x + Math.cos(s.rot) * side + Math.sin(s.rot) * 0.4, z = s.z - Math.sin(s.rot) * side + Math.cos(s.rot) * 0.4;
+    out.push({ ...k, x, z });
+  }
+  const street = (r: number): [number, number] => {
+    const f = roadFrame(MARKET_ROAD, r);
+    return [f.x, f.z];
+  };
+  const mid = (MARKET_FROM + MARKET_TO) / 2;
+  const STROLL: [string, string, number, string[], string[]?][] = [
+    ['小丫头 · 糖糖', 'npc-girl.glb', MARKET_FROM + 14, ['我娘让我买酱油，我想买糖葫芦。', '你的刀好亮！能给我摸一下吗？', '大黄刚才跟着你，它喜欢你。'], ['糖葫芦！我要糖葫芦！']],
+    ['巡街的捕快 · 赵四', 'npc-guard.glb', mid, ['县太爷说了，集上不许打架。', '山贼？那是官兵的事，我只管集上的小偷。', '你身上带着兵器？算了，看你像好人。'], ['都排好队，别挤！']],
+    ['化缘的小和尚', 'npc-novice.glb', mid + 18, ['阿弥陀佛，施主行行好。', '师父说下山化缘，是修心。我觉得是修腿。', '慧明大师是我师叔，他的药可灵了。'], ['阿弥陀佛，施主行善积德～']],
+    ['买菜的婆婆', 'npc-granny.glb', mid - 10, ['这菜又涨价了，作孽哟。', '年轻人，帮我拎一下篮子。', '我孙子在县里念书，比你还高。']],
+    ['老叫花', 'npc-beggar.glb', MARKET_TO - 6, ['行行好，赏口饭吃。', '我年轻时也是天阙门下……不信？不信就算了。', '那座茶楼的说书先生，讲的都是我当年的事。'], ['大爷行行好～']],
+  ];
+  for (const [name, model, r, lines, cry] of STROLL) {
+    const [x, z] = street(r);
+    out.push({ name, model, x, z, walk: 11, lines, cry });
   }
   return out;
 })();

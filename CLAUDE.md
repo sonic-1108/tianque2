@@ -54,7 +54,12 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
 - Tripo props (`src/game/props.ts`, sizes from `propdims.json`, rerun `npx tsx tools/propdims.mts` after adding a glb):
   new Tripo models face +x and are centred, `fit()` gives scale, turn, lift, footprint. 青石集 market (10 stalls on road 0,
   teahouse at its end), watermill on the river, den tents and watchtowers (`DECOR`), village houses, gate, pavilions, well.
-  New rigged npc-*.glb and animals (deer, boar, rabbit, fox, ox, dog) are in public/models, not used yet.
+- Townsfolk models `npc-*.glb` (Tripo, rigged on Mixamo bones, own `idle` + `walk` clips, face +x: Rig turns them and
+  uses `TOWN_PLAN`; heights in `SPEAKER_H`, render/Calls.tsx). Market keepers (`KEEPERS` in places.ts) and strollers;
+  `cry` lines float over heads as paper slips (render/Calls.tsx). 清风茶楼 has a room (storyteller, tea tables).
+- Animals (`src/game/animals.ts`, drawn by `render/Animals.tsx`): deer herds bolt together, rabbits, foxes flee, boars
+  warn then charge (`sim.gore`, 9% life, never kills), oxen by the fence, the village dog follows you in the village.
+  Only beasts within 150 m think. Tripo quadrupeds carry one walk clip; facing is worked out from head and tail bones.
 
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported

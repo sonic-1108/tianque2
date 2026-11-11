@@ -16,6 +16,8 @@ import type { Sim } from '../game/sim';
 /** a Tripo prop (public/props): loaded once, cloned per placement (geometry and textures shared) */
 import { liftProp } from './propLook';
 import { DECOR, fit } from '../game/props';
+import { Animals } from './Animals';
+import { Calls } from './Calls';
 import { Interiors } from './Interiors';
 const propCache = new Map<string, Promise<THREE.Group>>();
 const propLoader = new GLTFLoader();
@@ -347,8 +349,10 @@ export function World({ sim }: { sim: Sim }) {
         <Gudao />
         <Places />
         <Dens />
+        <Animals sim={sim} />
       </Outdoors>
       <Interiors sim={sim} />
+      <Calls sim={sim} />
     </>
   );
 }

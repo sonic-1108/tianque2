@@ -10,6 +10,11 @@ import { weaponsFor } from './weapons';
 import { buildUmbrella, type Umbrella } from './umbrella';
 import { applyGlidePose, collectLimbs, fistCentre, type Limbs } from './climbPose';
 import { applyCharacterShading } from './characterShading';
+import { SPEAKER_H } from './Calls';
+
+/** Tripo's rigged townsfolk (npc-*.glb): they face +x, and carry their own idle and walk (nothing to fight with) */
+const isTownsfolk = (m: string) => m.startsWith('npc-');
+const TOWN_PLAN: Record<string, Spec> = { idle: { match: ['idle'], loop: true }, run: { match: ['walk'], loop: true } };
 
 const BASE = import.meta.env.BASE_URL + 'models/';
 /** the player's blade, base and tip, for the ribbon trail (set when his model is in) */
@@ -126,7 +131,7 @@ const PLAN_BY_MODEL: Record<string, Record<string, Spec>> = {
     skill_stomp: { match: ['angry_03'], start: 0.3, end: 0.8, fit: true },
   },
 };
-const planOf = (model: string) => ({ ...PLAN, ...(PLAN_BY_MODEL[model] ?? (model === 'wanderer_m.glb' ? PLAN_BY_MODEL['shadowblade.glb'] : {})) });
+const planOf = (model: string): Record<string, Spec> => isTownsfolk(model) ? TOWN_PLAN : ({ ...PLAN, ...(PLAN_BY_MODEL[model] ?? (model === 'wanderer_m.glb' ? PLAN_BY_MODEL['shadowblade.glb'] : {})) });
 
 /** flips and spins turn about the hips, not the feet */
 const PIVOT = 0.95;
@@ -149,7 +154,7 @@ function loadModel(file: string): Promise<Loaded> {
           g.scene.updateMatrixWorld(true);
           const box = new THREE.Box3().setFromObject(g.scene);
           const h = Math.max(0.1, box.max.y - box.min.y);
-          const scale = TARGET_H / h;
+          const scale = (SPEAKER_H[file] ?? TARGET_H) / h;
           g.scene.traverse((o: any) => {
             if (o.isMesh) {
               o.castShadow = true;
@@ -369,7 +374,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     }
     if (key === 'run') {
       const sp = Math.hypot(f.vel[0], f.vel[2]);
-      actions.run?.setEffectiveTimeScale(Math.max(0.6, Math.min(1.6, sp / 6)));
+      actions.run?.setEffectiveTimeScale(isTownsfolk(f.model) ? Math.max(0.5, Math.min(1.8, sp / 1.4)) : Math.max(0.6, Math.min(1.6, sp / 6)));
     }
     mixer.update(dt);
     // the whole-body layer 天阙 1 laid over the clips: the whirlwind's spin, somersaults, leaning into a charge,
@@ -424,7 +429,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
   return (
     <group ref={group}>
       <group ref={pose} position={[0, PIVOT, 0]}>
-        {model && <primitive object={model.obj} scale={model.scale} position={[0, model.floor - PIVOT, 0]} />}
+        {model && <primitive object={model.obj} scale={model.scale} position={[0, model.floor - PIVOT, 0]} rotation={[0, isTownsfolk(f.model) ? -Math.PI / 2 : 0, 0]} />}
       </group>
       {!model && (
         <mesh position={[0, 0.9, 0]} castShadow>

@@ -31,7 +31,7 @@ function piece(f: Furn, theme: RoomTheme, seed: number): Builder {
       b.box('plank', 0, 0.72, 0, 1.2, 0.08, 1.2);
       legs(1.05, 1.05, 0.72);
       // what's on it: cups and a jug, a bowl of fruit, or dice and coins in the tavern
-      if (theme === 'tavern' || theme === 'inn') {
+      if (theme === 'tavern' || theme === 'inn' || theme === 'teahouse') {
         b.add('soil', new THREE.CylinderGeometry(0.12, 0.09, 0.28, 8), 0.2, 0.94, 0.1);
         for (let k = 0; k < 3; k++) b.add('white', new THREE.CylinderGeometry(0.05, 0.04, 0.07, 8), -0.3 + k * 0.18, 0.84, -0.25);
       } else for (let k = 0; k < 4; k++) b.add(k % 2 ? 'lamp' : 'crop', new THREE.SphereGeometry(0.07, 8, 6), -0.1 + (k % 2) * 0.12, 0.86, -0.1 + Math.floor(k / 2) * 0.12);
