@@ -1,8 +1,8 @@
 {
   "name": "npc-doctor",
   "kind": "biped",
-  "prompt": "A gentle middle-aged ancient Chinese physician in a grey-green long robe, a small cloth cap, a neat long black beard, a cloth medicine bag over the shoulder, stylized realistic game character, nothing in his hands",
-  "task": "fe5e7e95-51bc-4d96-baf2-e8d40359cb93",
+  "prompt": "A gentle middle-aged Chinese imperial physician in a long grey-green robe, a small black cloth cap, a neat long black beard, a cloth medicine bag over the shoulder, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "3bf7d6c5-2f2c-4128-859f-86b86529fd3b",
   "faces": 12000,
   "credits": 75
 }
