@@ -1,8 +1,8 @@
 {
   "name": "npc-beggar",
   "kind": "biped",
-  "prompt": "A ragged old Chinese beggar with messy grey hair and beard, a patched faded robe tied with a rope, a gourd hanging at his belt, barefoot, ancient China, stylized realistic game character, nothing in his hands",
-  "task": "bb164598-1146-4db0-9613-ca145e49e4d5",
+  "prompt": "An old ragged Chinese beggar with a long tangled grey beard and messy hair, a torn patched brown robe tied with rope, a gourd hanging at his waist, barefoot, gaunt weathered face, photorealistic ancient Chinese wuxia game character, realistic human proportions with a small head, highly detailed realistic face with natural skin texture, cinematic Unreal Engine 5 quality like a AAA wuxia game, muted natural colours, worn fabric with realistic folds and stitching, nothing in the hands",
+  "task": "3b27b036-f568-4134-af06-64dd5b5c8e33",
   "faces": 12000,
   "credits": 75
 }
