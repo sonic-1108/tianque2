@@ -2,7 +2,9 @@
 // last boss at the far edge. Built from the den layout, so it always matches the map.
 import { DENS, FOE_KINDS, bossNameOf, menNameOf } from './foes';
 import { FOLK, placeOf } from './places';
-import { GD_PAV } from './layout';
+import { GD_PAV, roadPoint } from './layout';
+import { HOME } from './village';
+import { RIVALS } from './jianghu';
 
 export type Goal =
   | { type: 'learn' } // learn a first move (K)
@@ -11,7 +13,13 @@ export type Goal =
   | { type: 'boss'; den: number } // beat the den's boss
   | { type: 'level'; level: number }
   | { type: 'visit'; at: [number, number]; r: number; place: string } // go there
-  | { type: 'folk'; name: string }; // talk to one of the folk (FOLK, by name)
+  | { type: 'folk'; name: string } // talk to one of the folk (FOLK, by name)
+  // story 4 (jianghu.ts): each new thing in the world met through the story
+  | { type: 'raid' } // hold the village through a raid (counted when one is won)
+  | { type: 'rival'; id: string } // beat one of the wanted (RIVALS id)
+  | { type: 'home' } // step into your house
+  | { type: 'hunt' } // bring down game with the bow
+  | { type: 'gear'; n: number }; // own this many forged pieces
 
 export type NpcRole = 'elder' | 'doctor' | 'teller';
 
@@ -32,6 +40,14 @@ export interface Quest {
   relic?: 'sword';
   /** added in story 3 (older saves' quest numbers skip these) */
   v3?: boolean;
+  /** added in story 4 */
+  v4?: boolean;
+  /** auto quests: hand in with a toast, not a story card (the den-clearing ones) */
+  quiet?: boolean;
+  /** what starting it does: give the house's key, a hunting bow, bring the raiders tonight */
+  start?: 'home' | 'bow' | 'raid';
+  /** a forged piece it gives when handed in (jianghu.ts GEAR id) */
+  gear?: string;
 }
 
 export const NPCS: { role: NpcRole; name: string; model: string; x: number; z: number; greet: string }[] = [
@@ -76,6 +92,18 @@ export const QUESTS: Quest[] = (() => {
     goal: { type: 'talk', npc: 'doctor' },
     xp: 40,
   });
+  q.push({
+    title: '张大锤的刀',
+    giver: 'elder',
+    direct: true,
+    auto: true,
+    v4: true,
+    gear: 'w1',
+    intro: '空着手可不行。出村往张记铁铺走一趟，铁匠张大锤欠我一个人情，让他给你打把刀。',
+    done: '石伯让你来的？早给你备着了。\n（他从炉边拎出一把刀，刀背上还留着锤印。）\n精铁刀，不算好，够你砍山贼。往后打来铁料、兽皮，碰上玄铁更好，都拿来，我给你打更好的家伙。\n\n（得到 精铁刀，已经佩上。以后在铁铺跟他说话就能打造装备。）',
+    goal: { type: 'folk', name: '铁匠 · 张大锤' },
+    xp: 60,
+  });
   // ---------------- the dens, ring by ring
   const CH = [
     { name: '第一章 · 山雨欲来', text: '这一年，七条官道上的贼人忽然多了起来。\n他们抢粮、放火、劫商队，像是有人在背后催着。\n石伯把断剑交还给你：「去吧，先把村子周围清干净。」' },
@@ -106,8 +134,63 @@ export const QUESTS: Quest[] = (() => {
     const chapter = inRing === 0 ? CH[ring] : undefined;
     inRing++;
     const extras: Quest[] = [];
+    if (ring === 0 && inRing === 1)
+      extras.push({
+        title: '守夜',
+        giver: 'elder',
+        v4: true,
+        start: 'raid',
+        intro: '不好！你打掉的那伙人放出话来，今晚就来烧村。天黑前回村，守住寨门，别让他们靠近房子。（天黑以后山贼分三波杀来，打退最后一波就算赢。）',
+        done: '守住了……守住了！二十年了，青石村头一回没让人欺负了去。\n村里人都说，有你在，往后日子能过了。（村子会跟着你一点点兴旺起来。）',
+        goal: { type: 'raid' },
+        xp: 220,
+      });
     if (ring === 0 && inRing === 2)
       extras.push({ title: '报个平安', giver: 'elder', direct: true, auto: true, v3: true, intro: '你从寨子的柴房里放出一个人，是秀兰的丈夫周大。回村跟秀兰说一声。', done: '他回来了？……谢谢你，谢谢你。\n他说在寨子里听那些贼人讲，抢来的粮食不分，全往西北山里送，说是孝敬"上面"的。\n上面是谁，他们自己也不知道。', goal: { type: 'folk', name: '村妇 · 秀兰' }, xp: 80 });
+    if (ring === 0 && inRing === 2)
+      extras.push({
+        title: '断刀客',
+        giver: 'elder',
+        v4: true,
+        intro: `周大说，寨子里的人都怕一个叫石猛的断刀客。他原是黑风寨的二当家，叛出来以后伪朝出了悬赏。${rivalWhere('shimeng')}。他知道雷彪的老窝，去会会他。（打赢他，他会服你。）`,
+        done: '石猛跟着你？……也好，多一把刀。\n他说雷彪的寨子在哪儿，有几道岗，他都画给你了。这人眼神不坏，你多跟他说说话。',
+        goal: { type: 'rival', id: 'shimeng' },
+        xp: 240,
+      });
+    if (ring === 1 && inRing === 2) {
+      extras.push({
+        title: '燕子镖',
+        giver: 'elder',
+        v4: true,
+        intro: `伪朝悬赏一个劫税银的女飞贼，叫柳飞燕。石猛说她爹是燕家的镖师，那年给天阙押过贡品，再没回来。${rivalWhere('liufeiyan')}。她也许知道天阙那一夜的事。`,
+        done: '燕家的丫头……她爹押的那趟贡品，送到天阙山门的那天夜里，钟就停了。\n她说她这些年劫的税银，箱子上都烙着同一个"阙"字。',
+        goal: { type: 'rival', id: 'liufeiyan' },
+        xp: 320,
+      });
+      extras.push({
+        title: '秋猎',
+        giver: 'elder',
+        direct: true,
+        v4: true,
+        start: 'bow',
+        intro: '外头越来越凶，光靠一把刀不够。猎户韩老三送你一张猎弓：面朝猎物，二十六步之内按 F 拉弓。打一头鹿或者野猪，皮子拿去让张大锤给你做甲。秋天山里的猎物最肥。',
+        done: '韩老三说你的箭法不赖。兽皮留着，去铁铺做身鹿皮甲。',
+        goal: { type: 'hunt' },
+        xp: 200,
+      });
+    }
+    if (ring === 1 && inRing === 3)
+      extras.push({ title: '百炼', giver: 'elder', direct: true, auto: true, v4: true, intro: '张大锤托人带话：中环的贼人身上有铁料，头目身上有玄铁。凑够了料去找他，再打一件。（身上有两件打造的装备就算成。）', done: '张大锤摸着新打的家伙，乐得合不拢嘴：“这手艺，搁二十年前，够给天阙供货了。”', goal: { type: 'gear', n: 2 }, xp: 260 });
+    if (ring === 2 && inRing === 1)
+      extras.push({
+        title: '游方僧',
+        giver: 'elder',
+        v4: true,
+        intro: `慧明说有个游方僧叫了尘，出家前在天阙山下行医，因为给逃兵治伤被伪朝通缉。${rivalWhere('liaochen')}。他也许见过你娘。`,
+        done: '了尘说，二十年前那个雪夜，他给一个抱着婴儿的女人包扎过伤口。\n女人求他别问名字，只说了一句："孩子戴着玉，玉上有字。"\n……孩子，你娘是活着下的山。',
+        goal: { type: 'rival', id: 'liaochen' },
+        xp: 420,
+      });
     if (ring === 1 && inRing === 1) {
       const jz = placeOf('jianzhong');
       extras.push({
@@ -124,6 +207,16 @@ export const QUESTS: Quest[] = (() => {
     }
     if (ring === 2 && inRing === 1)
       extras.push({ title: '面具客', giver: 'elder', v3: true, auto: true, intro: '杏花酒肆的杏娘说，每年冬天有个戴面具的客人。你去问问她。', done: '那个戴面具的？每年头一场雪他就来，喝一碗杏花酿，不说话，往北走。\n有一年他喝多了，盯着村口看了半天，说了一句："那孩子该长大了。"\n我问他哪个孩子，他把碗一扣就走了。', goal: { type: 'folk', name: '酒肆掌柜 · 杏娘' }, xp: 160 });
+    if (d.boss && ring === 2)
+      q.push({
+        title: '夜行客',
+        giver: 'elder',
+        v4: true,
+        intro: `影阁出了个叛徒，叫莫寒，是无面的亲传弟子。${rivalWhere('mohan')}。要找无面，先找他。`,
+        done: '莫寒说，无面每年头一场雪都要下山一趟，去一个没有名字的坟前站一夜。\n他还说，当年师父让他去杀的那个人，就是你。',
+        goal: { type: 'rival', id: 'mohan' },
+        xp: 520,
+      });
     if (d.boss) {
       q.push({
         title: `擒贼擒王 · ${bossNameOf(d)}`,
@@ -134,13 +227,41 @@ export const QUESTS: Quest[] = (() => {
         xp: 200 + d.level * 30,
       });
       if (ring === 0) q.push({ title: '天阙旧事', giver: 'elder', intro: '天阙的事，说书人比我清楚。去听他讲讲。', done: '他讲的那些，有一半是真的。剩下一半，等你自己去看。', goal: { type: 'talk', npc: 'teller' }, xp: 80 });
+      if (ring === 0)
+        q.push({
+          title: '安家',
+          giver: 'elder',
+          direct: true,
+          auto: true,
+          v4: true,
+          start: 'home',
+          intro: '村东北那间空屋，二十年前一个过路的女人托我留着，说"给那孩子"。如今你长大了，钥匙给你。进去看看吧。',
+          done: '屋里落满了灰。床底下有个木匣，里面是一件小孩的棉袄，襟上绣着一个"阙"字。\n这是你的家。\n\n（床可以睡到天亮，兵器架上换装备；不跟着你的同伴会在院子里等你。）',
+          goal: { type: 'home' },
+          xp: 120,
+        });
       if (ring === 1) q.push({ title: '玉佩', giver: 'elder', intro: '慧明说他查到了那块玉佩的来历，让你过去一趟。', done: '……守阙人的信物。我早该想到的。', goal: { type: 'talk', npc: 'doctor' }, xp: 120 });
+      if (ring === 1)
+        q.push({
+          title: '进京',
+          giver: 'elder',
+          direct: true,
+          auto: true,
+          v4: true,
+          intro: '玉佩的事，京里也许有人知道。顺着官道去永安城，城里每季第二天开擂台，天下的武人都去。找擂台官包金刚，打听打听天阙的风声。',
+          done: '包金刚压低了嗓子：“京里都在传，天阙上那位要七家的人上山朝拜，不去的，就是反贼。”\n“你要是有本事，就上我的擂台，五阵连胜，名字能传遍七条官道。”\n\n（擂台每季第二天辰时到戌时开，赢了有名号和金丝软甲。）',
+          goal: { type: 'folk', name: '擂台官 · 包金刚' },
+          xp: 260,
+        });
     } else {
       q.push({
         title: `清剿${menNameOf(d)}`,
         giver: 'elder',
         chapter,
         intro: `${dir}${KIND_LINES[d.kind][ring]}（${d.level} 级）。去打倒他们 ${d.count} 个人。`,
+        direct: inRing > 1 ? true : undefined,
+        auto: inRing > 1 ? true : undefined,
+        quiet: inRing > 1 ? true : undefined,
         done: ring === 0 ? '干得漂亮。' : ring === 1 ? '又是七家的功夫……这些人原本都是名门弟子。' : '好。离天阙越来越近了。',
         goal: { type: 'kill', den: i, count: d.count },
         xp: 60 + d.level * 18,
@@ -162,6 +283,16 @@ export const QUESTS: Quest[] = (() => {
     done: '去吧。路在西北，沿着官道一直走，走到雪线下的那座山。山道只有一条。',
     goal: { type: 'level', level: 28 },
     xp: 400,
+  });
+  q.push({
+    title: '逃营校尉',
+    giver: 'elder',
+    direct: true,
+    v4: true,
+    intro: `天阙的山门有金甲卫守着。伪朝的逃将韩烈认得上山的路，${rivalWhere('hanlie')}。先把他找着。`,
+    done: '韩烈说，那一夜他就守在山门下，奉命不许任何人下山。\n他放走了一个抱孩子的女人。\n“我数过台阶，三千级。这一回，我陪你走上去。”',
+    goal: { type: 'rival', id: 'hanlie' },
+    xp: 600,
   });
   const tomb = placeOf('tomb');
   q.push({
@@ -232,7 +363,22 @@ export function goalPos(g: Goal): [number, number] | null {
     const f = FOLK.find((x) => x.name === g.name);
     return f ? [f.x, f.z] : null;
   }
+  if (g.type === 'rival') {
+    const r = RIVALS.find((x) => x.id === g.id)!;
+    return roadPoint(r.road, (r.r0 + r.r1) / 2);
+  }
+  if (g.type === 'home') return HOME.door;
+  if (g.type === 'gear') {
+    const sm = placeOf('smithy');
+    return [sm.x, sm.z];
+  }
   return null;
+}
+/** "he walks the road out to the north, 180 to 290 steps out" */
+function rivalWhere(id: string) {
+  const r = RIVALS.find((x) => x.id === id)!;
+  const [x, z] = roadPoint(r.road, (r.r0 + r.r1) / 2);
+  return `听说常在村子${dirName(x, z)}的官道上来回走，离村 ${r.r0} 到 ${r.r1} 步，大地图上标着红色的“悬”`;
 }
 
 export const TELLER_LINES = [
@@ -259,11 +405,11 @@ export function questTarget(sim: { progress: { quest: { idx: number; state: stri
   return goalPos(q.goal);
 }
 
-/** an older story's quest number in this one (story 2 had none of the v3 quests) */
-export function fromStory2(idx: number) {
+/** an older story's quest number in this one (story 2 had none of the v3 or v4 quests, story 3 none of the v4) */
+export function fromStory(idx: number, from: 2 | 3) {
   let k = -1;
   for (let i = 0; i < QUESTS.length; i++) {
-    if (QUESTS[i].v3) continue;
+    if (QUESTS[i].v4 || (from === 2 && QUESTS[i].v3)) continue;
     if (++k === idx) return i;
   }
   return QUESTS.length;

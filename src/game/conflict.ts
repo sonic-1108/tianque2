@@ -73,6 +73,8 @@ export interface War {
   hunts: number;
   /** what the market does on a given day after a raid: 'shut' (burned) or 'feast' (saved) */
   after: { day: number; kind: 'shut' | 'feast' } | null;
+  /** a raid comes this night whatever night it is (the story's 守夜) */
+  force?: number;
   lastTier: number;
   raidDay: number;
 }
@@ -234,7 +236,7 @@ function stepRaid(s: Sim, dt: number, c: Sim['clock'], p: Fighter) {
   const R = W.raid;
   if (!R) {
     // every other night; and the first evening you're about, whatever night it is
-    if ((!raidNight(c.day) && W.raidDay >= 0) || W.raidDay === c.day) return;
+    if ((!raidNight(c.day) && W.raidDay >= 0 && W.force !== c.day) || W.raidDay === c.day) return;
     if (c.hour >= 17.5 && c.hour < 21) {
       W.raid = { stage: 'warned', wave: 0, waveT: 0, ids: [], hp: 100, road: [2, 3, 5, 6][c.day % 4], t: 0 };
       W.raidDay = c.day;
@@ -297,6 +299,7 @@ function stepRaid(s: Sim, dt: number, c: Sim['clock'], p: Fighter) {
       R.won = won;
       W.raid = null;
       if (won) {
+        s.questEvent('raid');
         W.after = { day: c.day + 1, kind: 'feast' };
         shiftDread(s, -6);
         earn(s, 100, '守住青石村了！村长代全村谢你，赏 100 文。明天集上请客，样样半价！');

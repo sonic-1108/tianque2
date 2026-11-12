@@ -157,7 +157,7 @@ export interface Rival {
 }
 export const RIVALS: Rival[] = [
   {
-    id: 'shimeng', name: '断刀客 · 石猛', kind: 0, lvl: 7, bounty: 80, join: true, road: 3, r0: 180, r1: 290,
+    id: 'shimeng', name: '断刀客 · 石猛', kind: 0, lvl: 5, bounty: 80, join: true, road: 3, r0: 180, r1: 290,
     crime: '黑风寨叛徒，伪朝悬赏', meet: '又是来领赏的？我石猛的脑袋，没那么好拿！', beat: '好……好功夫。我在黑风寨砍了十年人，今天算是服了。',
     joinLine: '我欠这世道一条命。你要是信得过，我这把断刀跟你走。',
     story: ['我以前是黑风寨的二当家。雷彪抢粮那年，我把一车粮偷偷放回了村里，从此成了叛徒。', '这把刀是我爹的，断在雷彪手里。我留着它，提醒自己别再替恶人卖命。', '兄弟，往后你走到哪儿，我石猛就砍到哪儿。'],
@@ -336,7 +336,7 @@ export function rivalBeaten(s: Sim, f: Fighter) {
     (s as any).revive(f);
     becomeAlly(s, f);
     f.hp = Math.round(f.maxHp * 0.5);
-    s.note = { title: `${r.name.split(' · ')[1]}愿随你同行`, text: `${r.beat}\n\n${r.joinLine}\n\n${C[r.id].mode === 'follow' ? '（他跟在你身边了。走近按 F 可以让他等着、回村，或者送礼。）' : `（身边已经有 ${PARTY_MAX} 位同伴，${r.name.split(' · ')[1]}先回村里等你。）`}` };
+    s.pushNote({ title: `${r.name.split(' · ')[1]}愿随你同行`, text: `${r.beat}\n\n${r.joinLine}\n\n${C[r.id].mode === 'follow' ? `（${r.name.split(' · ')[1]}跟在你身边了。走到跟前按 F，可以吩咐去留，或者送礼。）` : `（身边已经有 ${PARTY_MAX} 位同伴，${r.name.split(' · ')[1]}先回村里等你。）`}` });
     save(P);
   });
 }
@@ -351,7 +351,7 @@ export function warm(s: Sim, f: Fighter, by: number) {
   const at = [30, 60, 100];
   if (told < 3 && c.aff >= at[told] && r.story) {
     c.told = told + 1;
-    s.note = { title: `${r.name.split(' · ')[1]}的心事（${told + 1} / 3）`, text: r.story[told] + (told === 2 ? `\n\n（生死之交：${r.name.split(' · ')[1]}的出手重了一成半）` : '') };
+    s.pushNote({ title: `${r.name.split(' · ')[1]}的心事（${told + 1} / 3）`, text: r.story[told] + (told === 2 ? `\n\n（生死之交：${r.name.split(' · ')[1]}的出手重了一成半）` : '') });
     if (told === 2) addTitle(s, `${r.name.split(' · ')[1]}的生死之交`);
   }
 }
@@ -505,7 +505,7 @@ export function addVillagePts(s: Sim, n: number) {
   if (lvl > J.vlvl) {
     J.vlvl = lvl;
     const v = VLEVELS[lvl];
-    s.note = { title: `村子变了 · ${v.name}`, text: v.note };
+    s.pushNote({ title: `村子变了 · ${v.name}`, text: v.note });
     s.chron(`青石村兴旺起来，成了${v.name}。`, `如今的${v.name.split(' · ')[0]}，可不是从前那个破村子了。`);
   }
 }
@@ -691,7 +691,7 @@ export function buyHome(s: Sim) {
   if (purse(P) < HOME_PRICE) return s.toast(`空宅要 ${HOME_PRICE} 文，你还差 ${HOME_PRICE - purse(P)} 文`);
   P.coins = purse(P) - HOME_PRICE;
   P.home = true;
-  s.note = { title: '你有家了', text: '石伯把钥匙交到你手里：“这屋子空了二十年，原是守阙人留给自家人的。如今，物归原主。”\n\n（屋里的床可以睡到天亮，兵器架上换装备；留在村里的同伴会在你家院子里等。）' };
+  s.pushNote({ title: '你有家了', text: '石伯把钥匙交到你手里：“这屋子空了二十年，原是守阙人留给自家人的。如今，物归原主。”\n\n（屋里的床可以睡到天亮，兵器架上换装备；留在村里的同伴会在你家院子里等。）' });
   s.chron('你在青石村买下了一间屋子，有了自己的家。', '听说你在村里安了家？好，好，往后就是一家人了。');
   save(P);
 }

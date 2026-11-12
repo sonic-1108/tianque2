@@ -237,7 +237,7 @@ export function NoteCard({ sim, onClose }: { sim: Sim; onClose: () => void }) {
   const n = sim.note;
   if (!n) return null;
   const close = () => {
-    sim.note = null;
+    sim.note = sim.noteQ.shift() ?? null;
     onClose();
   };
   const lines = n.text.split('\n');

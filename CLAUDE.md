@@ -126,6 +126,13 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   F at game in front within 26 m, autumn doubles), seasonal fish. Your house (`HOME` in village.ts, drawn by
   render/Home.tsx, room theme `home`): bought at its sale board for 300, bed sleeps to dawn, rack changes gear.
   Test: scratch jh.mts.
+- Story 4 (owner: the main line was dull and the new things went unseen): quests marked `v4` lead you into them:
+  张大锤的刀 (a free 精铁刀), 守夜 (goal `raid`: `start: 'raid'` sets `war.force` so raiders come that night),
+  断刀客 / 燕子镖 / 游方僧 / 夜行客 / 逃营校尉 (goal `rival`: beat that wanted one, the good ones join), 安家
+  (`start: 'home'`: the elder gives you the house), 秋猎 (`start: 'bow'`, goal `hunt`), 百炼 (goal `gear`), 进京 (talk to
+  包金刚). Den quests after a ring's first are `direct` + `auto` + `quiet` (no walk back, a toast). Story 3 saves keep
+  their place (`fromStory(idx, 3)`). Story cards queue (`sim.pushNote`, `noteQ`). Big map marks 家 猎 擂 铁, 萤 on
+  summer nights. Test: scratch flow.mts (walks the quest line), story.mts (lists it).
 - `Builder.roof` once moved its dark underside twice (every roof's underside floated at double its x, y, z); fixed.
 
 ## Code

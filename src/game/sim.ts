@@ -4,14 +4,14 @@ import { ROAD_N, roadPoint } from './layout';
 import { makeAnimals, stepAnimals, type Animal } from './animals';
 import { CT_POS } from './court';
 import { makePools, newWar, raidOn, marketShut, shiftDread, stepWar, type War } from './conflict';
-import { doTouch, earn, makeHerbs, policyNow, stepSpar, touchable, type Herb, type Touch } from './play';
+import { bag, doTouch, earn, makeHerbs, policyNow, stepSpar, touchable, type Herb, type Touch } from './play';
 import { clockOf, newWeather, stepWeather, SEASONS, type ClockInfo, type Weather } from './clock';
 import { dateOf, hauntsFor, planFor, type Entry, type Plan } from './life';
 import type { Folk } from './places';
 import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } from './types';
 import { DENS, DEN_R, FOE_KINDS, bossNameOf, menNameOf } from './foes';
 import { ICE, MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, buildingFloor, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
-import { JH_TOUCH, allyDown, allyPower, allyThink, allyUp, doJhTouch, dropFrom, fullHp, gearOf, jhTouch, levelFor, makeArenaPool, makeJianghu, newJH, rivalBeaten, stepArena, stepRivals, stepSeasons, warm, addVillagePts, type JH } from './jianghu';
+import { JH_TOUCH, allyDown, allyPower, wear, allyThink, allyUp, doJhTouch, dropFrom, fullHp, gearOf, jhTouch, levelFor, makeArenaPool, makeJianghu, newJH, rivalBeaten, stepArena, stepRivals, stepSeasons, warm, addVillagePts, type JH } from './jianghu';
 
 /** what a body stands on: the ground, or the lake's surface (wading / swimming) */
 /** what a body stands on: the ground (or the river's bed), or, given its feet's height, a roof, a terrace or a step it's on */
@@ -22,7 +22,7 @@ const floorAt = (x: number, z: number, y?: number) =>
 import { Progress, STORY_V, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
 import { WANDERER, heroOf } from './heroes';
 import { SKILLS } from './skills';
-import { NPCS, QUESTS, fromStory2, type NpcRole } from './quests';
+import { NPCS, QUESTS, fromStory, type NpcRole } from './quests';
 import { ALL_FOLK, ROOMS, ROOM_Y, roomAt, roomSpawn, roomExit } from './interiors';
 
 /** an ultimate goes off only after R is held this long (the owner's rule); letting go or a hit throws it away */
@@ -228,11 +228,12 @@ export class Sim {
       }
     } catch {}
     this.clock = clockOf(this.worldT);
-    if (this.progress.storyV === -2) {
-      // a story 2 save: the same quests with new ones slotted in between
+    if (this.progress.storyV === -2 || this.progress.storyV === -3) {
+      // a story 2 or 3 save: the same quests with new ones slotted in between
+      const from = this.progress.storyV === -2 ? 2 : 3;
       const Q = this.progress.quest;
-      this.progress.quest = { ...Q, idx: fromStory2(Q.idx) };
-      if (this.progress.chapterSeen !== undefined) this.progress.chapterSeen = fromStory2(this.progress.chapterSeen);
+      this.progress.quest = { ...Q, idx: fromStory(Q.idx, from) };
+      if (this.progress.chapterSeen !== undefined) this.progress.chapterSeen = fromStory(this.progress.chapterSeen, from);
       this.progress.storyV = STORY_V;
     }
     const h = heroOf(this.progress.hero);
@@ -710,7 +711,12 @@ export class Sim {
       (g.type === 'level' && P.level >= g.level) ||
       (g.type === 'kill' && Q.count >= g.count) ||
       (g.type === 'boss' && Q.count >= 1) ||
-      (g.type === 'visit' && Math.hypot(this.player.pos[0] - g.at[0], this.player.pos[2] - g.at[1]) < g.r);
+      (g.type === 'visit' && Math.hypot(this.player.pos[0] - g.at[0], this.player.pos[2] - g.at[1]) < g.r) ||
+      (g.type === 'raid' && Q.count >= 1) ||
+      (g.type === 'rival' && !!P.done?.['rival:' + g.id]) ||
+      (g.type === 'home' && this.indoor >= 0 && ROOMS[this.indoor].theme === 'home') ||
+      (g.type === 'hunt' && !!P.done?.hunt) ||
+      (g.type === 'gear' && (P.gear ?? []).length >= g.n);
     if (done) {
       Q.state = 'ready';
       if (q.auto) return this.turnInQuest();
@@ -735,12 +741,35 @@ export class Sim {
   }
   /** a story card to show (an auto quest just handed itself in); the UI clears it */
   note: { title: string; text: string } | null = null;
+  /** cards waiting their turn behind the one showing */
+  noteQ: { title: string; text: string }[] = [];
+  pushNote(n: { title: string; text: string }) {
+    if (this.note) this.noteQ.push(n);
+    else this.note = n;
+  }
+  /** something a quest waits for happened (a raid held) */
+  questEvent(kind: 'raid') {
+    const Q = this.progress.quest, q = this.quest();
+    if (q && Q.state === 'active' && q.goal.type === kind) Q.count++;
+  }
+  /** what taking a quest does at once */
+  private questStart(q: (typeof QUESTS)[number]) {
+    const P = this.progress;
+    if (q.start === 'home' && !P.home) P.home = true;
+    if (q.start === 'bow') bag(P).bow = Math.max(1, bag(P).bow ?? 0);
+    if (q.start === 'raid') {
+      const c = this.clock;
+      this.war.force = c.hour < 17.5 ? c.day : c.day + 1;
+    }
+    if (q.v4 && q.direct && q.intro) this.pushNote({ title: `新任务 · ${q.title}`, text: q.intro });
+  }
   acceptQuest() {
     const Q = this.progress.quest;
     if (Q.state !== 'offered' || !this.quest()) return;
     Q.state = 'active';
     Q.count = 0;
     this.toast(`接受任务：${this.quest()!.title}`);
+    this.questStart(this.quest()!);
     save(this.progress);
     this.questCheck();
   }
@@ -760,7 +789,12 @@ export class Sim {
       this.toast(`升级！${P.level} 级 · 技能点 +${ups * 2}，按 K 加点`);
     }
     this.emit({ k: 'level', x: this.player.pos[0], y: this.player.pos[1], z: this.player.pos[2], id: PLAYER });
-    if (q.auto) this.note = { title: q.goal.type === 'folk' ? q.goal.name : q.title, text: q.done };
+    if (q.auto && q.quiet) this.toast(`${q.title} · ${q.done}`);
+    else if (q.auto) this.pushNote({ title: q.goal.type === 'folk' ? q.goal.name : q.title, text: q.done });
+    if (q.gear && !(P.gear ?? []).includes(q.gear)) {
+      P.gear = [...(P.gear ?? []), q.gear];
+      wear(this, q.gear);
+    }
     if (q.relic === 'sword' && !(P.relics ?? []).includes('sword')) {
       P.relics = [...(P.relics ?? []), 'sword'];
       this.toast('断剑重铸 · 伤害 +10%');
@@ -769,7 +803,8 @@ export class Sim {
     const next = QUESTS[P.quest.idx];
     if (next?.direct) {
       P.quest.state = 'active';
-      this.toast(`新任务：${next.title}`);
+      this.toast(`新任务：${next.title}${next.quiet || !next.v4 ? ' · ' + next.intro : ''}`);
+      this.questStart(next);
     }
     save(P);
     if (next?.direct) this.questCheck();

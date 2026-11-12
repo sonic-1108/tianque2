@@ -181,6 +181,11 @@ function QuestTracker({ sim }: { sim: Sim }) {
   else if (g.type === 'kill') what = `打倒 ${menNameOf(DENS[g.den])} ${Math.min(Q.count, g.count)} / ${g.count}`;
   else if (g.type === 'boss') what = `打倒${bossNameOf(DENS[g.den])}`;
   else if (g.type === 'level') what = `练到 ${g.level} 级（现在 ${sim.progress.level}）`;
+  else if (g.type === 'raid') what = sim.war.raid ? '守住青石村！打退三波山贼' : sim.clock.hour >= 17.5 || sim.clock.hour < 5 ? '天黑了，回村守住寨门' : '天黑前回村，今晚守夜';
+  else if (g.type === 'rival') what = `了结悬赏：${RIVALS.find((r) => r.id === g.id)!.name}（大地图上的“悬”）`;
+  else if (g.type === 'home') what = '回村，进你的屋子';
+  else if (g.type === 'hunt') what = '面朝猎物（26 米内）按 F 拉弓';
+  else if (g.type === 'gear') what = `去张记铁铺打造装备 ${(sim.progress.gear ?? []).length} / ${g.n}`;
   const tgt = questTarget(sim);
   const dist = tgt ? Math.round(Math.hypot(tgt[0] - p[0], tgt[1] - p[2])) : 0;
   return (

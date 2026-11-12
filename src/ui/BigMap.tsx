@@ -1,5 +1,8 @@
 // The whole map (M): the land, the seven roads, 青石村, every den with its level (grey once cleared), the
 // waystations and story places, 天阙, where the quest wants you and where you are. Click or M / Esc to close.
+import { ROOMS } from '../game/interiors';
+import { ARENA_AT, GLADES, firefliesOut } from '../game/jianghu';
+import { HOME } from '../game/village';
 import { postAt } from '../game/conflict';
 import { CT_POS } from '../game/court';
 import { useEffect, useRef } from 'react';
@@ -93,7 +96,7 @@ export function BigMap({ sim, onClose }: { sim: Sim; onClose: () => void }) {
       const MARK: Partial<Record<string, string>> = { inn: '驿', jianzhong: '冢', tomb: '墓', smithy: '铁', tavern: '酒', shrine: '庙' };
       for (const pl of PLACES) {
         const m = MARK[pl.kind];
-        if (!m || (pl.kind !== 'inn' && pl.kind !== 'jianzhong' && pl.kind !== 'tomb')) continue;
+        if (!m || (pl.kind !== 'inn' && pl.kind !== 'jianzhong' && pl.kind !== 'tomb' && pl.kind !== 'smithy')) continue;
         const x = X(pl.x), y = Z(pl.z);
         g.fillStyle = '#f1e2bd';
         g.strokeStyle = '#3a2a10';
@@ -102,6 +105,23 @@ export function BigMap({ sim, onClose }: { sim: Sim; onClose: () => void }) {
         g.strokeRect(x - 8 * u, y - 8 * u, 16 * u, 16 * u);
         label(m, x, y + 5 * u, 12, '#5a2a10');
         label(pl.name, x, y + 21 * u, 11);
+      }
+      // the 江湖 things you can go and do: your house, the hunter, the ring, fireflies on a summer night
+      const marks: [number, number, string, string][] = [
+        [HOME.door[0], HOME.door[1], '家', sim.progress.home ? '你的家' : '空宅出售'],
+        [...ROOMS.find((r) => r.theme === 'hunter')!.door, '猎', '猎户韩家'] as [number, number, string, string],
+        [...ARENA_AT(), '擂', '擂台'] as [number, number, string, string],
+      ];
+      if (firefliesOut(sim)) for (const [gx, gz] of GLADES) marks.push([gx, gz, '萤', '萤火虫']);
+      for (const [mx, mz, m, name] of marks) {
+        const x = X(mx), y = Z(mz);
+        g.fillStyle = '#d9f2d0';
+        g.strokeStyle = '#1f4a22';
+        g.lineWidth = 1.5 * u;
+        g.fillRect(x - 7 * u, y - 7 * u, 14 * u, 14 * u);
+        g.strokeRect(x - 7 * u, y - 7 * u, 14 * u, 14 * u);
+        label(m, x, y + 4.5 * u, 11, '#1f4a22');
+        label(name, x, y + 19 * u, 10);
       }
       // the false court's men: checkpoints (a red bar across the road) and patrols (red dots)
       sim.war.posts.forEach((po, k) => {
