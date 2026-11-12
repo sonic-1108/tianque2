@@ -4,7 +4,9 @@
 // new ones the shared skill_* keys of the house whose clips their bodies borrow.
 import { defineMove, houseColor, type MoveSpec } from './kit';
 
-const M = (m: MoveSpec) => defineMove(m);
+/** every move of this book, in order (tools/fxaudit.ts walks them) */
+export const MOVES2: MoveSpec[] = [];
+const M = (m: MoveSpec) => (MOVES2.push(m), defineMove(m));
 
 // ------------------------------------------------------------------ the new houses' colours (yours, theirs)
 houseColor('kuangren', '#ff4a1c', '#3fa9ff');

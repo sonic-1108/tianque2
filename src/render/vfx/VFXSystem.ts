@@ -1,4 +1,5 @@
 import { MonkFX } from './MonkFX';
+import { KitFX } from './KitFX';
 import { EmperorFX } from './EmperorFX';
 import * as THREE from 'three';
 import { SLOT_IDS } from './constants';
@@ -595,6 +596,8 @@ interface MeteorFx {
 
 export class VFXSystem {
   root = new THREE.Group();
+  /** the kit's sweeps, strips and circles (KitFX.ts) */
+  kit = new KitFX();
   private meteors: MeteorFx[] = [];
   private projPools: Record<string, THREE.Object3D[]> = {};
   private marks: MarkFx[] = [];
@@ -649,6 +652,7 @@ export class VFXSystem {
   }
   constructor() {
     this.root.name = 'VFXSystem';
+    this.root.add(this.kit.root);
     for (const t of this.tracers) this.root.add(t.m);
     this.monk = new MonkFX(this.root);
     this.emperor = new EmperorFX(this.root);
@@ -1289,8 +1293,19 @@ export class VFXSystem {
     }
   }
 
+  kitArc(pos: THREE.Vector3, yaw: number, r: number, spread: number, color: THREE.ColorRepresentation, life?: number, tilt?: number) {
+    this.kit.arc(pos, yaw, r, spread, color, life, tilt);
+  }
+  kitBeam(from: THREE.Vector3, to: THREE.Vector3, w: number, color: THREE.ColorRepresentation, life?: number) {
+    this.kit.beam(from, to, w, color, life);
+  }
+  kitSigil(pos: THREE.Vector3, r: number, color: THREE.ColorRepresentation, life?: number, spin?: number) {
+    this.kit.sigil(pos, r, color, life, spin);
+  }
+
   update(dt: number) {
     this.time += dt;
+    this.kit.update(dt);
     for (const t of this.tracers)
       if (t.life > 0) {
         t.life -= dt;

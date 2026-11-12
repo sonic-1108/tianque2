@@ -14,6 +14,7 @@ import type { Fx, Projectile } from '../game/types';
 import { questTarget } from '../game/quests';
 import { groundHeight } from '../game/world';
 import { animateShot, disposeShot, shotMesh } from './shotLook';
+import { KitAuras } from './KitAuras';
 
 /** camera trauma (0..1) and FOV punch the camera loop reads */
 export const juice = { trauma: 0, kick: 0, push: 0, px: 0, pz: 0 };
@@ -397,6 +398,7 @@ export function Juice({ sim }: { sim: Sim }) {
       <primitive object={vfx.root} />
       <primitive object={beacon} />
       <primitive object={lookRoot} />
+      <KitAuras sim={sim} vfx={vfx} />
       {watches.map((w, i) => (
         <primitive key={i} object={w} />
       ))}

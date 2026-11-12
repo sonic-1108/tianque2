@@ -274,6 +274,19 @@ export const kitWorld = (s: Sim): KitWorld => ((s as any).kitw ??= { dots: [], p
 // ---------------------------------------------------------------- small helpers
 const fwd = (s: Sim, f: Fighter) => s.fwd(f);
 const sideCol: Record<string, [string, string]> = {};
+/** what a house's blows look like when the move names nothing */
+const HOUSE_FX: Record<string, FxKind> = {
+  kuangren: 'blood', anqi: 'slash', fanyin: 'gold', yingren: 'shadow', tianzi: 'gold', jiaoyi: 'gold', dixian: 'wood',
+  jianke: 'slash', qiangwang: 'thrust', quanshi: 'burst', fushi: 'holy', qinshi: 'sound', yushou: 'blood', duzong: 'poison',
+  gongshou: 'wind', shuangdao: 'slash', qizong: 'qi', jiguan: 'earth',
+};
+const yawOf = (fx: number, fz: number) => Math.atan2(-fx, -fz);
+let r0 = 0; // turns each sweep a little differently
+/** the sparks on each foe a blow lands on */
+function impact(s: Sim, o: Fighter, color: string, big = false) {
+  s.vfx('sparkBurst', P(o.pos[0], o.pos[1] + 1.15, o.pos[2]), big ? 22 : 12, color, big ? 8 : 6, 0.08);
+  if (big) s.vfx('flash', P(o.pos[0], o.pos[1] + 1.2, o.pos[2]), color, 3, 0.16, 7);
+}
 /** the shots each house throws, unless the move says otherwise */
 const HOUSE_LOOK: Record<string, ShotLook | undefined> = { gongshou: 'arrow', qinshi: 'note', fushi: 'talisman', qizong: 'orb', jiguan: 'arrow' };
 export function houseColor(house: string, player: string, foe: string) {
@@ -453,14 +466,31 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
     case 'hit': {
       const [cx, cz] = spot(s, f, a.at, a.d);
       const list = inShape(s, f, a, cx, cz);
+      const [fx, fz] = fwd(s, f);
+      const kind = a.fx ?? HOUSE_FX[m.house];
+      const real = a.dmg > 0 || a.r >= 0.6; // a 0.1 m, no-damage "hit" is only a cue for its fx
+      const heavy = !!(a.o?.heavy || a.o?.launch || a.o?.down || m.ult);
       if (a.shape === 'line') {
-        const [fx, fz] = fwd(s, f);
-        fxAt(s, a.fx, f.pos[0] + fx * a.r * 0.5, f.pos[1], f.pos[2] + fz * a.r * 0.5, a.r, color, f);
+        if (real) s.vfx('kitBeam', P(f.pos[0] + fx * 0.3, f.pos[1] + 1.05, f.pos[2] + fz * 0.3), P(f.pos[0] + fx * a.r, f.pos[1] + 1.05, f.pos[2] + fz * a.r), (a.w ?? 1.2) * 1.5, color, heavy ? 0.4 : 0.28);
+        fxAt(s, kind, f.pos[0] + fx * a.r * 0.5, f.pos[1], f.pos[2] + fz * a.r * 0.5, a.r, color, f);
       } else if (a.shape === 'cone') {
-        const [fx, fz] = fwd(s, f);
-        fxAt(s, a.fx, f.pos[0] + fx * a.r * 0.5, f.pos[1], f.pos[2] + fz * a.r * 0.5, a.r, color, f);
-      } else fxAt(s, a.fx, cx, f.pos[1], cz, a.r, color, f);
-      for (const o of list) strike(s, f, o, a);
+        const spread = Math.acos(Math.max(-0.95, Math.min(0.95, a.cos ?? 0.3)));
+        const tilt = ((r0++ % 3) - 1) * 0.22;
+        if (real) s.vfx('kitArc', P(f.pos[0], f.pos[1] + 1.0, f.pos[2]), yawOf(fx, fz), a.r, spread, color, heavy ? 0.32 : 0.24, tilt);
+        if (real && heavy) s.vfx('kitArc', P(f.pos[0], f.pos[1] + 0.25, f.pos[2]), yawOf(fx, fz), a.r * 0.9, spread, color, 0.4, 0);
+        fxAt(s, kind, f.pos[0] + fx * a.r * 0.5, f.pos[1], f.pos[2] + fz * a.r * 0.5, a.r, color, f);
+      } else {
+        if (real) {
+          s.vfx('ring', P(cx, gh(cx, cz) + 0.06, cz), a.r, color, heavy ? 0.5 : 0.36, 0.2, 0.3);
+          s.vfx('dustPuff', P(cx, gh(cx, cz), cz), Math.round(6 + a.r * 2), a.r * 0.6, 2.4, 0.7);
+          if (a.r >= 2.5) s.vfx('kitSigil', P(cx, gh(cx, cz), cz), a.r, color, 0.5, 2);
+        }
+        fxAt(s, kind, cx, f.pos[1], cz, a.r, color, f);
+      }
+      for (const o of list) {
+        strike(s, f, o, a);
+        impact(s, o, color, heavy);
+      }
       return list.length;
     }
     case 'shot': {
@@ -479,6 +509,12 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
         else go();
       }
       s.vfx('sound', 'throw');
+      {
+        const [fx, fz] = fwd(s, f);
+        const hand = P(f.pos[0] + fx * 0.7, f.pos[1] + 1.25, f.pos[2] + fz * 0.7);
+        s.vfx('sparkBurst', hand, 10, a.color ?? color, 5, 0.07);
+        s.vfx('flash', hand, a.color ?? color, 2, 0.12, 5);
+      }
       return 1;
     }
     case 'zone': {
@@ -494,6 +530,7 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
         zn.z = f.pos[2];
       }
       fxAt(s, a.fx, x, gh(x, z), z, a.r, a.color ?? color);
+      if (!a.line) s.vfx('ring', P(x, gh(x, z) + 0.06, z), a.r, a.color ?? color, 0.45, 0.16, 0.35);
       return 1;
     }
     case 'self': {
@@ -546,7 +583,9 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
       if (a.qiBlade) K.qiBlade = a.qiBlade;
       if (a.focus) K.focus = a.focus;
       if (a.immune) K.immune = a.immune;
-      fxAt(s, a.fx, f.pos[0], f.pos[1], f.pos[2], 2, color);
+      fxAt(s, a.fx ?? 'qi', f.pos[0], f.pos[1], f.pos[2], 2, color);
+      s.vfx('kitSigil', P(f.pos[0], gh(f.pos[0], f.pos[2]), f.pos[2]), 2.2, color, 0.9, 1.6);
+      s.vfx('embers', P(f.pos[0], f.pos[1] + 0.3, f.pos[2]), 26, color, 0.7, 3.2, 0.08);
       return 1;
     }
     case 'allies': {
@@ -560,7 +599,9 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
         }
         if (a.cleanse) cleanse(o);
         fxAt(s, a.fx ?? 'holy', o.pos[0], o.pos[1], o.pos[2], 1.2, color);
+        s.vfx('embers', P(o.pos[0], o.pos[1] + 0.3, o.pos[2]), 16, color, 0.6, 3, 0.07);
       }
+      s.vfx('kitSigil', P(f.pos[0], gh(f.pos[0], f.pos[2]), f.pos[2]), a.r, color, 0.9, 1);
       return 1;
     }
     case 'blink': {
@@ -587,6 +628,8 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
       }
       fxAt(s, 'shadow', from[0], from[1], from[2], 1.2, color);
       fxAt(s, 'shadow', f.pos[0], f.pos[1], f.pos[2], 1.2, color);
+      s.vfx('kitBeam', P(from[0], from[1] + 1, from[2]), P(f.pos[0], f.pos[1] + 1, f.pos[2]), 0.9, color, 0.3);
+      s.vfx('sparkBurst', P(f.pos[0], f.pos[1] + 1, f.pos[2]), 14, color, 5, 0.07);
       return 1;
     }
     case 'pull': {
@@ -596,6 +639,7 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
         o.vel[0] += ((f.pos[0] - o.pos[0]) / d) * a.power;
         o.vel[2] += ((f.pos[2] - o.pos[2]) / d) * a.power;
         s.hit(f, o, 10, { flinch: true });
+        s.vfx('chain', P(o.pos[0], o.pos[1] + 1.1, o.pos[2]), P(f.pos[0], f.pos[1] + 1.2, f.pos[2]), 0.45);
         if (a.mpDrain) {
           const t = Math.min(o.mp, a.mpDrain);
           o.mp -= t;
@@ -603,6 +647,7 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
         }
       }
       fxAt(s, 'wind', f.pos[0], f.pos[1], f.pos[2], a.r, color);
+      s.vfx('ring', P(f.pos[0], gh(f.pos[0], f.pos[2]) + 0.06, f.pos[2]), a.r, color, 0.5, 0.12, 0.2);
       return 1;
     }
     case 'drain': {
@@ -681,6 +726,8 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
         const x = f.pos[0] - Math.sin(ang) * 1.8, z = f.pos[2] - Math.cos(ang) * 1.8;
         W.pets.push({ id: W.petSeq++, kind: a.kind, owner: f.id, x, y: gh(x, z), z, yaw: f.yaw, life: a.life, max: a.life, dmg: a.dmg * s.power(f) * mult(f), every: a.every, cd: 0.5 + k * 0.2, range: a.range, moving: false, rend: 0, wild: 0, phase: Math.random() * 6 });
         fxAt(s, a.kind === 'turret' || a.kind === 'puppet' ? 'wood' : 'wind', x, gh(x, z), z, 1.2, color);
+        s.vfx('kitSigil', P(x, gh(x, z), z), 1.6, color, 1.1, 2.2);
+        s.vfx('embers', P(x, gh(x, z) + 0.2, z), 20, color, 0.6, 2.6, 0.08);
       }
       // too many of a kind: the oldest goes
       const mine = W.pets.filter((p) => p.owner === f.id && p.kind === a.kind);
@@ -693,10 +740,12 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
       const zn = s.zone(f, m.id, x, z, a.r, a.life, color);
       zn.data.trap = a;
       s.vfx('ring', P(x, gh(x, z) + 0.05, z), 0.6, color, 0.6, 0.1, 0.5);
+      s.vfx('kitSigil', P(x, gh(x, z), z), a.r, color, 0.7, 3);
       return 1;
     }
     case 'orbit': {
       kitOf(f).orbit = { n: a.n, r: a.r, t: a.t, dmg: a.dmg, every: a.every, cd: 0, a: 0 };
+      s.vfx('ring', P(f.pos[0], f.pos[1] + 1.1, f.pos[2]), a.r, color, 0.5, 0.1, 0);
       return 1;
     }
     case 'seed': {
@@ -724,7 +773,15 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
     }
     case 'pets': {
       const W = kitWorld(s);
-      for (const p of W.pets.filter((p) => p.owner === f.id)) {
+      const mine = W.pets.filter((p) => p.owner === f.id);
+      // the call goes out to every beast and engine: a ring round each, a line from you
+      for (const p of mine) {
+        s.vfx('ring', P(p.x, p.y + 0.06, p.z), 1.4, color, 0.5, 0.16, 0.3);
+        s.vfx('kitBeam', P(f.pos[0], f.pos[1] + 1.2, f.pos[2]), P(p.x, p.y + 0.8, p.z), 0.35, color, 0.3);
+        if (a.cmd !== 'explode') s.vfx('embers', P(p.x, p.y + 0.3, p.z), 14, color, 0.5, 2.4, 0.08);
+      }
+      if (!mine.length && f.team === 'player') s.text(f, '身边没有召唤物', '#9ca3af');
+      for (const p of mine) {
         if (a.cmd === 'rend') p.rend = a.t ?? 4;
         if (a.cmd === 'wild') p.wild = a.t ?? 6;
         if (a.cmd === 'mend') p.life = Math.min(p.max, p.life + p.max * 0.5);
@@ -743,6 +800,7 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
         s.later(k * 0.18, () => {
           fxAt(s, a.fx, o.pos[0], o.pos[1], o.pos[2], 2, color);
           strike(s, f, o, { dmg: a.dmg, o: a.o });
+          impact(s, o, color, true);
         }),
       );
       if (!list.length) fxAt(s, a.fx, ...spot(s, f, 'ahead', 5).flatMap((v, i) => (i === 0 ? [v, f.pos[1]] : [v])) as [number, number, number], 2, color);
@@ -755,8 +813,10 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
       const t = target(s, f, a.r);
       if (t) {
         const ox = t.pos[0] - f.pos[0], oz = t.pos[2] - f.pos[2], L = Math.hypot(ox, oz) || 1;
+        const from = P(f.pos[0], f.pos[1] + 1, f.pos[2]);
         stepTo(s, f, t.pos[0] - (ox / L) * 1.3, t.pos[2] - (oz / L) * 1.3);
         s.faceTo(f, t.pos[0], t.pos[2]);
+        s.vfx('kitBeam', from, P(f.pos[0], f.pos[1] + 1, f.pos[2]), 0.8, color, 0.25);
       }
       return 1;
     }
@@ -808,7 +868,16 @@ export function defineMove(m: MoveSpec) {
       }
       if (m.charge && f.team === 'player') s.text(f, '蓄力……', col(f, m.house, m.color));
       s.vfx('sound', m.sound ?? (m.ult ? 'ultRise' : 'swing'));
-      if (m.ult) s.vfx('ring', P(f.pos[0], gh(f.pos[0], f.pos[2]) + 0.05, f.pos[2]), 2.4, col(f, m.house, m.color), 0.5, 0.14, 0.4);
+      {
+        const c = col(f, m.house, m.color), g = P(f.pos[0], gh(f.pos[0], f.pos[2]), f.pos[2]);
+        s.vfx('kitSigil', g, m.ult ? 4 : 1.7, c, m.ult ? 1.6 + (m.charge ?? 0) : 0.55 + (m.charge ?? 0), m.ult ? 0.8 : 2.4);
+        s.vfx('sparkBurst', P(f.pos[0], f.pos[1] + 1.1, f.pos[2]), m.ult ? 26 : 8, c, m.ult ? 6 : 3, 0.07, 'up', 0.8);
+        if (m.ult) {
+          s.vfx('ring', P(f.pos[0], g[1] + 0.05, f.pos[2]), 2.4, c, 0.5, 0.14, 0.4);
+          s.vfx('flash', P(f.pos[0], f.pos[1] + 1.5, f.pos[2]), c, 5, 0.35, 10);
+          s.vfx('embers', P(f.pos[0], f.pos[1] + 0.2, f.pos[2]), 40, c, 1.4, 5, 0.09);
+        }
+      }
       return true;
     },
     move: (s, f, wish, dt) => {
@@ -844,6 +913,11 @@ export function defineMove(m: MoveSpec) {
           }
         if (Math.random() < 0.5) s.vfx('dustPuff', P(f.pos[0], gh(f.pos[0], f.pos[2]), f.pos[2]), 2, 0.3, 1.5, 0.5);
       }
+      const rushing = (m.move?.dash && t < m.move.dash[1]) || (m.move?.lunge && t < m.move.lunge[1]) || ((m.move?.leap || m.move?.back) && !f.grounded);
+      if (rushing && Math.random() < 0.6) {
+        s.vfx('sparkBurst', P(f.pos[0], f.pos[1] + 0.6 + Math.random() * 1.0, f.pos[2]), 3, color, 1.2, 0.07);
+        if (f.grounded) s.vfx('dustPuff', P(f.pos[0], gh(f.pos[0], f.pos[2]), f.pos[2]), 2, 0.3, 1.2, 0.45);
+      }
       while (r.data.k < m.steps.length && m.steps[r.data.k].at <= t) {
         run(s, f, m, m.steps[r.data.k].a);
         r.data.k++;
@@ -868,12 +942,20 @@ export function defineMove(m: MoveSpec) {
       }
     },
     zoneTick: (s, f, z, dt) => zoneTick(s, f, m, z, dt),
-    projHit: (s, f, o, pr) => projHit(s, f, o, pr),
+    projHit: (s, f, o, pr) => {
+      impact(s, o, pr.color, pr.radius >= 0.8 || (pr.knock ?? 0) >= 7);
+      projHit(s, f, o, pr);
+    },
     land: (s, f) => {
       // a leap's landing: run the steps that wait for it at once
       const r = f.run!;
       if (!(m.move?.leap || m.move?.back)) return;
       if (r.t < 0.12) return; // still leaving the ground
+      {
+        const g = P(f.pos[0], gh(f.pos[0], f.pos[2]), f.pos[2]), c = col(f, m.house, m.color);
+        s.vfx('dustPuff', g, 12, 1.2, 3, 0.8);
+        s.vfx('ring', P(g[0], g[1] + 0.06, g[2]), 2.2, c, 0.4, 0.16, 0.25);
+      }
       while (r.data.k < m.steps.length) {
         run(s, f, m, m.steps[r.data.k].a);
         r.data.k++;
