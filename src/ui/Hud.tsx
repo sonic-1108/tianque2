@@ -1,6 +1,7 @@
 // On-screen: health and inner strength, level and experience, the six-slot bar with cooldowns, the target, messages,
 // a minimap. Reads the sim ten times a second.
 import { CT_POS } from '../game/court';
+import { RIVALS, VLEVELS } from '../game/jianghu';
 import { ERA, SEASONS, weatherName } from '../game/clock';
 import { useEffect, useRef } from 'react';
 import type { Sim } from '../game/sim';
@@ -209,6 +210,10 @@ function WorldClock({ sim }: { sim: Sim }) {
       <div className="wc-dread" style={{ color: dreadColor(sim.war.dread) }}>
         伪朝声势 {Math.round(sim.war.dread)}
       </div>
+      <div className="wc-dread" style={{ color: '#9fd3a0' }}>
+        {VLEVELS[sim.jh.vlvl].name}
+        {sim.jh.vlvl < VLEVELS.length - 1 ? ` · 兴旺 ${sim.jh.vpts}/${VLEVELS[sim.jh.vlvl + 1].at}` : ''}
+      </div>
     </div>
   );
 }
@@ -240,6 +245,16 @@ export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
           <i style={{ width: `${P.level >= 30 ? 100 : (P.xp / sim.xpNeed()) * 100}%` }} />
         </div>
         {free > 0 && <div className="sp-hint">有 {free} 个技能点 · 按 K 加点</div>}
+        {sim.fighters
+          .filter((f) => (f as any).comp && !(f as any).away && P.comps?.[RIVALS[(f as any).rival]?.id]?.mode === 'follow')
+          .map((f) => (
+            <div key={f.id} className="ally">
+              <span>{f.name.split(' · ')[1]}{f.hp <= 0 ? ' · 重伤' : ''}</span>
+              <div className="bar hp ally-hp">
+                <i style={{ width: `${(Math.max(0, f.hp) / f.maxHp) * 100}%` }} />
+              </div>
+            </div>
+          ))}
       </div>
       {showT && (
         <div className="target">
@@ -291,6 +306,7 @@ export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
         </div>
       )}
       {sim.near < 0 && sim.dialog < 0 && sim.door >= 0 && <div className="talk-hint">F 进入 {ROOMS[sim.door].name}</div>}
+      {sim.jh.arena && <div className="room-name">擂台 · 第 {sim.jh.arena.round} 阵</div>}
       {sim.near < 0 && sim.dialog < 0 && sim.door === -2 && <div className="talk-hint">F 出门</div>}
       {sim.indoor >= 0 && <div className="room-name">{ROOMS[sim.indoor].name}</div>}
       <div className="door-fade" style={{ opacity: Math.max(0, Math.min(1, sim.fadeT / 0.3)) }} />

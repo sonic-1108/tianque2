@@ -179,6 +179,8 @@ export interface Folk {
   life?: LifeKind;
   /** a traveller's two ends of road (life 'road') */
   route?: [number, number][];
+  /** only there once the village has grown this far (jianghu.ts VLEVELS) */
+  vlvl?: number;
 }
 const RING_TALK = [
   '往外走二里地就是黑风寨的人了，夜里别赶路。',
@@ -308,6 +310,20 @@ export const FOLK: Folk[] = (() => {
     const [x, z] = spot[0] === 0 && spot[1] === 0 ? street(MARKET_FROM + 8 + k * 9) : spot;
     out.push({ name, model, x, z, walk: walk || 10, lines, cry, life: 'stroll' });
   });
+  // newcomers as the village grows (jianghu.ts): stalls by the square's roads, the town's shops, its gate guards
+  const GROW: [string, string, [number, number], number, number | undefined, LifeKind | undefined, string[], string[]?, string?][] = [
+    ['豆腐坊 · 孙二娘', 'npc-merchantwoman.glb', at(60, 12), 1, 0.6, 'stall', ['山贼不敢来了，我才敢把豆腐坊开起来。', '豆花要趁热吃，凉了就老了。', '听说是你守的寨门？这碗不要钱……下回再给。'], ['豆花～热乎的豆花～']],
+    ['逃难来的吴老汉', 'npc-farmer.glb', at(101, 12), 1, 6, 'stroll', ['伪朝的税一年比一年重，我们一家是从北边逃过来的。', '青石村的人心善，给了我们半间屋子。', '等开了春，我在村口种两亩豆子。']],
+    ['货郎 · 钱小二', 'npc-peddler.glb', at(152, 12), 1, 0.6, 'stall', ['以前我只敢在集上摆摊，现在村里也有生意了。', '金疮药、灯笼、坛子，样样都有。', '你要是去别的驿站，替我捎个口信给我哥。'], ['针头线脑，伤药灯笼～']],
+    ['药铺 · 白掌柜', 'npc-doctor.glb', at(213, 12), 2, 0.6, 'stall', ['镇上有了药铺，就不用再跑永安城抓药了。', '刀伤要先止血，再上药，别反过来。', '慧明大师的医术，我只学了三成。'], ['抓药看病，童叟无欺～'], '请白掌柜看看伤'],
+    ['说书人 · 张铁嘴', 'npc-oldman.glb', at(263, 11), 2, 0.6, 'stall', ['上回说到守阙人一剑西来……今天说说咱们青石镇的少侠！', '你的事迹，我都编成书了，就差一个结尾。', '听书不要钱，给个赏钱就行。'], ['列位看官，今日说一段“青石夜守”！']],
+    ['酒楼 · 何掌柜', 'npc-noodle.glb', at(5, 13), 2, 0.6, 'stall', ['镇上的第一座酒楼！办席请客，都来我这儿。', '鹿肉、野兔、河鲜，有多少收多少。', '庆功宴我包了，你守住寨子就行。'], ['酒席开桌咯～']],
+    ['老翰林 · 顾老', 'npc-scholar.glb', at(305, 12), 3, 3, 'stroll', ['老夫在永安城做了三十年官，告老了，就想找个太平地方。', '天下太平，不在庙堂，在这样的小城里。', '你这城，有一天会写进史书的。']],
+    ['绣娘 · 阿秀', 'npc-lady.glb', at(280, 13), 3, 0.6, 'stall', ['柳三娘是我师父，她织布，我绣花。', '城里的姑娘都来找我绣嫁衣。', '你衣襟上要不要绣个“青”字？'], ['绸缎胭脂，绣花嫁衣～']],
+    ['城门守卫', 'npc-guard.glb', at(1.8, 59), 3, undefined, undefined, ['青石城的门，日夜有人守。', '你是城主……哦不，你是大侠，进去吧。', '外头的伪朝兵，现在见了咱们的石墙都绕着走。']],
+    ['城门守卫', 'npc-guard.glb', at(8.2, 59), 3, undefined, undefined, ['站岗站久了，腿都站直了。', '大柱和铁牛是我表兄，他们守西门。', '夜里有动静，我就敲锣。']],
+  ];
+  for (const [name, model, [x, z], vlvl, walk, life, lines, cry, heal] of GROW) out.push({ name, model, x, z, walk, life, lines, cry, vlvl, heal });
   // travellers on the post roads, back and forth between two points, in a waystation by night
   const TRAVEL: [string, string, number, number, number, string[], string[]?][] = [
     ['镖师 · 雷五', 'npc-swordsman.glb', 2, 110, 380, ['走镖二十年，没丢过一趟货。', '最近路上多了伪朝的兵，比山贼还难缠。', '你一个人走路？胆子不小。'], ['镖局走镖，闲人让路！']],
@@ -341,6 +357,7 @@ export const FOLK: Folk[] = (() => {
     ['巡逻禁军', 'npc-palaceguard.glb', -4, 22, 20, ['巡逻呢，别挡道。', '夜里宫里不太平，有人说看见过白影。', '将军的演武场就在那边，想挨揍就去。'], undefined],
     ['巡逻禁军', 'npc-palaceguard.glb', 4, -6, 20, ['宫里规矩多，别乱碰东西。', '鼓楼的鼓不许乱敲。……你敲了？', '我当兵是为了吃饱饭。'], undefined],
     ['卖艺的 · 红绫', 'npc-dancer.glb', 6, 86, 6, ['看一看瞧一瞧，红绫姑娘的绸子舞！', '我在京城跳，在县里跳，哪里有钱哪里跳。', '那个戴斗笠的剑客，天天来看我跳舞，又不给钱。'], ['好！再来一个！', '红绫起舞，看官赏钱～']],
+    ['擂台官 · 包金刚', 'npc-butcher.glb', -22, 34, undefined, ['永安城的擂台，每季第二天开擂，五阵连胜才算魁首。', '上一季的魁首？被我轰下台了。', '打擂不论出身，只论拳头。'], ['开擂咯！有本事的上台！']],
     ['游侠 · 沈孤', 'npc-swordsman.glb', -9, 92, 5, ['剑是用来护人的，不是用来杀人的。我这么说，你信吗？', '天阙？我去过一次，没敢进门。', '我在等一个人，等了很多年。'], undefined],
     ['胭脂铺 · 柳嫂', 'npc-merchantwoman.glb', -16, 100, 3, ['宫里的娘娘们都用我家的胭脂。', '大侠买一盒送心上人？', '公主最喜欢桃花色的。'], ['上好的胭脂水粉，宫里同款！']],
     ['顽童 · 狗蛋', 'npc-kid2.glb', 2, 104, 12, ['略略略，你抓不到我！', '我长大要当大将军！', '那个跳舞的姐姐是我姐。'], ['冲啊！']],

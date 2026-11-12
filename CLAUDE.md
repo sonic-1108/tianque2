@@ -113,6 +113,21 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
 - Townsfolk style (owner's rule): realistic like the heroes (portraits/), never cartoon. Tripo prompts end with the
   realistic style line and the workflow's `negative` input (cartoon, chibi, stylized, big head ...).
 
+- 江湖 (`src/game/jianghu.ts`, owner asked for all of it): gear `GEAR` forged by 铁匠 · 张大锤 (panel `forge`, worn on
+  weapon / armour / charm, changed at the smithy or the home rack `gear`; `gearOf` feeds power, damage taken, life
+  `fullHp`, speed, mp, leech); materials 铁料 / 兽皮 / 玄铁 drop from foes (`dropFrom`) and the hunt. 悬赏榜 `RIVALS`: ten
+  named wanderers walk their stretch of road (`mode: 'rival'`, elite), on the notice boards and the big map (悬); the five
+  good ones join when beaten and become companions (team `ally`, `allyThink`: follow / wait / home, max 2 following, 好感
+  from kills and gifts, three story cards at 30 / 60 / 100). Bandits pick the nearest of you and your allies. Village
+  growth `VLEVELS` (pts from raids won/lost, posts, patrols, bosses, bounties): new folk with `vlvl`, two 乡勇 militia
+  (wanderer_m, hold the gates from level 2), stone wall and gate board 青石城 at level 3 (Stockade). 擂台 at court
+  (擂台官 · 包金刚, second day of each season, five bouts, prize 金丝软甲). Seasons: river ice in deep winter (`ICE` in
+  world.ts: floorAt and the water shader), firefly glades on summer nights, the hunt with a 猎弓 (from 猎户 · 韩老三,
+  F at game in front within 26 m, autumn doubles), seasonal fish. Your house (`HOME` in village.ts, drawn by
+  render/Home.tsx, room theme `home`): bought at its sale board for 300, bed sleeps to dawn, rack changes gear.
+  Test: scratch jh.mts.
+- `Builder.roof` once moved its dark underside twice (every roof's underside floated at double its x, y, z); fixed.
+
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported
   from 天阙 1: same timings, reach, damage, statuses; its `vfx.*` calls become `s.vfx(name, ...args)` commands in

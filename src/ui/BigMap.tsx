@@ -120,6 +120,27 @@ export function BigMap({ sim, onClose }: { sim: Sim; onClose: () => void }) {
           g.arc(X(f.pos[0]), Z(f.pos[2]), 3 * u, 0, Math.PI * 2);
           g.fill();
         }
+      // the wanted on the bounty board (悬), and your companions (green)
+      for (const f of sim.fighters) {
+        const fa = f as any;
+        if (fa.rival !== undefined && f.team === 'sect' && f.hp > 0 && !fa.benched) {
+          g.fillStyle = '#7a1010';
+          g.strokeStyle = '#ffb0a0';
+          g.lineWidth = 1.5 * u;
+          g.beginPath();
+          g.arc(X(f.pos[0]), Z(f.pos[2]), 7 * u, 0, Math.PI * 2);
+          g.fill();
+          g.stroke();
+          label('悬', X(f.pos[0]), Z(f.pos[2]) + 4.5 * u, 11, '#ffd0c0');
+          label(`${f.name.split(' · ')[1]} ${f.level}`, X(f.pos[0]), Z(f.pos[2]) - 10 * u, 11, '#ffb0a0');
+        }
+        if (fa.comp && f.hp > 0) {
+          g.fillStyle = '#5ee08a';
+          g.beginPath();
+          g.arc(X(f.pos[0]), Z(f.pos[2]), 3.5 * u, 0, Math.PI * 2);
+          g.fill();
+        }
+      }
       // 永安城: the court
       {
         const x = X(CT_POS[0]), y = Z(CT_POS[1]);

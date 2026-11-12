@@ -6,7 +6,7 @@ export type SectId = 'kuangren' | 'anqi' | 'yingren' | 'jiaoyi' | 'fanyin' | 'di
 /** what the body is doing; the renderer picks a clip from it */
 export type Act = 'idle' | 'run' | 'jump' | 'attack' | 'cast' | 'channel' | 'dodge' | 'hit' | 'down' | 'dead' | 'glide' | 'burrow';
 
-export type Team = 'player' | 'sect' | 'npc';
+export type Team = 'player' | 'sect' | 'npc' | 'ally'; // ally: companions and the village militia, on your side
 
 export interface Status {
   slow: number; // seconds left of 50% move speed

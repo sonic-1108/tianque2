@@ -10,14 +10,15 @@ import { dateOf, hauntsFor, planFor, type Entry, type Plan } from './life';
 import type { Folk } from './places';
 import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } from './types';
 import { DENS, DEN_R, FOE_KINDS, bossNameOf, menNameOf } from './foes';
-import { MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, buildingFloor, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
+import { ICE, MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, buildingFloor, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
+import { JH_TOUCH, allyDown, allyPower, allyThink, allyUp, doJhTouch, dropFrom, fullHp, gearOf, jhTouch, levelFor, makeArenaPool, makeJianghu, newJH, rivalBeaten, stepArena, stepRivals, stepSeasons, warm, addVillagePts, type JH } from './jianghu';
 
 /** what a body stands on: the ground, or the lake's surface (wading / swimming) */
 /** what a body stands on: the ground (or the river's bed), or, given its feet's height, a roof, a terrace or a step it's on */
 const floorAt = (x: number, z: number, y?: number) =>
   roomAt(x, z)
     ? Math.max(ROOM_Y, y === undefined ? -Infinity : buildingFloor(x, z, y)) // in a room: its floor, or the bench you're on
-    : Math.max(groundHeight(x, z), WATER_Y - 1.1, y === undefined ? -Infinity : buildingFloor(x, z, y));
+    : Math.max(groundHeight(x, z), ICE.on ? WATER_Y : WATER_Y - 1.1, y === undefined ? -Infinity : buildingFloor(x, z, y));
 import { Progress, STORY_V, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
 import { WANDERER, heroOf } from './heroes';
 import { SKILLS } from './skills';
@@ -158,6 +159,10 @@ export class Sim {
   private sparPool: Fighter[] = [];
   /** 伪朝声势, its patrols and checkpoints, the night raids (conflict.ts) */
   war: War = newWar();
+  /** 江湖: the village's growth, the ring, the glades (jianghu.ts) */
+  jh: JH = newJH();
+  /** this step's companions and militia on their feet (bandits pick among them and you) */
+  allyList: Fighter[] = [];
   /** the camera turns to this yaw on the next frame (going through a door), then it's cleared */
   camSnap: number | null = null;
   /** a short fade the UI plays when the player goes through a door */
@@ -167,6 +172,10 @@ export class Sim {
     const p = this.player;
     if (this.door >= 0) {
       const r = ROOMS[this.door];
+      if (r.theme === 'home' && !this.progress.home) {
+        this.toast('门锁着。门口的木牌上写着：空宅出售，三百文。');
+        return;
+      }
       const [x, z] = roomSpawn(r);
       p.pos = [x, ROOM_Y, z];
       p.yaw = 0; // facing into the room (-z)
@@ -211,6 +220,11 @@ export class Sim {
           W.raidDay = w.war.rd ?? -1;
           (w.war.pd ?? []).forEach((d: number, k: number) => W.posts[k] && (W.posts[k].down = d));
         }
+        if (w.jh) {
+          this.jh.vpts = w.jh.v ?? 0;
+          this.jh.vlvl = levelFor(this.jh.vpts);
+          this.jh.glades = w.jh.g ?? [];
+        }
       }
     } catch {}
     this.clock = clockOf(this.worldT);
@@ -223,7 +237,7 @@ export class Sim {
     }
     const h = heroOf(this.progress.hero);
     const p = this.make('player', null, h ? h.name : WANDERER.name, h ? h.model : WANDERER.model, this.progress.level, VILLAGE_SPAWN[0], VILLAGE_SPAWN[1]);
-    p.maxHp = p.hp = playerMaxHp(p.level);
+    p.maxHp = p.hp = fullHp(this.progress);
     for (const n of NPCS) {
       const f = this.make('npc', null, n.name, n.model, 30, n.x, n.z);
       f.master = true;
@@ -269,6 +283,8 @@ export class Sim {
       this.sparPool.push(f);
     }
     makePools(this);
+    makeJianghu(this);
+    makeArenaPool(this);
   }
   /** calls one of the sparring guards onto the floor */
   sparrer(k: number, _kind: unknown, name: string, level: number, x: number, z: number) {
@@ -335,7 +351,8 @@ export class Sim {
   }
   isEnemy(a: Fighter, b: Fighter) {
     if (a === b || b.hp <= 0 || b.team === 'npc' || a.team === 'npc') return false;
-    return a.team !== b.team;
+    const side = (t: Fighter['team']) => (t === 'ally' ? 'player' : t);
+    return side(a.team) !== side(b.team);
   }
   enemiesOf(f: Fighter) {
     return this.fighters.filter((o) => this.isEnemy(f, o));
@@ -377,8 +394,9 @@ export class Sim {
     f.yaw = Math.atan2(-(x - f.pos[0]), -(z - f.pos[2]));
   }
   power(f: Fighter) {
-    if (f.team === 'player') return playerPower(f.level) * (this.progress.relics?.includes('sword') ? 1.1 : 1);
-    return (0.25 + f.level * 0.04) * ((f as any).boss ? 1 : 0.82); // the men hit softer than their bosses // bandits hit softer than you: a few at once is the danger
+    if (f.team === 'player') return playerPower(f.level) * (this.progress.relics?.includes('sword') ? 1.1 : 1) * (1 + gearOf(this.progress).dmg);
+    if (f.team === 'ally') return allyPower(this, f);
+    return (0.25 + f.level * 0.04) * ((f as any).boss || (f as any).elite ? 1 : 0.82); // the men hit softer than their bosses // bandits hit softer than you: a few at once is the danger
   }
   setAct(f: Fighter, act: Fighter['act'], dur: number, anim?: string) {
     f.act = act;
@@ -495,6 +513,7 @@ export class Sim {
       if ((att as any).spar) dmg *= 0.55; // sparring: they pull their blows
     }
     if (def.st.shield > 0) dmg *= 0.35;
+    if (def.id === PLAYER && !o.noScale) dmg *= 1 - gearOf(this.progress).def;
     // 鹤羽护 soaks what it can
     if ((def.ward ?? 0) > 0 && def.st.wardT > 0) {
       const soak = Math.min(def.ward!, dmg);
@@ -509,6 +528,10 @@ export class Sim {
     dmg = Math.max(1, Math.round(dmg));
     def.hp = Math.max(0, def.hp - dmg);
     if (att.st.rage > 0 && att.hp > 0) att.hp = Math.min(att.maxHp, att.hp + dmg * RAGE.lifesteal);
+    if (att.id === PLAYER && att.hp > 0) {
+      const lee = gearOf(this.progress).leech;
+      if (lee > 0) att.hp = Math.min(att.maxHp, att.hp + dmg * lee);
+    }
     if (att.id === PLAYER) this.lastTarget = def.id;
     const heavy = !!(o.heavy || o.launch || o.down || (o.knock ?? 0) >= 6 || crit || dmg > def.maxHp * 0.12);
     this.emit({ k: 'hit', x: def.pos[0], y: def.pos[1] + 1.1, z: def.pos[2], id: att.id, to: def.id, n: dmg, heavy, crit, color: o.color });
@@ -609,26 +632,35 @@ export class Sim {
       this.toast(`你被${att.name}打倒了 · 4 秒后回到村子`);
       return;
     }
+    if (def.team === 'ally') {
+      def.aggro = false;
+      allyDown(this, def);
+      return;
+    }
     def.respawn = (def as any).boss ? 60 : 25;
-    if ((def as any).spar || (def as any).pooled) def.respawn = undefined;
+    if ((def as any).spar || (def as any).pooled || (def as any).arena) def.respawn = undefined;
     def.aggro = false;
-    if (att.id === PLAYER) {
+    if (att.id === PLAYER || att.team === 'ally') {
       const P = this.progress;
       this.questKill(def);
       if ((def as any).boss) {
         this.chron(`你击败了${def.name}。`, `听说${def.name}栽在一个年轻人手里了，是你吧？`);
         shiftDread(this, -15);
+        if (DENS[(def as any).den]?.ring !== undefined) addVillagePts(this, 4);
       }
+      if ((def as any).rival !== undefined) rivalBeaten(this, def);
+      if (!(def as any).spar && !(def as any).arena) dropFrom(this, def);
+      for (const a of this.allyList) if ((a as any).comp) warm(this, a, 1);
       // a foe far below you is worth little
       const gap = Math.max(0, P.level - def.level - 3);
-      const xp = Math.max(3, Math.round((18 + def.level * 10) * ((def as any).boss ? 5 : 1) * Math.pow(0.75, gap)));
-      this.text(att, `经验 +${xp}`, '#a5f3fc');
-      if (!(def as any).spar) earn(this, (def as any).boss ? 60 : 2 + Math.floor(def.level / 3));
+      const xp = Math.max(3, Math.round((18 + def.level * 10) * ((def as any).boss ? 5 : (def as any).elite ? 3 : 1) * Math.pow(0.75, gap)));
+      this.text(this.player, `经验 +${xp}`, '#a5f3fc');
+      if (!(def as any).spar && !(def as any).arena && (def as any).rival === undefined) earn(this, (def as any).boss ? 60 : 2 + Math.floor(def.level / 3));
       const ups = gainXp(P, xp);
       if (ups > 0) {
         const p = this.player;
         p.level = P.level;
-        p.maxHp = playerMaxHp(P.level);
+        p.maxHp = fullHp(P);
         p.hp = p.maxHp;
         this.toast(`升级！${P.level} 级 · 技能点 +${ups * 2}，按 K 加点`);
         this.emit({ k: 'level', x: p.pos[0], y: p.pos[1], z: p.pos[2], id: PLAYER });
@@ -723,7 +755,7 @@ export class Sim {
     if (ups > 0) {
       const p = this.player;
       p.level = P.level;
-      p.maxHp = playerMaxHp(P.level);
+      p.maxHp = fullHp(P);
       p.hp = p.maxHp;
       this.toast(`升级！${P.level} 级 · 技能点 +${ups * 2}，按 K 加点`);
     }
@@ -874,6 +906,7 @@ export class Sim {
       }
     }
     if (input) this.control(this.player, input);
+    this.allyList = this.fighters.filter((f) => f.team === 'ally' && f.hp > 0 && !(f as any).away);
     for (const f of this.fighters) if (f.team !== 'player') this.think(f, dt);
     for (const f of this.fighters) this.physics(f, dt);
     // bodies don't stand inside each other
@@ -912,7 +945,7 @@ export class Sim {
       for (const k of ['speed', 'dmg', 'regen'] as const) if (B[k] > 0) B[k] = Math.max(0, B[k] - dt);
       if (B.regen > 0 && pl.hp > 0) pl.hp = Math.min(pl.maxHp, pl.hp + pl.maxHp * 0.012 * dt);
       const ride = this.riding >= 0 ? 2.3 * (policyNow(this)?.ride ?? 1) : 1;
-      (pl as any).spdMul = (B.speed > 0 ? 1.25 : 1) * ride;
+      (pl as any).spdMul = (B.speed > 0 ? 1.25 : 1) * ride * (1 + gearOf(this.progress).spd);
       if (this.riding >= 0) {
         const a = this.animals[this.riding];
         const sp = Math.hypot(pl.vel[0], pl.vel[2]);
@@ -929,7 +962,10 @@ export class Sim {
         }
       }
       stepSpar(this, dt);
-      this.touch = this.near < 0 && this.door === -1 && this.dialog < 0 ? touchable(this) : null;
+      stepArena(this, dt);
+      stepRivals(this, dt);
+      stepSeasons(this, dt);
+      this.touch = (this.near < 0 || (this.fighters[this.near] as any).comp) && this.door === -1 && this.dialog < 0 ? (touchable(this) ?? jhTouch(this)) : null;
       for (const b of this.bubbles) b.t -= dt;
       if (this.bubbles.length) this.bubbles = this.bubbles.filter((b) => b.t > 0);
     }
@@ -942,7 +978,7 @@ export class Sim {
     if ((this.worldSaveT -= dt) <= 0) {
       this.worldSaveT = 10;
       try {
-        localStorage.setItem('tq2_world_v1', JSON.stringify({ t: this.worldT, w: this.weather, c: this.chronicle.slice(-200), m: this.marks, p: this.policy, war: { v2: 1, d: this.war.dread, a: this.war.after, lt: this.war.lastTier, rd: this.war.raidDay, pd: this.war.posts.map((p) => p.down) } }));
+        localStorage.setItem('tq2_world_v1', JSON.stringify({ t: this.worldT, w: this.weather, c: this.chronicle.slice(-200), m: this.marks, p: this.policy, war: { v2: 1, d: this.war.dread, a: this.war.after, lt: this.war.lastTier, rd: this.war.raidDay, pd: this.war.posts.map((p) => p.down) }, jh: { v: this.jh.vpts, g: this.jh.glades } }));
       } catch {}
     }
     {
@@ -974,11 +1010,18 @@ export class Sim {
         if (dd < 1.7 && dd < nearD) this.door = -2;
       } else
         for (const r of ROOMS) {
+          if (r.theme === 'home' && !this.progress.home) continue; // locked: the sale board takes F
           const dd = Math.hypot(pl.pos[0] - r.door[0], pl.pos[2] - r.door[1]);
           if (dd < 2.2 && dd < nearD) this.door = r.id;
         }
       // whichever is closer, a door or a person, is what F does
       if (this.door !== -1) this.near = -1;
+      // a companion at your elbow only takes F when nothing else here does
+      if (this.near < 0 && this.door === -1 && !this.touch)
+        for (const f of this.allyList) if ((f as any).comp && this.dist(f, pl) < 2.6 && this.dist(f, pl) < nearD) {
+          this.near = f.id;
+          nearD = this.dist(f, pl);
+        }
     }
     this.questCheck();
     this.toasts = this.toasts.filter((t) => t.t > 0);
@@ -1007,7 +1050,7 @@ export class Sim {
     for (const k of Object.keys(s) as (keyof Status)[]) if (s[k] > 0) s[k] = Math.max(0, s[k] - dt);
     for (const k of Object.keys(f.cds)) f.cds[k] = Math.max(0, f.cds[k] - dt);
     if (s.wardT <= 0) f.ward = 0;
-    if (f.hp > 0) f.mp = Math.min(f.maxMp, f.mp + dt * (f.team === 'player' ? 7 : 5));
+    if (f.hp > 0) f.mp = Math.min(f.maxMp, f.mp + dt * (f.team === 'player' ? 7 * (1 + gearOf(this.progress).mp) : 5));
     if (f.hp > 0 && f.team === 'player' && !this.enemiesOf(f).some((o) => o.aggro && this.dist(o, f) < 25)) f.hp = Math.min(f.maxHp, f.hp + f.maxHp * 0.02 * dt); // out of a fight: heal up
     if (f.hp > 0 && f.act === 'dead') this.setAct(f, 'idle', 0, 'idle'); // never alive and lying dead
     if (f.respawn !== undefined && f.hp <= 0) {
@@ -1028,6 +1071,7 @@ export class Sim {
     f.vel = [0, 0, 0];
     this.setAct(f, 'idle', 0, 'idle');
     if (f.id === PLAYER) f.st.invuln = 2;
+    if (f.team === 'ally') allyUp(this, f);
   }
 
   /** the player's keys */
@@ -1049,7 +1093,10 @@ export class Sim {
     (f as any).wish = this.ultCharge !== null ? [0, 0] : [mx, mz];
     if (inp.interact && this.riding >= 0) doTouch(this, { kind: 'dismount', id: this.riding, label: '' });
     else if (inp.interact && this.near < 0 && this.door !== -1 && this.dialog < 0) this.useDoor();
-    else if (inp.interact && this.near < 0 && this.touch && this.dialog < 0 && !this.game) doTouch(this, this.touch);
+    else if (inp.interact && this.near < 0 && this.touch && this.dialog < 0 && !this.game) {
+      if (JH_TOUCH.includes(this.touch.kind)) doJhTouch(this, this.touch);
+      else doTouch(this, this.touch);
+    }
     else if (inp.interact && this.near >= 0) {
       this.dialog = this.dialog >= 0 ? -1 : this.near;
       if (this.dialog >= 0) {
@@ -1258,12 +1305,18 @@ export class Sim {
 
   /** disciples and masters */
   private think(f: Fighter, dt: number) {
+    if (f.team === 'ally') return allyThink(this, f, dt);
     if (f.hp <= 0) return;
     const p = this.player;
     if (f.master) {
       const a = f as any;
       a.wish = [0, 0];
       const folk = a.folk !== undefined ? ALL_FOLK[a.folk] : null;
+      // folk who only come once the village has grown
+      if (folk?.vlvl && this.jh.vlvl < folk.vlvl) {
+        a.away = true;
+        return;
+      }
       // those who keep their own hours go about their day (life.ts); the hidden ones are at home
       if (folk?.life) {
         this.live(f, folk, dt);
@@ -1289,7 +1342,10 @@ export class Sim {
     const mode = (f as any).mode;
     if (mode === 'raid') f.aggro = p.hp > 0 && this.indoor < 0 && d < 22;
     else if (mode === 'hunt') f.aggro = p.hp > 0 && this.indoor < 0 && d < 160;
-    else if (mode) {
+    else if (mode === 'rival') {
+      if (p.hp <= 0 || pInVillage || this.indoor >= 0 || d > 42) f.aggro = false;
+      else if (d < 13) f.aggro = true;
+    } else if (mode) {
       if (p.hp <= 0 || pFromHome > 60 || this.indoor >= 0) f.aggro = false;
       else if (d < 24) f.aggro = true;
     } else if (p.hp <= 0 || pInVillage || pFromHome > DEN_R + 28 || fromHome > 38) f.aggro = false;
@@ -1307,16 +1363,35 @@ export class Sim {
         wz = (home[1] - f.pos[2]) / fromHome;
       } else if (!(f as any).mode) f.hp = Math.min(f.maxHp, f.hp + f.maxHp * 0.2 * dt); // back home: patched up
       (f as any).wish = [wx, wz];
-      return;
+      // raiders fall on the militia and companions holding the village even with you away
+      if (mode === 'raid') for (const al of this.allyList) if (this.dist(f, al) < 16) f.aggro = true;
+      if (!f.aggro) return;
+    }
+    // whom to go for: you, or a companion who's nearer
+    let tg = p;
+    {
+      let bd = f.aggro && (p.hp <= 0 || this.indoor >= 0) ? Infinity : d;
+      for (const al of this.allyList) {
+        const da = this.dist(f, al);
+        if (da < bd - 1.5) {
+          bd = da;
+          tg = al;
+        }
+      }
+      if (bd === Infinity) {
+        f.aggro = false;
+        return;
+      }
     }
     const s = this.kindOf(f)!;
-    const dx = (p.pos[0] - f.pos[0]) / (d || 1);
-    const dz = (p.pos[2] - f.pos[2]) / (d || 1);
+    const d2 = this.dist(f, tg);
+    const dx = (tg.pos[0] - f.pos[0]) / (d2 || 1);
+    const dz = (tg.pos[2] - f.pos[2]) / (d2 || 1);
     const keep = s.ranged ? 8 : 1.6;
-    if (d > keep + (s.ranged ? 3 : 0.3)) {
+    if (d2 > keep + (s.ranged ? 3 : 0.3)) {
       wx = dx;
       wz = dz;
-    } else if (s.ranged && d < 4) {
+    } else if (s.ranged && d2 < 4) {
       // up close a thrower stands and fights (backing off made them impossible to catch)
       wx = wz = 0;
     } else {
@@ -1327,9 +1402,9 @@ export class Sim {
     (f as any).wish = [wx, wz];
     f.aiT = (f.aiT ?? 0) - dt;
     if (!this.free(f) || (f.aiT ?? 0) > 0) return;
-    this.faceTo(f, p.pos[0], p.pos[2]);
+    this.faceTo(f, tg.pos[0], tg.pos[2]);
     // a move of their house now and then (the ones their level allows)
-    const usable = s.skills.filter((id, k) => f.level >= 1 + k * 4 && (f.cds[id] ?? 0) <= 0 && f.mp >= SKILLS[id].mp && d <= SKILLS[id].aiRange);
+    const usable = s.skills.filter((id, k) => f.level >= 1 + k * 4 && (f.cds[id] ?? 0) <= 0 && f.mp >= SKILLS[id].mp && d2 <= SKILLS[id].aiRange);
     if (usable.length && Math.random() < 0.35) {
       const id = usable[Math.floor(Math.random() * usable.length)];
       if (this.cast(f, id)) {
@@ -1337,8 +1412,8 @@ export class Sim {
         return;
       }
     }
-    if (s.ranged ? d < 16 : d < MELEE_RANGE + 0.4) {
-      this.attack(f, s.ranged && d > 3);
+    if (s.ranged ? d2 < 16 : d2 < MELEE_RANGE + 0.4) {
+      this.attack(f, s.ranged && d2 > 3);
       f.aiT = s.ranged ? 1.4 + Math.random() : 0.9 + Math.random() * 0.8;
     }
   }
@@ -1362,7 +1437,7 @@ export class Sim {
     }
     if (sk?.move) sk.move(this, f, wish, dt);
     else if (canWalk) {
-      let spd = (f.team === 'player' ? RUN : NPC_RUN) * (f.st.slow > 0 ? 0.5 : 1) * (f.st.daze > 0 ? 0.5 : 1) * (f.st.rage > 0 ? RAGE.move : 1) * (f.st.weak > 0 ? 0.8 : 1) * ((f as any).spdMul ?? 1) * (groundHeight(f.pos[0], f.pos[2]) < WATER_Y - 0.5 ? 0.55 : 1);
+      let spd = (f.team === 'player' ? RUN : NPC_RUN) * (f.st.slow > 0 ? 0.5 : 1) * (f.st.daze > 0 ? 0.5 : 1) * (f.st.rage > 0 ? RAGE.move : 1) * (f.st.weak > 0 ? 0.8 : 1) * ((f as any).spdMul ?? 1) * (groundHeight(f.pos[0], f.pos[2]) < WATER_Y - 0.5 && !ICE.on ? 0.55 : 1);
       if (!f.aggro && f.team === 'sect' && Math.hypot(f.pos[0] - (f.home?.[0] ?? 0), f.pos[2] - (f.home?.[1] ?? 0)) < 6) spd *= 0.6; // strolling about at home
       const k = f.grounded ? 14 : 4;
       const tx = wish[0] * spd;

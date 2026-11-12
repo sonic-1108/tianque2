@@ -11,6 +11,7 @@ import { roadPoint } from './layout';
 import { FOE_KINDS, type FoeKind } from './foes';
 import { groundHeight, VILLAGE_R } from './world';
 import { earn, giveXp } from './play';
+import { addVillagePts } from './jianghu';
 import { ROOMS } from './interiors';
 import { nearCourt } from './court';
 const nearCourtPlain = (x: number, z: number) => nearCourt(x, z, 140);
@@ -156,6 +157,7 @@ export function stepWar(s: Sim, dt: number) {
       pt.down = s.worldT + DAY_S;
       shiftDread(s, -4);
       earn(s, 30, '伪朝巡逻队被你打散了！');
+      addVillagePts(s, 1);
       s.chron('你在驿道上打散了一队伪朝巡逻。', '听说你在驿道上把伪朝的巡逻打得屁滚尿流，痛快！');
     }
     if (!active || s.worldT < pt.down) {
@@ -197,6 +199,7 @@ export function stepWar(s: Sim, dt: number) {
       po.down = s.worldT + DAY_S * 2;
       shiftDread(s, -7);
       earn(s, 60, '关卡被你拔掉了！缴获关税 60 文');
+      addVillagePts(s, 2);
       giveXp(s, 120);
       s.chron(`你拔掉了驿道上的一处伪朝关卡。`, '听说驿道上的关卡被人拔了，过往的商客都在念你的好。');
     }
@@ -224,7 +227,7 @@ export function stepWar(s: Sim, dt: number) {
 }
 
 /** the houses' doors: where the raiders go to set fires */
-const DOORS = ROOMS.filter((r) => r.theme !== 'tavern' && r.theme !== 'inn' && r.theme !== 'shrine' && r.theme !== 'teahouse' && r.theme !== 'throne' && Math.hypot(r.door[0], r.door[1]) < 40).map((r) => r.door);
+const DOORS = ROOMS.filter((r) => r.theme !== 'tavern' && r.theme !== 'inn' && r.theme !== 'shrine' && r.theme !== 'teahouse' && r.theme !== 'throne' && r.theme !== 'home' && Math.hypot(r.door[0], r.door[1]) < 40).map((r) => r.door);
 export const raidNight = (day: number) => day % 2 === 1;
 function stepRaid(s: Sim, dt: number, c: Sim['clock'], p: Fighter) {
   const W = s.war;
@@ -297,6 +300,7 @@ function stepRaid(s: Sim, dt: number, c: Sim['clock'], p: Fighter) {
         W.after = { day: c.day + 1, kind: 'feast' };
         shiftDread(s, -6);
         earn(s, 100, '守住青石村了！村长代全村谢你，赏 100 文。明天集上请客，样样半价！');
+        addVillagePts(s, 4);
         giveXp(s, 220);
         s.chron('夜里山贼劫村，你守住了青石村。', '那天夜里要不是你，咱们村就没了！');
         const T = (s.progress.titles ??= []);
@@ -307,6 +311,7 @@ function stepRaid(s: Sim, dt: number, c: Sim['clock'], p: Fighter) {
       } else {
         W.after = { day: c.day + 1, kind: 'shut' };
         shiftDread(s, 8);
+        addVillagePts(s, -3);
         s.toast('青石村被烧了好几处，集市明天开不了张了……');
         s.chron('夜里山贼劫村，青石村被烧了好几处房子，集市停了一天。', '那天夜里村子被烧了，到现在还有焦味儿。');
       }

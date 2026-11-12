@@ -1,7 +1,8 @@
 // 青石村's stockade (game/village.ts): a ring of sharpened logs bound by two rails, a fighting step of planks inside,
 // and on every road a gate: two log towers with tiled roofs and red lanterns, a beam over the road with the village's
 // name board, the heavy doors standing open against the wall.
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { Sim } from '../game/sim';
 import * as THREE from 'three';
 import { Builder, Built } from './build';
 import { GATE_A, GATE_HALF, GATE_TOWERS, WALL_R, WALL_RUNS } from '../game/village';
@@ -12,13 +13,26 @@ const rnd = (a: number, b = 0) => {
   return v - Math.floor(v);
 };
 
-function buildStockade() {
+function buildStockade(stone: boolean) {
   const b = new Builder();
-  // the logs, shoulder to shoulder along every run, each its own height, sharpened
+  // the logs, shoulder to shoulder along every run, each its own height, sharpened (or, once the village is a town
+  // of stone, a cut-stone wall with merlons along its top)
   for (const [x0, z0, x1, z1] of WALL_RUNS) {
     const L = Math.hypot(x1 - x0, z1 - z0);
     const n = Math.max(1, Math.round(L / 0.36));
     const ry = Math.atan2(x1 - x0, z1 - z0);
+    if (stone) {
+      const mx = (x0 + x1) / 2, mz = (z0 + z1) / 2, my = groundHeight(mx, mz);
+      b.box('stone', mx, my - 0.4, mz, 0.9, 4.2, L + 0.12, ry);
+      const m = Math.max(1, Math.round(L / 1.3));
+      for (let k = 0; k < m; k++) {
+        const t = (k + 0.5) / m;
+        b.box('stone', x0 + (x1 - x0) * t, my + 3.8, z0 + (z1 - z0) * t, 0.9, 0.55, 0.6, ry);
+      }
+      const ix = -mx / WALL_R, iz = -mz / WALL_R;
+      b.box('step', mx + ix * 0.85, my + 1.3, mz + iz * 0.85, 0.9, 0.12, L + 0.05, ry);
+      continue;
+    }
     for (let k = 0; k < n; k++) {
       const t = (k + 0.5) / n;
       const x = x0 + (x1 - x0) * t, z = z0 + (z1 - z0) * t;
@@ -42,7 +56,7 @@ function buildStockade() {
       const y = groundHeight(x, z) - 0.2;
       // a tower: four corner logs, plank walls below, an open lookout, a tiled roof
       for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) b.add('log', new THREE.CylinderGeometry(0.2, 0.22, 7.2, 7), x + sx * 1.1, y + 3.6, z + sz * 1.1);
-      b.box('plank', x, y, z, 2.3, 4.6, 2.3, -a);
+      b.box(stone ? 'stone' : 'plank', x, y, z, 2.3, 4.6, 2.3, -a);
       b.box('plank', x, y + 4.6, z, 2.9, 0.2, 2.9, -a);
       for (const [ox, oz, w, d] of [[0, 1.4, 2.9, 0.12], [0, -1.4, 2.9, 0.12], [1.4, 0, 0.12, 2.9], [-1.4, 0, 0.12, 2.9]] as const) {
         const c = Math.cos(-a), s = Math.sin(-a);
@@ -74,7 +88,7 @@ function buildStockade() {
 }
 
 /** "青石村" on each gate's board (both faces) */
-function nameBoard() {
+function nameBoard(name: string) {
   const c = document.createElement('canvas');
   c.width = 512;
   c.height = 160;
@@ -85,16 +99,21 @@ function nameBoard() {
   x.font = '700 104px "Noto Serif SC", "Songti SC", "STSong", serif';
   x.textAlign = 'center';
   x.textBaseline = 'middle';
-  x.fillText('青石村', 256, 86);
+  x.fillText(name, 256, 86);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   return new THREE.MeshStandardMaterial({ map: t, roughness: 0.6, emissive: '#3a2a10', emissiveIntensity: 0.4 });
 }
 
-export function Stockade() {
-  const parts = useMemo(buildStockade, []);
+export function Stockade({ sim }: { sim: Sim }) {
+  const [lvl, setLvl] = useState(sim.jh.vlvl);
+  useEffect(() => {
+    const id = setInterval(() => setLvl(sim.jh.vlvl), 1500);
+    return () => clearInterval(id);
+  }, [sim]);
+  const parts = useMemo(() => buildStockade(lvl >= 3), [lvl >= 3]);
   const boards = useMemo(() => {
-    const mat = nameBoard();
+    const mat = nameBoard(['青石村', '青石村', '青石镇', '青石城'][lvl]);
     const g = new THREE.PlaneGeometry(3.2, 1.0);
     return GATE_A.map((a, k) => {
       const [[ax, az], [bx, bz]] = GATE_TOWERS[k];
@@ -109,7 +128,7 @@ export function Stockade() {
       }
       return group;
     });
-  }, []);
+  }, [lvl]);
   return (
     <>
       <Built parts={parts} />

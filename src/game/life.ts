@@ -155,12 +155,12 @@ export const dateOf = (c: ClockInfo) => `${ERA}${cnNum(c.year)}年${SEASONS[c.se
 
 // ---------------------------------------------------------------- where each folk's day takes them
 const HOMES: [number, number][] = [
-  ...ROOMS.filter((r) => r.theme !== 'tavern' && r.theme !== 'teahouse' && r.theme !== 'shrine' && r.theme !== 'throne').map((r) => r.door),
+  ...ROOMS.filter((r) => r.theme !== 'tavern' && r.theme !== 'teahouse' && r.theme !== 'shrine' && r.theme !== 'throne' && r.theme !== 'home').map((r) => r.door),
   ctWorld(-18, 84), ctWorld(18, 96), ctWorld(-18, 104), ctWorld(HALL_DOOR.lx, HALL_DOOR.lz),
 ];
 const EVENINGS: [number, number][] = [...ROOMS.filter((r) => r.theme === 'tavern' || r.theme === 'teahouse' || r.theme === 'inn').map((r) => r.door), ctWorld(0, 92)];
 const SHELTERS: [number, number][] = [
-  ...ROOMS.filter((r) => r.theme !== 'throne').map((r) => r.door),
+  ...ROOMS.filter((r) => r.theme !== 'throne' && r.theme !== 'home').map((r) => r.door),
   ...BUILDINGS.filter((b) => b.model === 'pavilion-b.glb').map((b) => [b.x, b.z] as [number, number]),
   ctWorld(0, 46), ctWorld(HALL_DOOR.lx, HALL_DOOR.lz),
 ];

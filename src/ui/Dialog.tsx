@@ -7,6 +7,7 @@ import { ALL_FOLK } from '../game/interiors';
 import { worldRemark } from '../game/life';
 import { BUYERS, ITEMS, SHOPS, bag, buy, done, give, nextCase, priceOf, purse, sell, startSpar, wantOf } from '../game/play';
 import type { Sim as SimT } from '../game/sim';
+import { GIFTS, RIVALS, arenaState, comps, giftTo, setMode, startArena, type Comp } from '../game/jianghu';
 
 /** what you can do with a folk besides talk: buy, sell, give what they wished for, play their game */
 function actionsFor(sim: SimT, name: string, changed: () => void, startGame: () => void) {
@@ -48,12 +49,61 @@ function actionsFor(sim: SimT, name: string, changed: () => void, startGame: () 
     const morning = c.hour >= 6 && c.hour < 12;
     out.push({ label: D.debate === c.day ? '朝议（今日已议）' : morning ? '参与朝议' : '朝议（早朝在卯时到午时）', hot: morning && D.debate !== c.day, off: !morning || D.debate === c.day, go: play('debate') });
   }
+  if (name === '铁匠 · 张大锤') out.push({ label: '打造兵器甲胄', hot: true, go: play('forge') });
+  if (name === '擂台官 · 包金刚') {
+    const st = arenaState(sim);
+    out.push({ label: sim.jh.arena ? '打擂中……' : st === 'open' ? '上台打擂（五阵）' : st === 'done' ? '打擂（本季打过了）' : '打擂（每季第二天辰时到戌时）', hot: st === 'open', off: st !== 'open' || !!sim.jh.arena || !!sim.spar, go: () => (startArena(sim), startGame()) });
+  }
   if (name === '镇国大将军 · 霍铮') out.push({ label: sim.spar ? '演武中……' : '请将军指点（演武）', off: !!sim.spar, go: () => (startSpar(sim), startGame()) });
   return out;
 }
 
+/** a companion: how they are with you, what they say, where they go, a gift */
+function CompDialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => void; onChange: () => void }) {
+  const f = sim.fighters[sim.dialog];
+  const r = RIVALS[(f as any).rival];
+  const c: Comp | undefined = comps(sim.progress)[r?.id];
+  if (!r || !c) return null;
+  const short = r.name.split(' · ')[1];
+  const B = bag(sim.progress);
+  const told = c.told ?? 0;
+  const said = told > 0 && r.story ? r.story[told - 1] : r.joinLine ?? r.beat;
+  const mode = { follow: '跟着你', wait: '在原地等你', home: '在村里等你' }[c.mode];
+  const go = (m: Comp['mode']) => () => {
+    setMode(sim, f, m);
+    onChange();
+  };
+  const gifts = GIFTS.filter((id) => (B[id] ?? 0) > 0);
+  return (
+    <div className="dialog">
+      <div className="dialog-name">
+        {r.name}
+        <span className="dialog-act"> · 同伴 · {mode} · 好感 {Math.round(c.aff)}</span>
+      </div>
+      <div className="dialog-body">{said}</div>
+      <div className="dialog-btns">
+        {c.mode !== 'follow' && (
+          <button className="hot" onClick={go('follow')}>
+            跟我走
+          </button>
+        )}
+        {c.mode !== 'wait' && <button onClick={go('wait')}>在这儿等着</button>}
+        {c.mode !== 'home' && <button onClick={go('home')}>回村里等我</button>}
+        {gifts.map((id) => (
+          <button key={id} disabled={c.gift === sim.clock.day} onClick={() => (giftTo(sim, f, id), onChange())}>
+            送{ITEMS[id].name}
+          </button>
+        ))}
+        <button onClick={onClose}>离开 (F)</button>
+      </div>
+      <div className="dialog-purse">{short}和你一起打得越多，送的礼越合心意，好感越高（30 / 60 / 100 时会跟你说心里话）</div>
+    </div>
+  );
+}
+
 export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => void; onChange: () => void }) {
   const f = sim.fighters[sim.dialog];
+  if (f && (f as any).comp) return <CompDialog sim={sim} onClose={onClose} onChange={onChange} />;
   const role = (f as any)?.role as 'elder' | 'doctor' | 'teller' | undefined;
   const npc = NPCS.find((n) => n.role === role);
   const [line] = useState(() => TELLER_LINES[Math.floor(Math.random() * TELLER_LINES.length)]);

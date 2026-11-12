@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Sky, mergeVertices } from 'three-stdlib';
-import { SNOW_Y, TREES, VILLAGE_R, WATER_Y, WORLD_R, groundHeight, noise, pathDist, slopeAt } from '../game/world';
+import { ICE, SNOW_Y, TREES, VILLAGE_R, WATER_Y, WORLD_R, groundHeight, noise, pathDist, slopeAt } from '../game/world';
 import { DENS, DEN_R } from '../game/foes';
 import { nearTq, onGudao } from '../game/layout';
 import { PLACES, nearPlace } from '../game/places';
@@ -297,33 +297,42 @@ function Water() {
     const m = new THREE.MeshStandardMaterial({ color: '#2d5a6b', transparent: true, opacity: 0.84, roughness: 0.12, metalness: 0.1, depthWrite: false });
     m.onBeforeCompile = (sh) => {
       sh.uniforms.uTime = { value: 0 };
+      sh.uniforms.uIce = { value: 0 };
       m.userData.sh = sh;
       sh.vertexShader = sh.vertexShader
         .replace('#include <common>', '#include <common>\nvarying vec3 vWP2;')
         .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWP2 = (modelMatrix * vec4(transformed, 1.0)).xyz;');
       sh.fragmentShader = sh.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform float uTime;\nvarying vec3 vWP2;')
+        .replace('#include <common>', '#include <common>\nuniform float uTime;\nuniform float uIce;\nvarying vec3 vWP2;')
         .replace(
           '#include <normal_fragment_maps>',
           `#include <normal_fragment_maps>
 vec2 q = vWP2.xz;
 float t = uTime;
 vec2 w = vec2(sin(q.x*0.9+t*1.3)+sin(q.y*1.3-t*1.1)*0.7+sin((q.x+q.y)*2.7+t*2.2)*0.35, cos(q.y*0.8+t*1.2)+cos(q.x*1.6-t*0.9)*0.6+cos((q.x-q.y)*3.1-t*2.5)*0.3);
-normal = normalize(normal + (viewMatrix * vec4(w.x*0.08, 0.0, w.y*0.08, 0.0)).xyz);`,
+normal = normalize(normal + (viewMatrix * vec4(w.x*0.08, 0.0, w.y*0.08, 0.0)).xyz * (1.0 - uIce));`,
         )
         .replace(
           '#include <dithering_fragment>',
           `#include <dithering_fragment>
 float fr = pow(1.0 - abs(dot(normalize(vViewPosition), normal)), 3.0);
 gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.62, 0.74, 0.82), fr * 0.55);
-gl_FragColor.a = mix(0.7, 0.95, fr);`,
+gl_FragColor.a = mix(0.7, 0.95, fr);
+// frozen over in deep winter: pale, milky, cracked here and there
+float crack = smoothstep(0.96, 1.0, abs(sin(vWP2.x*0.37+sin(vWP2.z*0.21)*2.0)*cos(vWP2.z*0.29-vWP2.x*0.11)));
+vec3 ice = mix(vec3(0.80, 0.88, 0.92), vec3(0.55, 0.66, 0.74), crack * 0.6);
+gl_FragColor.rgb = mix(gl_FragColor.rgb, ice, uIce * 0.85);
+gl_FragColor.a = mix(gl_FragColor.a, 0.97, uIce);`,
         );
     };
     return m;
   }, []);
   useFrame((st) => {
     const sh = mat.userData.sh;
-    if (sh) sh.uniforms.uTime.value = st.clock.elapsedTime;
+    if (sh) {
+      sh.uniforms.uTime.value = st.clock.elapsedTime;
+      sh.uniforms.uIce.value = ICE.amt;
+    }
   });
   return (
     <mesh position={[0, WATER_Y, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1} material={mat}>

@@ -4,6 +4,7 @@
 // (world.ts adds them to BUILDINGS), so the camera stops at the walls and a bench is a step. Pure data: no imports
 // from world.ts (it imports this).
 import { ROADS } from './layout';
+import { HOME } from './village';
 import { TEAHOUSE, fit } from './props';
 import { CT_ROT, HALL_DOOR, ctWorld } from './court';
 import { PLACES, placeAt, type Place } from './places';
@@ -52,7 +53,7 @@ export interface Furn {
   z: number;
   ry?: number;
 }
-export type RoomTheme = 'elder' | 'hunter' | 'weaver' | 'herbalist' | 'carpenter' | 'scholar' | 'elders' | 'tavern' | 'inn' | 'shrine' | 'teahouse' | 'throne';
+export type RoomTheme = 'elder' | 'hunter' | 'weaver' | 'herbalist' | 'carpenter' | 'scholar' | 'elders' | 'tavern' | 'inn' | 'shrine' | 'teahouse' | 'throne' | 'home';
 export interface Room {
   id: number;
   name: string;
@@ -170,6 +171,15 @@ const LAYOUT: Record<RoomTheme, { w: number; d: number; furn: Furn[]; floor?: 'p
       { k: 'barrel', x: 6, z: 4.8 },
     ],
   },
+  // your own house (jianghu.ts): a bed behind a screen, the weapon rack you change your gear at, a table, a chest
+  home: {
+    w: 8, d: 6.4,
+    furn: [
+      { k: 'bed', x: -2.8, z: -1.6 }, { k: 'screen', x: -1.2, z: -0.4 }, { k: 'rack', x: 3.5, z: -1.2, ry: Math.PI / 2 },
+      { k: 'table', x: 0.9, z: 0.9 }, { k: 'stool', x: 0.9, z: 1.8 }, { k: 'stool', x: 0.1, z: 0.9 }, { k: 'chest', x: 3.2, z: 2.1 },
+      { k: 'shelf', x: 1.2, z: -2.8 },
+    ],
+  },
   // 金銮殿: the dragon throne on its dais under a golden screen, two rows of red pillars, bronze tripods, the red way
   throne: {
     w: 22, d: 20, floor: 'stone',
@@ -193,7 +203,7 @@ const LAYOUT: Record<RoomTheme, { w: number; d: number; furn: Furn[]; floor?: 'p
 const HOUSE_THEMES: RoomTheme[] = ['hunter', 'weaver', 'herbalist', 'carpenter', 'scholar', 'elders'];
 const HOUSE_NAMES: Record<RoomTheme, string> = {
   elder: '石伯家', hunter: '猎户韩家', weaver: '织娘柳家', herbalist: '药农孙家', carpenter: '木匠鲁家', scholar: '书生顾家', elders: '王家老两口',
-  tavern: '杏花酒肆', inn: '驿站', shrine: '土地庙', teahouse: '清风茶楼', throne: '金銮殿',
+  tavern: '杏花酒肆', inn: '驿站', shrine: '土地庙', teahouse: '清风茶楼', throne: '金銮殿', home: '你的家',
 };
 function villageHouses() {
   const out: { x: number; z: number; rot: number }[] = [];
@@ -240,6 +250,8 @@ export const ROOMS: Room[] = (() => {
   }
   // the throne hall of 永安城: its door at the foot of the terrace's front
   add('throne', '金銮殿', ctWorld(HALL_DOOR.lx, HALL_DOOR.lz), CT_ROT);
+  // the house you can buy, last so no other room's place moves
+  add('home', '你的家', HOME.door, HOME.rot);
   return out;
 })();
 

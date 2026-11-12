@@ -25,6 +25,13 @@ export interface Progress {
   bag?: Record<string, number>;
   done?: Record<string, number>;
   titles?: string[];
+  /** gear forged (ids in jianghu.ts GEAR) and what's worn on each slot */
+  gear?: string[];
+  equip?: Partial<Record<'weapon' | 'armor' | 'charm', string>>;
+  /** companions who joined you (by rival id) */
+  comps?: Record<string, import('./jianghu').Comp>;
+  /** you bought the empty house in the village */
+  home?: boolean;
 }
 export const STORY_V = 3;
 

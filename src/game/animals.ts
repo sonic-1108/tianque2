@@ -178,7 +178,7 @@ export function stepAnimals(list: Animal[], dt: number, w: AnimalWorld) {
   for (const a of list) {
     if (a.sayT > 0) a.sayT -= dt;
     // in someone's arms, or under the player
-    if ((a as any).caught || (a as any).ridden) continue;
+    if ((a as any).caught || (a as any).ridden || (a as any).dead) continue;
     const s = ANIMALS[a.kind];
     const dxp = w.px - a.x, dzp = w.pz - a.z;
     const dp = Math.hypot(dxp, dzp);

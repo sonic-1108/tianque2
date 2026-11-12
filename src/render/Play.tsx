@@ -1,5 +1,6 @@
 // What 玩法 (game/play.ts) puts on the map: the notice boards (委托), the 血参 herbs glowing red in the wild (gone
 // for a day once picked), the thrush that follows you once you've bought one, and the red lantern you carry at night.
+import { GLADES, firefliesOut } from '../game/jianghu';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
@@ -30,6 +31,7 @@ export function PlayThings({ sim }: { sim: Sim }) {
     <>
       <Built parts={boards} />
       <Herbs sim={sim} />
+      <Glades sim={sim} />
       <Pet sim={sim} />
     </>
   );
@@ -74,6 +76,41 @@ function Herbs({ sim }: { sim: Sim }) {
       <primitive object={leaves} />
     </>
   );
+}
+
+/** fireflies swarming over the glades on summer nights (jianghu.ts GLADES): a cloud of green sparks you can catch */
+function Glades({ sim }: { sim: Sim }) {
+  const N = 40;
+  const im = useMemo(() => {
+    const g = new THREE.SphereGeometry(0.05, 5, 4);
+    const m = new THREE.MeshBasicMaterial({ color: '#d9ff7a' });
+    const mesh = new THREE.InstancedMesh(g, m, GLADES.length * N);
+    mesh.frustumCulled = false;
+    return mesh;
+  }, []);
+  const m = useMemo(() => new THREE.Matrix4(), []);
+  const hidden = useMemo(() => new THREE.Matrix4().makeScale(0, 0, 0), []);
+  const v = useMemo(() => new THREE.Vector3(), []);
+  useFrame(() => {
+    const out = firefliesOut(sim) && sim.indoor < 0;
+    GLADES.forEach(([gx, gz], i) => {
+      const up = out && (sim.jh.glades[i] ?? 0) <= sim.worldT;
+      const y = groundHeight(gx, gz);
+      for (let k = 0; k < N; k++) {
+        if (!up) {
+          im.setMatrixAt(i * N + k, hidden);
+          continue;
+        }
+        const t = sim.time * (0.3 + (k % 7) * 0.05) + k * 2.1;
+        const r = 1 + (k % 5) * 0.7;
+        const blink = Math.sin(sim.time * 3 + k * 1.7) > -0.2 ? 1 : 0;
+        v.set(gx + Math.cos(t) * r, y + 0.5 + ((k * 37) % 17) / 10 + Math.sin(t * 1.3) * 0.3, gz + Math.sin(t * 0.8) * r);
+        im.setMatrixAt(i * N + k, blink ? m.makeTranslation(v.x, v.y, v.z) : hidden);
+      }
+    });
+    im.instanceMatrix.needsUpdate = true;
+  });
+  return <primitive object={im} />;
 }
 
 /** the thrush (a little bird flying round you) and the lantern (a light at your side at night) */

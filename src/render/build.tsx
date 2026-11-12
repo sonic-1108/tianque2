@@ -84,9 +84,9 @@ export class Builder {
     top.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     top.setIndex(idx);
     top.computeVertexNormals();
-    this.add(m, top, x, y, z);
-    // the underside: the same sheet a hand lower, facing down, in the dark of the eaves
+    // the underside: the same sheet a hand lower, facing down, in the dark of the eaves (cloned before add moves the top)
     const under = top.clone();
+    this.add(m, top, x, y, z);
     under.translate(0, -0.22, 0);
     const ui = under.index!.array as Uint16Array | Uint32Array;
     for (let k = 0; k < ui.length; k += 3) {

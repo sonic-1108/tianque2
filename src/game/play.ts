@@ -11,6 +11,7 @@ import { gainXp, playerMaxHp, save, type Progress } from './progress';
 import { BOARDS, DRUM, ctWorld, CT_POS } from './court';
 import { FOE_KINDS } from './foes';
 import { POLICY_DREAD, shiftDread, warPrice } from './conflict';
+import { fullHp } from './jianghu';
 
 export { ITEMS, SHOPS, BUYERS, WANTS };
 
@@ -26,7 +27,7 @@ export function earn(s: Sim, n: number, why?: string) {
   if (why) s.toast(why);
   save(P);
 }
-function addTitle(s: Sim, t: string) {
+export function addTitle(s: Sim, t: string) {
   const T = titles(s.progress);
   if (T.includes(t)) return;
   T.push(t);
@@ -38,7 +39,7 @@ export function giveXp(s: Sim, n: number) {
   s.text(p, `经验 +${n}`, '#a5f3fc');
   if (gainXp(P, n) > 0) {
     p.level = P.level;
-    p.maxHp = playerMaxHp(P.level);
+    p.maxHp = fullHp(P);
     p.hp = p.maxHp;
     s.toast(`升级！${P.level} 级 · 按 K 加点`);
   }
@@ -67,7 +68,8 @@ export function buy(s: Sim, id: string): boolean {
   P.coins = purse(P) - cost;
   const p = s.player;
   if (it.kind === 'food') {
-    const k = id === 'noodle' ? 0.6 : id === 'mooncake' ? 1 : 0.2;
+    const k = id === 'noodle' ? 0.6 : id === 'mooncake' || id === 'feast' ? 1 : id === 'tofu' ? 0.3 : 0.2;
+    if (id === 'feast') s.buffs.regen = 180;
     p.hp = Math.min(p.maxHp, p.hp + p.maxHp * k);
     s.toast(id === 'tea' ? `喝了一壶${it.name}。说书先生正讲到：${TEA_TALES[Math.floor(Math.random() * TEA_TALES.length)]}` : `吃了${it.name}，浑身暖和。`);
   } else if (it.kind === 'service') {
@@ -176,7 +178,7 @@ export function makeHerbs(): Herb[] {
 }
 export { BOARDS, DRUM };
 
-export type Touch = { kind: 'hen' | 'herb' | 'horse' | 'board' | 'drum' | 'dismount'; id: number; label: string };
+export type Touch = { kind: 'hen' | 'herb' | 'horse' | 'board' | 'drum' | 'dismount' | 'deed' | 'bed' | 'rack' | 'firefly' | 'hunt'; id: number; label: string };
 /** what's within reach to do something with (when nobody is there to talk to and no door) */
 export function touchable(s: Sim): Touch | null {
   const p = s.player.pos;

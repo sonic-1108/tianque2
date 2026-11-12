@@ -6,6 +6,14 @@ import { CASES, EXAM, RIDDLES, WANTS, type Quiz } from '../game/economy';
 import {
   ITEMS, bag, caseDone, catchFish, debateDone, debateToday, diceRoll, done, examDone, fishNow, landFish, purse, riddleDone, titles, touhuDone, usable, use,
 } from '../game/play';
+import { GEAR, MAT_NAME, RIVALS, SLOT_NAME, equipped, forge, forgeBlock, gearOf, owned, wear, type Slot } from '../game/jianghu';
+import { roadPoint } from '../game/layout';
+/** which way out of the village a road runs (north is -z, as on the map) */
+const roadDir = (k: number) => {
+  const [x, z] = roadPoint(k, 250);
+  const a = ((Math.atan2(-z, x) * 180) / Math.PI + 360 + 22.5) % 360;
+  return ['东', '东北', '北', '西北', '西', '西南', '南', '东南'][Math.floor(a / 45)];
+};
 
 const shuffle = <T,>(a: T[]) => {
   const b = [...a];
@@ -79,6 +87,10 @@ export function Games({ sim, onClose }: { sim: Sim; onClose: () => void }) {
       return <Board sim={sim} court={g.court} onClose={close} />;
     case 'bag':
       return <Bag sim={sim} onClose={close} />;
+    case 'forge':
+      return <Forge sim={sim} make onClose={close} />;
+    case 'gear':
+      return <Forge sim={sim} make={false} onClose={close} />;
     case 'fish':
       return <Fishing sim={sim} onClose={close} />;
     case 'riddle':
@@ -119,7 +131,22 @@ function Board({ sim, court, onClose }: { sim: Sim; court: boolean; onClose: () 
           );
         })}
       </div>
-      <div className="game-tip">东西在集市上买，或者自己去找；带着东西跟他们说话就能送上。</div>
+      <div className="game-title" style={{ marginTop: 14 }}>悬赏榜</div>
+      <div className="board-list">
+        {RIVALS.map((r) => {
+          const ok = !!D['rival:' + r.id];
+          return (
+            <div key={r.id} className={'board-item' + (ok ? ' done' : '')}>
+              <div className="bi-head">
+                <b>{r.name}</b> <span className="bi-where">· {r.lvl} 级 · 出没在村子{roadDir(r.road)}边的大路上（离村 {r.r0} 到 {r.r1} 米）</span>
+                <span className="bi-reward">{ok ? (r.join ? '已了结 · 成了同伴' : '已了结') : `赏 ${r.bounty} 文`}</span>
+              </div>
+              <div className="bi-ask">{r.crime}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="game-tip">东西在集市上买，或者自己去找；带着东西跟他们说话就能送上。悬赏犯在大地图（M）上是红色的“悬”。</div>
     </Frame>
   );
 }
@@ -134,6 +161,7 @@ function Bag({ sim, onClose }: { sim: Sim; onClose: () => void }) {
     <Frame title="包袱" onClose={onClose}>
       <div className="bag-coins">铜钱 {purse(P)} 文</div>
       {T.length > 0 && <div className="bag-titles">名号：{T.map((t) => `「${t}」`).join(' ')}</div>}
+      <GearLine sim={sim} />
       {items.length === 0 && <div className="game-tip">包袱里空空的。去青石集逛逛吧。</div>}
       <div className="bag-list">
         {items.map(([id, n]) => (
@@ -452,6 +480,62 @@ function Touhu({ sim, onClose }: { sim: Sim; onClose: () => void }) {
       </div>
       <div className="game-tip">
         剩 {s.arrows} 支 · 中 {s.hits} 支 · 中三支有赏，五支全中赏得最多
+      </div>
+    </Frame>
+  );
+}
+
+// ---------------------------------------------------------------- 装备 (worn in the bag; forged at 张记铁铺; changed at home or the smithy)
+function GearLine({ sim }: { sim: Sim }) {
+  const E = equipped(sim.progress), g = gearOf(sim.progress);
+  const name = (sl: Slot) => GEAR.find((x) => x.id === E[sl])?.name ?? '无';
+  const bits = [g.dmg && `伤害 +${Math.round(g.dmg * 100)}%`, g.def && `受伤 -${Math.round(g.def * 100)}%`, g.hp && `气血 +${Math.round(g.hp * 100)}%`, g.spd && `跑速 +${Math.round(g.spd * 100)}%`, g.mp && `回气 +${Math.round(g.mp * 100)}%`, g.leech && `吸血 ${Math.round(g.leech * 100)}%`].filter(Boolean);
+  return (
+    <div className="bag-titles">
+      装备：{(['weapon', 'armor', 'charm'] as Slot[]).map((sl) => `${SLOT_NAME[sl]}「${name(sl)}」`).join(' ')}
+      {bits.length > 0 && <div className="bag-desc">{bits.join('，')}（在家里的兵器架或铁铺换装）</div>}
+    </div>
+  );
+}
+function Forge({ sim, make, onClose }: { sim: Sim; make: boolean; onClose: () => void }) {
+  const [, setN] = useState(0);
+  const P = sim.progress, B = bag(P), E = equipped(P), mine = owned(P);
+  const list = make ? GEAR : GEAR.filter((g) => mine.includes(g.id));
+  const mats = Object.keys(MAT_NAME).map((m) => `${MAT_NAME[m]} ${B[m] ?? 0}`).join(' · ');
+  return (
+    <Frame title={make ? '张记铁铺 · 打造' : '兵器架 · 换装'} onClose={onClose}>
+      <div className="bag-coins">
+        铜钱 {purse(P)} 文 · {mats}
+      </div>
+      <GearLine sim={sim} />
+      {list.length === 0 && <div className="game-tip">还没有打造过装备。带上铁料、兽皮、玄铁去张记铁铺找张大锤。</div>}
+      <div className="bag-list">
+        {list.map((g) => {
+          const has = mine.includes(g.id), on = E[g.slot] === g.id;
+          const why = make && !has ? forgeBlock(sim, g) : null;
+          const cost = [g.coins ? `${g.coins} 文` : '', ...Object.entries(g.mats).map(([m, n]) => `${MAT_NAME[m]}×${n}`)].filter(Boolean).join(' ');
+          return (
+            <div key={g.id} className="bag-item">
+              <div>
+                <b>
+                  {g.name}
+                  <span className="bi-where"> · {SLOT_NAME[g.slot]}</span>
+                </b>
+                <div className="bag-desc">
+                  {g.desc}
+                  {make && !has && !g.prize && ` · 要 ${cost}${g.lvl > 1 ? ` · ${g.lvl} 级` : ''}`}
+                </div>
+              </div>
+              {has ? (
+                <button onClick={() => (wear(sim, g.id), setN((k) => k + 1))}>{on ? '卸下' : '穿上'}</button>
+              ) : (
+                <button disabled={!!why} title={why ?? ''} onClick={() => (forge(sim, g), setN((k) => k + 1))}>
+                  {why ?? '打造'}
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
     </Frame>
   );

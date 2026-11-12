@@ -2,7 +2,7 @@
 // (委托: bring it, get paid), fish, lantern riddles, the imperial exam, the cases at the drum, and the court debates.
 // Pure data; sim.ts carries it out, ui/Games.tsx and ui/Dialog.tsx show it.
 
-export type ItemKind = 'food' | 'service' | 'keep' | 'tool' | 'fish' | 'catch';
+export type ItemKind = 'food' | 'service' | 'keep' | 'tool' | 'fish' | 'catch' | 'mat' | 'game';
 export interface Item {
   id: string;
   name: string;
@@ -33,6 +33,19 @@ export const ITEMS: Record<string, Item> = {
   eel: { id: 'eel', name: '黄鳝', price: 16, kind: 'fish', desc: '下雨天才出来' },
   mandarin: { id: 'mandarin', name: '鳜鱼', price: 24, kind: 'fish', desc: '桃花流水鳜鱼肥' },
   goldcarp: { id: 'goldcarp', name: '金鲤', price: 120, kind: 'fish', desc: '传说夜里才露头，见者有福' },
+  shrimp: { id: 'shrimp', name: '河虾', price: 8, kind: 'fish', desc: '夏天河边一抓一把' },
+  crab: { id: 'crab', name: '螃蟹', price: 20, kind: 'fish', desc: '秋风起，蟹脚痒' },
+  sturgeon: { id: 'sturgeon', name: '冰下鲟', price: 60, kind: 'fish', desc: '冬天凿冰才钓得到' },
+  // what the smith works (jianghu.ts), and what the hunt brings home
+  iron: { id: 'iron', name: '铁料', price: 6, kind: 'mat', desc: '山贼身上搜来的，铁匠用得着' },
+  hide: { id: 'hide', name: '兽皮', price: 8, kind: 'mat', desc: '打猎得的，做皮甲靴子' },
+  xuan: { id: 'xuan', name: '玄铁', price: 40, kind: 'mat', desc: '头目和悬赏犯身上才有，打好兵器离不了' },
+  venison: { id: 'venison', name: '鹿肉', price: 14, kind: 'game', desc: '酒楼、面摊都收，也能送人' },
+  hare: { id: 'hare', name: '野兔', price: 8, kind: 'game', desc: '烤着吃最香' },
+  bow: { id: 'bow', name: '猎弓', price: 50, kind: 'tool', desc: '面朝猎物（26 米内）按 F 射猎；秋天收获加倍' },
+  firefly: { id: 'firefly', name: '萤火虫', price: 3, kind: 'keep', desc: '夏夜水边抓的，孩子们最喜欢' },
+  tofu: { id: 'tofu', name: '豆花', price: 4, kind: 'food', desc: '嫩，回三成气血' },
+  feast: { id: 'feast', name: '一桌酒席', price: 30, kind: 'food', desc: '回满气血，三分钟里慢慢回血' },
   herb: { id: 'herb', name: '血参', price: 24, kind: 'catch', desc: '野外长的红参，御医收' },
   hen: { id: 'hen', name: '芦花鸡', price: 0, kind: 'catch', desc: '王婆婆跑丢的那只' },
 };
@@ -53,12 +66,20 @@ export const SHOPS: Record<string, string[]> = {
   '酒肆掌柜 · 杏娘': ['wine'],
   '茶博士': ['tea'],
   '跑堂 · 小六子': ['noodle', 'wine'],
+  '猎户 · 韩老三': ['bow'],
+  '豆腐坊 · 孙二娘': ['tofu'],
+  '货郎 · 钱小二': ['plaster', 'lantern', 'jar'],
+  '药铺 · 白掌柜': ['plaster'],
+  '酒楼 · 何掌柜': ['feast', 'wine'],
+  '绣娘 · 阿秀': ['silk', 'rouge'],
 };
 /** who buys your catch, and of what kinds */
 export const BUYERS: Record<string, ItemKind[]> = {
   '渔翁 · 老钓': ['fish'],
   '面摊 · 胖大海': ['fish'],
   '御医 · 钱济生': ['catch'],
+  '猎户 · 韩老三': ['game', 'mat'],
+  '酒楼 · 何掌柜': ['game', 'fish'],
 };
 
 /** 委托: folk who wish for something; bring it and they reward you (once each) */
@@ -85,6 +106,7 @@ export const WANTS: Want[] = [
   { folk: '御医 · 钱济生', item: 'herb', coins: 60, xp: 80, where: '永安城宫中', ask: '丞相的病，要一味血参做药引。宫里的都是假货，野外山坡上才有真的，夜里会发红光。', thanks: '是真血参！丞相有救了。这点诊金你拿着，以后头疼脑热来找我。' },
   { folk: '渔翁 · 老钓', item: 'goldcarp', coins: 150, xp: 150, where: '村外河边', ask: '我钓了四十年鱼，就想再见一回金鲤。听说雨夜里才露头。', thanks: '金鲤！……四十年了。放了吧，它是河神的孩子。这钱你拿着，你比我有福。', title: '钓得金鲤' },
   { folk: '镇国大将军 · 霍铮', item: 'wine', coins: 50, xp: 80, where: '永安城宫中', ask: '宫里的酒没滋味。听说青石村杏娘酿的杏花酿，当年七家的人最爱喝。', thanks: '就是这个……当年我跟七家的人对饮，喝的也是这个。来，陪我喝一口。', title: '将军的酒友' },
+  { folk: '学童 · 小满', item: 'firefly', coins: 12, xp: 30, where: '村里祠堂', ask: '先生讲囊萤夜读，我也想要一袋萤火虫……夏天夜里水边才有。', thanks: '亮了亮了！今晚我也要囊萤夜读！' },
   { folk: '王老汉', item: 'jar', coins: 12, xp: 20, where: '村里王家', ask: '老婆子腌菜的坛子让我打碎了，可别让她知道……', thanks: '一模一样！嘿嘿，她看不出来。' },
   { folk: '宫女 · 碧桃', item: 'tanghulu', coins: 8, xp: 20, where: '永安城宫中', ask: '外头的糖葫芦……我进宫以后再没吃过。', thanks: '就是这个味道！我想起我娘了。' },
 ];
@@ -98,6 +120,9 @@ export const FISH: [string, number, FishWhen][] = [
   ['eel', 6, (c) => c.rain],
   ['mandarin', 3, (c) => c.season === 0 || c.season === 2],
   ['goldcarp', 1.2, (c) => c.night && c.rain],
+  ['shrimp', 6, (c) => c.season === 1],
+  ['crab', 4, (c) => c.season === 2],
+  ['sturgeon', 1.5, (c) => c.season === 3],
 ];
 
 /** a question with three answers (the first is right; the game shuffles them) */

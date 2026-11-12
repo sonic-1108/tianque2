@@ -62,7 +62,21 @@ export const VILLAGE_PROPS: [string, number, number, number][] = [
   ['v-tower.glb', 240, 58, 6.5],
   ['v-coop.glb', 274, 32, 3.4],
   ['v-mill.glb', 300, 31, 3],
-  ['v-house3.glb', 330, 34, 10],
   ['v-wood.glb', 349, 30, 3.2],
   ['v-tower.glb', 330, 58, 6.5],
 ];
+
+/** the empty house you can buy (jianghu.ts): a cottage between the houses and the wall, its door toward the square,
+ *  drawn by render/Home.tsx; the room behind its door is interiors.ts's 'home' */
+export const HOME_DEG = 330;
+export const HOME_R = 38;
+export const HOME_W = 7;
+export const HOME_D = 5.6;
+export const HOME: { x: number; z: number; rot: number; door: [number, number] } = (() => {
+  const a = (HOME_DEG * Math.PI) / 180, x = Math.cos(a) * HOME_R, z = Math.sin(a) * HOME_R;
+  const rot = Math.atan2(-x, -z); // its front (+z) to the square
+  const k = HOME_D / 2 + 0.9;
+  return { x, z, rot, door: [x + Math.sin(rot) * k, z + Math.cos(rot) * k] };
+})();
+/** where companions left at home stand: the yard before the door */
+export const HOME_YARD: [number, number] = [HOME.x + Math.sin(HOME.rot) * (HOME_D / 2 + 4), HOME.z + Math.cos(HOME.rot) * (HOME_D / 2 + 4)];
