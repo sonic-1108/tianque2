@@ -3,7 +3,7 @@
 #   kind=biped      text to model, rigged on the Mixamo skeleton (plays the game's own Mixamo clips), plus Tripo's
 #                   idle and walk in place
 #   kind=quadruped  text to model, rigged as a four-legged animal, plus its walk in place
-# Every model is slimmed (textures to 1024 webp, meshopt) before it is kept.
+# Every model is slimmed (textures to texsize webp, meshopt) before it is kept; quality=max keeps every face.
 # Needs the repo secret TRIPO_API_KEY (the owner's overseas key; it never leaves GitHub).
 # Run: gh api -X POST repos/sonic-1108/tianque2/actions/workflows/tripo.yml/dispatches -f ref=main \
 #        -f 'inputs[name]=x' -f 'inputs[kind]=prop' -f 'inputs[prompt]=...'
@@ -32,6 +32,9 @@ on:
       negative:
         description: what the model must not look like (sent as negative_prompt when given)
         default: ''
+      quality:
+        description: max = no face limit and detailed geometry (owner wants the sharpest models); empty = faces as given
+        default: ''
 permissions:
   contents: write
 concurrency:
@@ -56,6 +59,7 @@ jobs:
           FACES: ${{ inputs.faces }}
           REGION: ${{ inputs.region }}
           NEG: ${{ inputs.negative }}
+          QUALITY: ${{ inputs.quality }}
         run: |
           set -euo pipefail
           [ -n "$KEY" ] || { echo "TRIPO_API_KEY is not set"; exit 1; }
@@ -98,6 +102,8 @@ jobs:
           [ "$KIND" = biped ] && P="$PROMPT, full body, standing in A-pose, arms slightly away from the body, facing forward"
           body=$(jq -n --arg p "$P" --argjson f "$FACES" '{prompt:$p, model:"v3.1-20260211", texture:true, pbr:true, texture_quality:"detailed", face_limit:$f}')
           [ -n "$NEG" ] && body=$(echo "$body" | jq --arg n "$NEG" '. + {negative_prompt:$n}')
+          # the sharpest Tripo makes: no face cap, detailed geometry as well as detailed texture
+          [ "$QUALITY" = max ] && body=$(echo "$body" | jq 'del(.face_limit) + {geometry_quality:"detailed"}')
           id=$(post generation/text-to-model "$body"); echo "model task $id"
           t=$(wait_task "$id"); add_credits "$t"
           img=$(echo "$t" | jq -r '.data.output.rendered_image_url // empty')
