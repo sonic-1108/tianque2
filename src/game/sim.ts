@@ -448,6 +448,7 @@ export class Sim {
       noStop: p.noStop,
       delay: p.delay,
       glyph: p.glyph,
+      look: p.look,
       path: p.path,
       age: 0,
       id: this.projSeq++,
@@ -1694,6 +1695,13 @@ export class Sim {
       if (Math.hypot(pr.pos[0] - tx, pr.pos[1] - ty, pr.pos[2] - tz) > 0.75) return;
       pr.life = 0;
       if (t.st.invuln > 0 || t.act === 'dodge') return void this.text(t, '闪', '#e5e7eb');
+      // the kit's homing shots (talismans, notes, qi, the thrown stone) hit for their own damage and riders
+      if ((pr as any).kit) {
+        const done = this.hit(owner, t, pr.dmg, { knock: pr.knock ?? 3, dur: pr.hitDur ?? 0.3, ranged: true, heavy: true, mult: pr.mult ?? 1, color: pr.color, fromX: pr.pos[0] - pr.vel[0], fromZ: pr.pos[2] - pr.vel[2] });
+        if (done && SKILLS[pr.skill]?.projHit) SKILLS[pr.skill].projHit!(this, owner, t, pr);
+        this.vfx('sparkBurst', [tx, ty, tz], 14, pr.color, 6, 0.06);
+        return;
+      }
       const last = pr.glyph === 5;
       const done = last
         ? this.hit(owner, t, 90, { knock: 5, dur: 0.5, breakArmor: true, ranged: true, crit: true, heavy: true, mult: pr.mult, color: '#fbbf24' })

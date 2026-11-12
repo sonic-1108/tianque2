@@ -66,6 +66,7 @@ export interface Fighter {
   master?: boolean;
 }
 
+export type ShotLook = 'arrow' | 'rock' | 'talisman' | 'note' | 'orb' | 'crescent';
 export interface Projectile {
   owner: number;
   skill: string;
@@ -90,6 +91,8 @@ export interface Projectile {
   delay?: number; // held in the hand this long before it flies (劳力士)
   stuck?: number; // in the ground or a wall: lies there this long, harmless
   glyph?: number; // 六字真言: which syllable (0..5)
+  /** how a kit shot is drawn (render/Juice shotLook): an arrow, a stone, a paper talisman, a note, a ball of qi, a crescent of sword qi */
+  look?: ShotLook;
   age?: number;
   /** 回旋镖: the loop it flies (origin, forward, side, length, width, start height, target height, progress, time) */
   path?: { ox: number; oz: number; fx: number; fz: number; sx: number; sz: number; L: number; W: number; y0: number; ty: number; u: number; T: number; back: boolean; hitOut: boolean; hitBack: boolean };

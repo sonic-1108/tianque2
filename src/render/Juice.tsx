@@ -13,6 +13,7 @@ import { swordSockets } from './Rig';
 import type { Fx, Projectile } from '../game/types';
 import { questTarget } from '../game/quests';
 import { groundHeight } from '../game/world';
+import { animateShot, disposeShot, shotMesh } from './shotLook';
 
 /** camera trauma (0..1) and FOV punch the camera loop reads */
 export const juice = { trauma: 0, kick: 0, push: 0, px: 0, pz: 0 };
@@ -66,6 +67,9 @@ export function Juice({ sim }: { sim: Sim }) {
   const charges = useRef<{ k: number; key: number; until: number }[]>([]);
   // projectile id -> its mesh
   const projObj = useRef(new Map<number, THREE.Object3D>());
+  // the kit's shots with a look of their own (arrows, stones, talismans, notes, qi)
+  const lookObj = useRef(new Map<number, THREE.Object3D>());
+  const lookRoot = useMemo(() => new THREE.Group(), []);
   const watches = useMemo(() => Array.from({ length: 8 }, buildWatch), []);
   const glyphsSent = useRef(new Set<number>());
   useEffect(() => vfx.setViewportHeight(size.height), [vfx, size.height]);
@@ -158,6 +162,20 @@ export function Juice({ sim }: { sim: Sim }) {
     for (const pr of sim.proj) {
       const id = pr.id ?? -1;
       live.add(id);
+      if (pr.look) {
+        let o = lookObj.current.get(id);
+        if (!o) {
+          o = shotMesh(pr.look, pr.color, pr.radius);
+          lookRoot.add(o);
+          lookObj.current.set(id, o);
+        }
+        o.visible = (pr.delay ?? 0) <= 0;
+        o.position.set(pr.pos[0], pr.pos[1], pr.pos[2]);
+        if (pr.vel[0] * pr.vel[0] + pr.vel[1] * pr.vel[1] + pr.vel[2] * pr.vel[2] > 0.01) o.lookAt(v.c.set(pr.pos[0] - pr.vel[0], pr.pos[1] - pr.vel[1], pr.pos[2] - pr.vel[2]));
+        animateShot(o, pr.look, time, id);
+        if (pr.look !== 'arrow' && pr.look !== 'rock' && Math.random() < 0.5 && Math.abs(pr.pos[0] - sim.player.pos[0]) < 60) vfx.dartTrail(v.a.set(pr.pos[0], pr.pos[1], pr.pos[2]), pr.color);
+        continue;
+      }
       if (pr.shape === 'glyph') {
         if (!glyphsSent.current.has(id)) {
           glyphsSent.current.add(id);
@@ -202,6 +220,12 @@ export function Juice({ sim }: { sim: Sim }) {
       if (!live.has(id)) {
         vfx.releaseProjectile(o);
         projObj.current.delete(id);
+      }
+    for (const [id, o] of lookObj.current)
+      if (!live.has(id)) {
+        lookRoot.remove(o);
+        disposeShot(o);
+        lookObj.current.delete(id);
       }
     if (glyphsSent.current.size > 200) for (const id of glyphsSent.current) if (!live.has(id)) glyphsSent.current.delete(id);
   }
@@ -372,6 +396,7 @@ export function Juice({ sim }: { sim: Sim }) {
     <>
       <primitive object={vfx.root} />
       <primitive object={beacon} />
+      <primitive object={lookRoot} />
       {watches.map((w, i) => (
         <primitive key={i} object={w} />
       ))}

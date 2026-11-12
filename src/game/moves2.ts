@@ -42,7 +42,7 @@ M({ id: 'guillotine', name: '断头台', house: 'kuangren', icon: '💀', mp: 25
   steps: [{ at: 0.42, a: { k: 'hit', shape: 'cone', r: 2.6, cos: 0.5, dmg: 120, o: { heavy: true, crit: true }, exec: true, fx: 'blood' } }] });
 M({ id: 'boulder_toss', name: '碎石', house: 'kuangren', icon: '🪨', mp: 20, cd: 7, ai: 14, anim: 'kr_roar', dur: 0.8, armor: true,
   desc: '从地里掀起一块大石砸出去（飞 18 米），砸中 160 伤害，石块碎开再波及 3 米内的人（100）。',
-  steps: [{ at: 0.1, a: { k: 'hit', shape: 'circle', r: 0.1, dmg: 0, fx: 'earth' } }, { at: 0.5, a: { k: 'shot', speed: 22, life: 0.85, dmg: 160, shape: 'glyph', radius: 0.9, knock: 8, splash: [3, 100], color: '#a8a29e' } }] });
+  steps: [{ at: 0.1, a: { k: 'hit', shape: 'circle', r: 0.1, dmg: 0, fx: 'earth' } }, { at: 0.5, a: { k: 'shot', look: 'rock', speed: 22, life: 0.85, dmg: 160, shape: 'glyph', radius: 0.9, knock: 8, splash: [3, 100], color: '#a8a29e' } }] });
 
 // ================================================================== 暗器
 M({ id: 'caltrops', name: '铁蒺藜', house: 'anqi', icon: '✳️', mp: 16, cd: 9, ai: 8, anim: 'aq_pin', dur: 0.45,
@@ -67,7 +67,7 @@ M({ id: 'lion_roar', name: '狮子吼', house: 'fanyin', icon: '🦁', mp: 22, c
   steps: [{ at: 0.3, a: { k: 'hit', shape: 'cone', r: 7, cos: 0.45, dmg: 110, o: { knock: 10, silence: 1.5 }, fx: 'sound' } }] });
 M({ id: 'flower_finger', name: '拈花指', house: 'fanyin', icon: '🌸', mp: 16, cd: 7, ai: 16, anim: 'fy_palm', dur: 0.45,
   desc: '拈花一弹，一道金光直取对手（160），点中定住 1.2 秒。',
-  steps: [{ at: 0.18, a: { k: 'shot', speed: 40, life: 0.6, dmg: 160, shape: 'glyph', radius: 0.45, stun: 1.2, color: '#ffe08a' } }] });
+  steps: [{ at: 0.18, a: { k: 'shot', look: 'orb', speed: 40, life: 0.6, dmg: 160, shape: 'glyph', radius: 0.45, stun: 1.2, color: '#ffe08a' } }] });
 M({ id: 'great_mercy', name: '大慈悲', house: 'fanyin', icon: '🙏', mp: 30, cd: 18, ai: 6, anim: 'fy_chant', dur: 0.9,
   desc: '合十诵经：自己回复 25% 生命，8 米内的同伴回复 15%，并解去定身、减速、封印。',
   steps: [{ at: 0.4, a: { k: 'self', heal: 0.1, cleanse: true, fx: 'holy' } }, { at: 0.45, a: { k: 'allies', r: 8, heal: 0.15, cleanse: true } }] });
@@ -155,7 +155,7 @@ M({ id: 'cloud_thrust', name: '流云剑', house: 'jianke', icon: '🌫️', mp:
   steps: [{ at: 0.22, a: { k: 'hit', shape: 'line', r: 4.2, w: 1, dmg: 150, o: { knock: 4 }, fx: 'thrust' } }] });
 M({ id: 'sword_qi', name: '剑气斩', house: 'jianke', icon: '🌙', mp: 16, cd: 5, ai: 14, anim: 'skill_slash', dur: 0.45,
   desc: '一剑挥出月牙剑气，穿过 16 米，一路上的人受 120 伤害并被推开。',
-  steps: [{ at: 0.2, a: { k: 'shot', speed: 30, life: 0.55, dmg: 120, shape: 'knife', pierce: true, radius: 0.9, knock: 5 } }] });
+  steps: [{ at: 0.2, a: { k: 'shot', look: 'crescent', speed: 30, life: 0.55, dmg: 120, shape: 'knife', pierce: true, radius: 0.9, knock: 5 } }] });
 M({ id: 'willow_parry', name: '回风拂柳', house: 'jianke', icon: '🍃', mp: 12, cd: 7, ai: 3, anim: 'skill_raise', dur: 0.8,
   desc: '横剑当胸 0.8 秒：这期间挨的第一下被拂开（不掉血），立刻反手一剑 200，打晕 1 秒。',
   steps: [{ at: 0, a: { k: 'self', parry: [0.8, 200] } }] });
@@ -329,7 +329,7 @@ M({ id: 'wolf_call', name: '狼啸', house: 'yushou', icon: '🐺', mp: 18, cd: 
   steps: [{ at: 0.3, a: { k: 'pet', kind: 'wolf', n: 1, life: 18, dmg: 45, every: 0.9, range: 14 } }] });
 M({ id: 'hawk_dive', name: '鹰击', house: 'yushou', icon: '🦅', mp: 14, cd: 5, ai: 16, anim: 'skill_point', dur: 0.45,
   desc: '海东青从天上扑向对手：140 伤害，抓得他发懵 0.5 秒。',
-  steps: [{ at: 0.18, a: { k: 'shot', speed: 26, life: 0.9, dmg: 140, shape: 'dart', homing: 5, radius: 0.7, daze: 0.5, color: '#f1f5f9' } }] });
+  steps: [{ at: 0.18, a: { k: 'shot', look: 'orb', speed: 26, life: 0.9, dmg: 140, shape: 'dart', homing: 5, radius: 0.7, daze: 0.5, color: '#f1f5f9' } }] });
 M({ id: 'bone_strike', name: '兽骨杖击', house: 'yushou', icon: '🦴', mp: 12, cd: 4, ai: 3, anim: 'skill_slash', dur: 0.5,
   desc: '狼头骨杖砸下：前方 2.8 米 120 伤害，减速 2 秒。',
   steps: [{ at: 0.25, a: { k: 'hit', shape: 'cone', r: 2.8, cos: 0.4, dmg: 120, o: { slow: 2, knock: 3 }, fx: 'earth' } }] });
@@ -482,7 +482,7 @@ M({ id: 'qi_barrier', name: '护体真气', house: 'qizong', icon: '🛡️', mp
   steps: [{ at: 0.15, a: { k: 'self', ward: 0.25, fx: 'qi' } }] });
 M({ id: 'remote_point', name: '隔空点穴', house: 'qizong', icon: '☝️', mp: 16, cd: 9, ai: 10, anim: 'skill_point', dur: 0.4,
   desc: '隔空一指点向 10 米内的穴道：线上第一个人 60 伤害，点住 2 秒。',
-  steps: [{ at: 0.15, a: { k: 'shot', speed: 50, life: 0.25, dmg: 60, shape: 'pin', radius: 0.4, stun: 2, color: '#f0f9ff' } }] });
+  steps: [{ at: 0.15, a: { k: 'shot', look: 'orb', speed: 50, life: 0.25, dmg: 60, shape: 'pin', radius: 0.4, stun: 2, color: '#f0f9ff' } }] });
 M({ id: 'star_absorb', name: '吸星', house: 'qizong', icon: '✨', mp: 0, cd: 14, ai: 7, anim: 'skill_spell', dur: 0.6,
   desc: '吸星之法：7 米内每个敌人被吸走 35 点内力，都归你。',
   steps: [{ at: 0.3, a: { k: 'drain', r: 7, mp: 35 } }] });

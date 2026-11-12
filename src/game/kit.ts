@@ -3,7 +3,7 @@
 // old 35 stay hand written in skills.ts. Each action keeps to what the sim already knows (hit, shoot, zone, statuses),
 // plus a few things of the kit's own on each fighter (`f.kit`): poison and bleeding over time, parry and absorb
 // windows, evasion, thorns, a second life, summoned beasts and engines, orbiting blades, sticky charges.
-import type { Fighter, Zone } from './types';
+import type { Fighter, ShotLook, Zone } from './types';
 import type { HitOpts, Sim } from './sim';
 import { SKILLS, type SkillDef } from './skills';
 import { groundHeight, inBuilding, WATER_Y } from './world';
@@ -53,6 +53,8 @@ export interface ShotAct {
   life: number;
   dmg: number;
   shape?: 'dart' | 'pin' | 'knife' | 'glyph' | 'watch' | 'boomerang';
+  /** how it's drawn (else by house: 弓手 arrows, 琴师 notes, 符师 talismans, 气宗 qi) */
+  look?: ShotLook;
   pierce?: boolean;
   homing?: number;
   radius?: number;
@@ -272,6 +274,8 @@ export const kitWorld = (s: Sim): KitWorld => ((s as any).kitw ??= { dots: [], p
 // ---------------------------------------------------------------- small helpers
 const fwd = (s: Sim, f: Fighter) => s.fwd(f);
 const sideCol: Record<string, [string, string]> = {};
+/** the shots each house throws, unless the move says otherwise */
+const HOUSE_LOOK: Record<string, ShotLook | undefined> = { gongshou: 'arrow', qinshi: 'note', fushi: 'talisman', qizong: 'orb', jiguan: 'arrow' };
 export function houseColor(house: string, player: string, foe: string) {
   sideCol[house] = [player, foe];
 }
@@ -469,6 +473,7 @@ function run(s: Sim, f: Fighter, m: MoveSpec, a: Act) {
           const yaw = a.ring ? base + (k / n) * Math.PI * 2 : n > 1 && a.spread ? base - a.spread / 2 + (a.spread * k) / (n - 1) : base;
           const pr = s.shoot(f, { skill: m.id, speed: a.speed, life: a.life, dmg: a.dmg, yaw, shape: a.shape ?? 'dart', pierce: a.pierce, homing: a.homing, target: t?.id, radius: a.radius ?? 0.5, color: a.color ?? color, knock: a.knock, root: a.root, onHit: a.onHit, hitDur: a.hitDur });
           (pr as any).kit = a;
+          pr.look = a.look ?? HOUSE_LOOK[m.house];
         };
         if (a.seq) s.later(k * a.seq, go);
         else go();
@@ -1055,7 +1060,7 @@ export function kitAfter(s: Sim, def: Fighter) {
 export function kitSwing(s: Sim, f: Fighter) {
   const K = (f as any).kit as KitState | undefined;
   if (!K || K.qiBlade <= 0) return;
-  const pr = s.shoot(f, { skill: 'heart_sword', speed: 22, life: 0.45, dmg: 45, shape: 'knife', pierce: true, color: '#bfe8ff', radius: 0.7 });
+  const pr = s.shoot(f, { look: 'crescent', skill: 'heart_sword', speed: 22, life: 0.45, dmg: 45, shape: 'knife', pierce: true, color: '#bfe8ff', radius: 0.7 });
   (pr as any).kit = { k: 'shot', speed: 22, life: 0.45, dmg: 45 };
 }
 export const kitSpeed = (f: Fighter) => {
@@ -1186,7 +1191,7 @@ export function kitStep(s: Sim, dt: number) {
     p.cd = p.every;
     const dmg = p.dmg * (p.rend > 0 ? 2 : 1);
     if (still) {
-      const pr = s.shoot(o, { skill: 'turret_bolt', speed: 30, life: 0.8, dmg: 0, shape: 'pin', pos: [p.x, p.y + 1.2, p.z], dir: dirTo(p, t), color: '#d6a35c', radius: 0.4 });
+      const pr = s.shoot(o, { look: 'arrow', skill: 'turret_bolt', speed: 30, life: 0.8, dmg: 0, shape: 'pin', pos: [p.x, p.y + 1.2, p.z], dir: dirTo(p, t), color: '#d6a35c', radius: 0.4 });
       pr.dmg = 0;
       s.later(Math.min(0.5, bd / 30), () => t!.hp > 0 && s.hit(o, t!, dmg, { noScale: true, flinch: true, ranged: true }));
     } else {
