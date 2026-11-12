@@ -23,7 +23,7 @@ function report(kind: string, where: string, detail: string) {
   if ((seen.get(key) ?? 0) <= 3) issues.push({ kind, where, detail });
 }
 
-const noInput = (yaw = 0): InputState => ({ move: [0, 0], camYaw: yaw, attack: false, dodge: false, jump: false, interact: false, skills: [false, false, false, false, false, false], ultHeld: false });
+const noInput = (yaw = 0): InputState => ({ move: [0, 0], camYaw: yaw, attack: false, dodge: false, jump: false, interact: false, skills: Array(11).fill(false), ultHeld: false });
 
 /** watches every fighter every frame */
 class Watch {
@@ -280,7 +280,7 @@ function moves(hero: HeroId | null) {
       if (sit === 'rage') p.st.rage = 5;
       s.progress.bar = ['', '', '', '', '', ''];
       const ult = !!SKILLS[id].ult;
-      s.progress.bar[ult ? 5 : 0] = id;
+      s.progress.bar[ult ? 10 : 0] = id;
       const hp0 = foe.hp;
       // press (ultimates: hold R)
       let held = 0;
@@ -288,9 +288,9 @@ function moves(hero: HeroId | null) {
         const inp = noInput(0);
         if (ult) {
           inp.ultHeld = t < 1.0;
-          if (t < DT * 1.5) inp.skills[5] = true;
+          if (t < DT * 1.5) inp.skills[10] = true;
         } else if (t < DT * 1.5 || (sit === 'twice' && Math.abs(t - 0.6) < DT)) inp.skills[0] = true;
-        if (sit === 'twice' && ult && Math.abs(t - 1.3) < DT) inp.skills[5] = true;
+        if (sit === 'twice' && ult && Math.abs(t - 1.3) < DT) inp.skills[10] = true;
         held++;
         return inp;
       };
@@ -362,14 +362,14 @@ function fights(hero: HeroId | null) {
       const inp = noInput(yawTo(p, tgt.pos[0], tgt.pos[2]));
       if (dd > 2) inp.move = [0, 1];
       if (dd < 3 && rnd() < 0.2) inp.attack = true;
-      if (rnd() < 0.03) inp.skills[Math.floor(rnd() * 5)] = true;
+      if (rnd() < 0.03) inp.skills[Math.floor(rnd() * 10)] = true;
       if (rnd() < 0.01) inp.dodge = true;
       // 穿云狙 raised: aim a moment, then fire (a human clicks)
       if (p.run?.id === 'snipe') {
         inp.move = [0, 0];
         inp.attack = p.run.t > 1.6;
       }
-      if (s.progress.bar[5] && rnd() < 0.005) inp.skills[5] = true;
+      if (s.progress.bar[10] && rnd() < 0.005) inp.skills[10] = true;
       inp.ultHeld = s.ultCharge !== null;
       step(s, w, inp, inp.move);
       if (foes.some((f) => f.aggro)) lastAggro = t;

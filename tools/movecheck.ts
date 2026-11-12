@@ -1,4 +1,4 @@
-// Every move against a dummy 5 m in front, in plain node: damage, statuses, where both end up. Quick per-move check.
+// Every move against a dummy 5 m (D=...) in front, in plain node: damage, statuses, where both end up. Quick per-move check.
 //   npx tsx tools/movecheck.ts [id ...]
 import { Sim } from '../src/game/sim';
 import { SKILLS, ALL_SKILL_IDS } from '../src/game/skills';
@@ -7,7 +7,7 @@ import { groundHeight } from '../src/game/world';
 (globalThis as any).localStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
 const ids = process.argv.slice(2).length ? process.argv.slice(2) : ALL_SKILL_IDS;
 const DT = 1 / 60;
-const noIn = (o: any = {}) => ({ move: [0, 0], camYaw: 0, attack: false, dodge: false, jump: false, interact: false, skills: [false, false, false, false, false, false], ultHeld: false, ...o });
+const noIn = (o: any = {}) => ({ move: [0, 0], camYaw: 0, attack: false, dodge: false, jump: false, interact: false, skills: Array(11).fill(false), ultHeld: false, ...o });
 for (const id of ids) {
   const P = fresh();
   P.chosen = true;
@@ -19,8 +19,9 @@ for (const id of ids) {
   for (const f of s.fighters) if (f !== p && f !== foe && f.team === 'sect') { f.hp = 0; f.respawn = 1e9; f.pos = [900, 0, 900]; }
   const X = 300, Z = 300;
   p.pos = [X, groundHeight(X, Z), Z];
-  foe.pos = [X, groundHeight(X, Z - 5), Z - 5];
-  foe.home = [X, Z - 5];
+  const FD = +(process.env.D || 5); // how far ahead the dummy stands
+  foe.pos = [X, groundHeight(X, Z - FD), Z - FD];
+  foe.home = [X, Z - FD];
   foe.maxHp = foe.hp = 5000;
   foe.aiT = 1e9;
   foe.master = true; // a dummy: stands where it is
@@ -28,12 +29,12 @@ for (const id of ids) {
   P.skills[id] = 1;
   const ult = !!SKILLS[id].ult;
   P.bar = ['', '', '', '', '', ''];
-  P.bar[ult ? 5 : 0] = id;
+  P.bar[ult ? 10 : 0] = id;
   const log: string[] = [];
   let firstHit = -1;
   for (let t = 0; t < 4; t += DT) {
     const inp: any = noIn();
-    if (ult) { inp.ultHeld = t < 1; if (t < DT) inp.skills[5] = true; }
+    if (ult) { inp.ultHeld = t < 1; if (t < DT) inp.skills[10] = true; }
     else if (t < DT) inp.skills[0] = true;
     if (id === "snipe" && t >= 1.7 && t < 1.7 + DT) inp.attack = true;
     const hp = foe.hp;

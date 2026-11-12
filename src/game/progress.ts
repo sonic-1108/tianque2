@@ -3,15 +3,28 @@
 //   skill points: 3, plus 2 a level
 //   a hero: its own five moves, levels 1-10 (6-10 cost 2 points each); the 4th from level 10, the ultimate from 30
 //   a 散人: every house's three basic moves, levels 1-5, never an ultimate; may 转职 at level 30
-import { HEROES, HIGH_LEVEL, HeroId, LOW_SKILLS, TRANSFER_LEVEL, ULT_LEVEL, heroOf } from './heroes';
+import { MORE_LEVELS, HEROES, HIGH_LEVEL, HeroId, LOW_SKILLS, TRANSFER_LEVEL, ULT_LEVEL, heroOf } from './heroes';
 
+/** the skill bar: keys 1 to 9 and 0, then R for the ultimate */
+export const BAR_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'R'];
+export const BAR_N = BAR_KEYS.length;
+export const BAR_R = BAR_N - 1;
+/** an older six-slot bar (1 to 5 and R) laid onto the wide one */
+function widenBar(b: string[]) {
+  const out: string[] = Array(BAR_N).fill('');
+  if (b.length <= 6) {
+    for (let i = 0; i < Math.min(5, b.length); i++) out[i] = b[i] ?? '';
+    out[BAR_R] = b[5] ?? '';
+  } else for (let i = 0; i < BAR_N; i++) out[i] = b[i] ?? '';
+  return out;
+}
 export interface Progress {
   chosen: boolean; // picked at the start screen
   hero: HeroId | null; // null = 散人
   level: number;
   xp: number;
   skills: Record<string, number>;
-  bar: string[]; // 1 2 3 4 5 R ('' = empty)
+  bar: string[]; // 1 to 9, 0, then R ('' = empty): BAR_N slots, the last is R
   /** the main story: which quest, how far into it, and whether it's been taken / finished */
   quest: { idx: number; count: number; state: 'offered' | 'active' | 'ready' };
   /** the last chapter card shown (a quest index) */
@@ -50,13 +63,13 @@ export const spFree = (p: Progress) => spTotal(p) - spUsed(p);
 export const skillPower = (lvl: number) => (lvl <= 0 ? 0 : 0.85 + 0.04 * lvl);
 
 export function fresh(): Progress {
-  return { chosen: false, hero: null, level: 1, xp: 0, skills: {}, bar: ['', '', '', '', '', ''], quest: { idx: 0, count: 0, state: 'offered' }, storyV: STORY_V };
+  return { chosen: false, hero: null, level: 1, xp: 0, skills: {}, bar: Array(BAR_N).fill(''), quest: { idx: 0, count: 0, state: 'offered' }, storyV: STORY_V };
 }
 export function load(): Progress {
   try {
     const p = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (p && typeof p.level === 'number') {
-      const out: Progress = { ...fresh(), ...p, quest: p.quest ?? fresh().quest, bar: [...(p.bar || []), '', '', '', '', '', ''].slice(0, 6) };
+      const out: Progress = { ...fresh(), ...p, quest: p.quest ?? fresh().quest, bar: widenBar(p.bar || []) };
       // story 2 saves keep their place (story 3 only added quests); anything older starts the story over
       if (out.storyV === 2) out.storyV = -2; // the sim maps the quest number (it knows the quest list)
       else if (out.storyV === 3) out.storyV = -3;
@@ -85,6 +98,8 @@ export function save(p: Progress) {
 export function capOf(p: Progress, id: string): { cap: number; why: string } {
   const h = heroOf(p.hero);
   if (h) {
+    const m = h.more.indexOf(id);
+    if (m >= 0) return p.level < MORE_LEVELS[m] ? { cap: 0, why: `${MORE_LEVELS[m]} 级解锁` } : { cap: 10, why: '' };
     const k = h.tree.indexOf(id);
     if (k < 0) return { cap: 0, why: '不是本职业的招' };
     if (k === 4 && p.level < ULT_LEVEL) return { cap: 0, why: `${ULT_LEVEL} 级解锁大招` };
@@ -104,7 +119,7 @@ export function learn(p: Progress, id: string): string | null {
   p.skills[id] = lv + 1;
   if (lv === 0) {
     const ult = heroOf(p.hero)?.tree[4] === id;
-    const slot = ult ? 5 : p.bar.slice(0, 5).indexOf('');
+    const slot = ult ? BAR_R : p.bar.slice(0, BAR_R).indexOf('');
     if (slot >= 0 && !p.bar[slot]) p.bar[slot] = id;
   }
   save(p);
@@ -113,7 +128,7 @@ export function learn(p: Progress, id: string): string | null {
 
 export function resetSkills(p: Progress) {
   p.skills = {};
-  p.bar = ['', '', '', '', '', ''];
+  p.bar = Array(BAR_N).fill('');
   save(p);
 }
 
@@ -128,8 +143,8 @@ export function chooseHero(p: Progress, hero: HeroId | null): string | null {
   p.hero = hero;
   const h = heroOf(hero);
   if (h) {
-    p.skills = Object.fromEntries(Object.entries(p.skills).filter(([id]) => h.tree.includes(id)));
-    p.bar = p.bar.map((id) => (h.tree.includes(id) ? id : ''));
+    p.skills = Object.fromEntries(Object.entries(p.skills).filter(([id]) => h.tree.includes(id) || h.more.includes(id)));
+    p.bar = p.bar.map((id) => (h.tree.includes(id) || h.more.includes(id) ? id : ''));
   }
   save(p);
   return null;

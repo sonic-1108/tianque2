@@ -10,7 +10,7 @@ let wheel = 0;
 /** true while a panel (skill book, master) has the mouse */
 export const ui = { open: false };
 
-const SKILL_KEYS = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'KeyR'];
+const SKILL_KEYS = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0', 'KeyR'];
 
 export function attachInput(canvas: HTMLElement) {
   const down = (e: KeyboardEvent) => {
@@ -74,7 +74,7 @@ export function takeMouse() {
 export function readInput(camYaw: number): InputState {
   if (ui.open) {
     pressed.clear();
-    return { move: [0, 0], camYaw, attack: false, dodge: false, jump: false, interact: false, skills: [false, false, false, false, false, false], ultHeld: false };
+    return { move: [0, 0], camYaw, attack: false, dodge: false, jump: false, interact: false, skills: SKILL_KEYS.map(() => false), ultHeld: false };
   }
   const x = (held.has('KeyD') ? 1 : 0) - (held.has('KeyA') ? 1 : 0);
   const y = (held.has('KeyW') ? 1 : 0) - (held.has('KeyS') ? 1 : 0);

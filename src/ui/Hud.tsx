@@ -14,10 +14,10 @@ import { PLACES } from '../game/places';
 import { ROOMS } from '../game/interiors';
 import { NPCS, QUESTS, questTarget } from '../game/quests';
 import { heroOf } from '../game/heroes';
-import { spFree } from '../game/progress';
+import { BAR_KEYS, spFree } from '../game/progress';
 import { cam } from '../render/Scene';
 
-const KEYS = ['1', '2', '3', '4', '5', 'R'];
+const KEYS = BAR_KEYS;
 
 /** a 700 m window round the player, north up, over the owner's painted map; dens, roads, foes after you */
 const MM_R = 350;

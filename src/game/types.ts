@@ -1,7 +1,10 @@
 // Shared shapes for the simulation. The sim (src/game) never touches React or three.js scene objects: the renderer
 // (src/render) and the HUD (src/ui) only read this state.
 
-export type SectId = 'kuangren' | 'anqi' | 'yingren' | 'jiaoyi' | 'fanyin' | 'dixian' | 'tianzi';
+export type SectId =
+  | 'kuangren' | 'anqi' | 'yingren' | 'jiaoyi' | 'fanyin' | 'dixian' | 'tianzi'
+  // the eleven houses the owner added
+  | 'jianke' | 'qiangwang' | 'quanshi' | 'fushi' | 'qinshi' | 'yushou' | 'duzong' | 'gongshou' | 'shuangdao' | 'qizong' | 'jiguan';
 
 /** what the body is doing; the renderer picks a clip from it */
 export type Act = 'idle' | 'run' | 'jump' | 'attack' | 'cast' | 'channel' | 'dodge' | 'hit' | 'down' | 'dead' | 'glide' | 'burrow';

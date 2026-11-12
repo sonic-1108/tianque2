@@ -19,9 +19,11 @@ const floorAt = (x: number, z: number, y?: number) =>
   roomAt(x, z)
     ? Math.max(ROOM_Y, y === undefined ? -Infinity : buildingFloor(x, z, y)) // in a room: its floor, or the bench you're on
     : Math.max(groundHeight(x, z), ICE.on ? WATER_Y : WATER_Y - 1.1, y === undefined ? -Infinity : buildingFloor(x, z, y));
-import { Progress, STORY_V, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
+import { BAR_KEYS, BAR_R, Progress, STORY_V, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
 import { WANDERER, heroOf } from './heroes';
 import { SKILLS } from './skills';
+import './moves2';
+import { kitAfter, kitGuard, kitHidden, kitSpeed, kitStep, kitSwing } from './kit';
 import { NPCS, QUESTS, fromStory, type NpcRole } from './quests';
 import { ALL_FOLK, ROOMS, ROOM_Y, roomAt, roomSpawn, roomExit } from './interiors';
 
@@ -531,8 +533,14 @@ export class Sim {
         return 0;
       }
     }
+    // the kit's guards: parry, absorb, evasion, thorns
+    if (!o.noScale || o.stagger === false) {
+      dmg = kitGuard(this, att, def, dmg);
+      if (dmg <= 0) return 0;
+    }
     dmg = Math.max(1, Math.round(dmg));
     def.hp = Math.max(0, def.hp - dmg);
+    if (def.hp <= 0) kitAfter(this, def);
     if (att.st.rage > 0 && att.hp > 0) att.hp = Math.min(att.maxHp, att.hp + dmg * RAGE.lifesteal);
     if (att.id === PLAYER && att.hp > 0) {
       const lee = gearOf(this.progress).leech;
@@ -846,6 +854,7 @@ export class Sim {
     const slow = f.team === 'sect' ? 1.5 : 1; // disciples wind up slower: time to see it coming
     this.setAct(f, 'attack', (CHAIN[f.combo].dur * slow) / (f.st.rage > 0 ? RAGE.speed : 1), ranged ? 'throw' : `attack_${f.combo + 1}`);
     this.emit({ k: 'swing', x: f.pos[0], y: f.pos[1] + 1, z: f.pos[2], id: f.id, heavy: f.combo === 2 });
+    kitSwing(this, f);
     if (!(f.run && SKILLS[f.run.id]?.parallel)) f.run = ranged ? { id: '_throw', t: 0, data: {} } : null;
     if (f.id === PLAYER && !ranged) {
       // a swing steps in to the foe in front (within 4.5 m): no more swinging at air a step short
@@ -950,6 +959,7 @@ export class Sim {
     }
     if (input) this.control(this.player, input);
     this.allyList = this.fighters.filter((f) => f.team === 'ally' && f.hp > 0 && !(f as any).away);
+    kitStep(this, dt);
     for (const f of this.fighters) if (f.team !== 'player') this.think(f, dt);
     for (const f of this.fighters) this.physics(f, dt);
     // bodies don't stand inside each other
@@ -988,7 +998,7 @@ export class Sim {
       for (const k of ['speed', 'dmg', 'regen'] as const) if (B[k] > 0) B[k] = Math.max(0, B[k] - dt);
       if (B.regen > 0 && pl.hp > 0) pl.hp = Math.min(pl.maxHp, pl.hp + pl.maxHp * 0.012 * dt);
       const ride = this.riding >= 0 ? 2.3 * (policyNow(this)?.ride ?? 1) : 1;
-      (pl as any).spdMul = (B.speed > 0 ? 1.25 : 1) * ride * (1 + gearOf(this.progress).spd);
+      (pl as any).spdMul = (B.speed > 0 ? 1.25 : 1) * ride * (1 + gearOf(this.progress).spd) * kitSpeed(pl);
       if (this.riding >= 0) {
         const a = this.animals[this.riding];
         const sp = Math.hypot(pl.vel[0], pl.vel[2]);
@@ -1165,7 +1175,7 @@ export class Sim {
       if (!this.attack(f, !!heroOf(this.progress.hero)?.ranged)) f.yaw = y;
     }
     // R holds an ultimate: rooted while it charges; letting go or being hit throws it away (nothing spent)
-    const rId = this.progress.bar[5];
+    const rId = this.progress.bar[BAR_R];
     const isUlt = !!rId && !!SKILLS[rId]?.ult;
     if (this.ultCharge !== null) {
       const hpWas = (this as any).ultHp ?? f.hp;
@@ -1186,7 +1196,7 @@ export class Sim {
     }
     inp.skills.forEach((on, i) => {
       if (!on) return;
-      if (i === 5 && isUlt) {
+      if (i === BAR_R && isUlt) {
         const sk = SKILLS[rId];
         if (this.ultCharge !== null || !this.free(f)) return;
         if ((f.cds[rId] ?? 0) > 0) return void this.text(f, `冷却 ${(f.cds[rId] ?? 0).toFixed(1)}s`, '#9ca3af');
@@ -1198,7 +1208,7 @@ export class Sim {
       }
       const id = this.progress.bar[i];
       if (!id) {
-        this.text(f, `${'12345R'[i]} 键没放技能`, '#9ca3af');
+        this.text(f, `${BAR_KEYS[i]} 键没放技能`, '#9ca3af');
         return;
       }
       const y = f.yaw;
@@ -1351,6 +1361,12 @@ export class Sim {
     if (f.team === 'ally') return allyThink(this, f, dt);
     if (f.hp <= 0) return;
     const p = this.player;
+    // 夜幕: they've lost you
+    if (kitHidden(p) > 0 && !f.master && f.aggro && this.dist(f, p) > 2.5) {
+      f.aggro = false;
+      (f as any).wish = [0, 0];
+      return;
+    }
     if (f.master) {
       const a = f as any;
       a.wish = [0, 0];

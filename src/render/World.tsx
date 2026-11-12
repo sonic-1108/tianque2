@@ -24,6 +24,7 @@ import { Festive } from './Festive';
 import { War } from './War';
 import { Stockade } from './Stockade';
 import { Home } from './Home';
+import { Summons } from './Summons';
 import { Calls } from './Calls';
 import { Interiors } from './Interiors';
 const propCache = new Map<string, Promise<THREE.Group>>();
@@ -345,6 +346,7 @@ export function World({ sim }: { sim: Sim }) {
         <Court />
         <Stockade sim={sim} />
         <Home sim={sim} />
+        <Summons sim={sim} />
         <Festive sim={sim} />
         <War sim={sim} />
         <Tianque />

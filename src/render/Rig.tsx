@@ -6,7 +6,7 @@ import { useFrame } from '@react-three/fiber';
 import { GLTFLoader, SkeletonUtils, MeshoptDecoder } from 'three-stdlib';
 import type { Fighter } from '../game/types';
 import type { Sim } from '../game/sim';
-import { weaponsFor } from './weapons';
+import { heroWeapons, weaponsFor } from './weapons';
 import { buildUmbrella, type Umbrella } from './umbrella';
 import { applyGlidePose, collectLimbs, fistCentre, type Limbs } from './climbPose';
 import { applyCharacterShading } from './characterShading';
@@ -23,6 +23,13 @@ export const BODY_AS: Record<string, string> = {
   'foe-assassin.glb': 'shadowblade.glb', 'boss-wumian.glb': 'shadowblade.glb', 'comp-mohan.glb': 'shadowblade.glb', 'ally-militia.glb': 'shadowblade.glb',
   'foe-merchant.glb': 'trader.glb',
   'foe-taoist.glb': 'dixian.glb', 'boss-xuanyin.glb': 'dixian.glb',
+  // the added houses' heroes
+  'hero-jianke.glb': 'emperor.glb', 'hero-fushi.glb': 'emperor.glb',
+  'hero-qiangwang.glb': 'berserker.glb', 'hero-shuangdao.glb': 'berserker.glb',
+  'hero-quanshi.glb': 'monk.glb', 'hero-qinshi.glb': 'monk.glb', 'hero-qizong.glb': 'monk.glb',
+  'hero-yushou.glb': 'dixian.glb',
+  'hero-duzong.glb': 'ranger.glb', 'hero-gongshou.glb': 'ranger.glb',
+  'hero-jiguan.glb': 'trader.glb',
 };
 // a borrowed house clip carries the house's own facing, so these bodies play only borrowed clips and need no turn
 const facesX = (m: string) => isTownsfolk(m);
@@ -249,7 +256,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
           if ((o as any).isBone && !bones[n]) bones[n] = o;
         });
         const glow = new THREE.Color(f.team === 'player' ? '#ff3b1f' : '#7dd3fc');
-        const w = weaponsFor(BODY_AS[f.model] ?? f.model, glow);
+        const w: ReturnType<typeof heroWeapons> & {} = heroWeapons(f.model) ?? weaponsFor(BODY_AS[f.model] ?? f.model, glow);
         if ((f as any).folk !== undefined) w.right = w.left = w.staff = undefined as any; // villagers go unarmed
         const held: THREE.Object3D[] = [];
         if (w.right && bones.righthand) {
@@ -269,6 +276,13 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
           w.staff.position.set(0, 0.36, 0.02);
           bones.righthand.add(w.staff);
           held.push(w.staff);
+        }
+        // a guqin across the back
+        if (w.back && (bones.spine2 || bones.spine1)) {
+          w.back.rotation.set(0, 0, Math.PI * 0.3);
+          w.back.position.set(0, 0.05, -0.2);
+          (bones.spine2 ?? bones.spine1).add(w.back);
+          held.push(w.back);
         }
         if (f.team === 'player') {
           swordSockets.base = w.base;

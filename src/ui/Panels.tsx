@@ -4,10 +4,10 @@ import type { Sim } from '../game/sim';
 import { SKILLS } from '../game/skills';
 import { HEROES, HeroId, LOW_SKILLS, TRANSFER_LEVEL, WANDERER, heroOf } from '../game/heroes';
 import { HOUSES } from '../game/sects';
-import { capOf, chooseHero, learn, resetSkills, spFree, spTotal, stepCost } from '../game/progress';
+import { BAR_KEYS, capOf, chooseHero, learn, resetSkills, spFree, spTotal, stepCost } from '../game/progress';
 
 const IMG = import.meta.env.BASE_URL + 'portraits/';
-const KEYS = ['1', '2', '3', '4', '5', 'R'];
+const KEYS = BAR_KEYS;
 
 export function StartScreen({ onPick }: { onPick: (hero: HeroId | null) => void }) {
   return (
@@ -18,7 +18,7 @@ export function StartScreen({ onPick }: { onPick: (hero: HeroId | null) => void 
         <button className="pick wanderer" onClick={() => onPick(null)}>
           <img src={IMG + WANDERER.portrait} alt="" />
           <b>散人</b>
-          <small>七家的基础招都能学（每招最高 5 级），没有大招。30 级可以转职。</small>
+          <small>十八家的基础招都能学（每招最高 5 级），没有大招。30 级可以转职。</small>
         </button>
         {HEROES.map((h) => (
           <button key={h.id} className="pick" style={{ borderColor: h.color }} onClick={() => onPick(h.id)}>
@@ -26,7 +26,7 @@ export function StartScreen({ onPick }: { onPick: (hero: HeroId | null) => void 
             <b>
               {h.title} · {h.name}
             </b>
-            <small>{h.blurb} 五招专精（最高 10 级），10 级解锁第四招，30 级解锁大招。</small>
+            <small>{h.blurb} 十招专精（最高 10 级）：三招起手，3 / 6 / 10 / 14 / 18 / 24 级陆续解锁，30 级解锁大招。</small>
           </button>
         ))}
       </div>
@@ -74,7 +74,7 @@ function SkillCard({ sim, id, onChange }: { sim: Sim; id: string; onChange: () =
             }}
           >
             <option value={-1}>不放</option>
-            {[0, 1, 2, 3, 4].map((k) => (
+            {BAR_KEYS.slice(0, -1).map((_, k) => (
               <option key={k} value={k}>
                 放在 {KEYS[k]} 键
               </option>
@@ -122,7 +122,7 @@ export function SkillTree({ sim, onClose, onHero }: { sim: Sim; onClose: () => v
         </header>
         {h ? (
           <div className="grid hero-grid">
-            {h.tree.map((id) => (
+            {[...h.tree, ...h.more].map((id) => (
               <SkillCard key={id} sim={sim} id={id} onChange={refresh} />
             ))}
           </div>

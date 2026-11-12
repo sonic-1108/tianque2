@@ -316,3 +316,107 @@ export function weaponsFor(model: string, glow: THREE.Color): { right: THREE.Obj
       return none;
   }
 }
+
+// ---------------------------------------------------------------- the added houses' weapons (Tripo props)
+// Each prop lies at a slant in its own file: `dir` is its long axis (found offline, principal axis of the points),
+// `c` its middle, `lo` / `hi` its ends along dir, `blade` which way the business end points (+1 toward hi), `grip`
+// where the hand goes (0 = the lo end, 1 = the hi end), `len` how long it is in the hand (metres).
+interface PropWeapon {
+  file: string;
+  dir: [number, number, number];
+  c: [number, number, number];
+  lo: number;
+  hi: number;
+  blade: 1 | -1;
+  grip: number;
+  len: number;
+}
+const PW: Record<string, PropWeapon> = {
+  jian: { file: 'w-jian.glb', dir: [-0.553, 0.522, 0.65], c: [0.215, -0.197, -0.237], lo: -1.076, hi: 1.928, blade: 1, grip: 0.17, len: 1.0 },
+  saber: { file: 'w-saber.glb', dir: [-0.004, 0.715, -0.699], c: [0.001, 0.313, -0.398], lo: -1.873, hi: 0.825, blade: -1, grip: 0.86, len: 0.95 },
+  dagger: { file: 'w-gudagger.glb', dir: [0, 0.736, 0.677], c: [0, -0.047, -0.208], lo: -1.165, hi: 1.57, blade: 1, grip: 0.15, len: 0.48 },
+  taomu: { file: 'w-taomu.glb', dir: [-0.328, 0.629, 0.705], c: [-0.048, 0.155, 0.169], lo: -1.679, hi: 1.148, blade: -1, grip: 0.86, len: 0.95 },
+  spear: { file: 'w-spear.glb', dir: [0.002, 0.708, 0.706], c: [0.002, 0.288, 0.358], lo: -1.844, hi: 0.957, blade: 1, grip: 0.35, len: 2.4 },
+  bonestaff: { file: 'w-bonestaff.glb', dir: [-0.048, 0.994, 0.097], c: [0.009, 0.518, -0.035], lo: -1.521, hi: 0.472, blade: 1, grip: 0.35, len: 1.7 },
+  bow: { file: 'w-bow.glb', dir: [0.719, -0.57, 0.398], c: [0.239, 0.048, 0.141], lo: -1.501, hi: 1.106, blade: 1, grip: 0.52, len: 1.3 },
+  crossbow: { file: 'w-crossbow.glb', dir: [0.988, -0.156, -0.01], c: [0.194, 0.104, -0.052], lo: -1.194, hi: 0.807, blade: 1, grip: 0.4, len: 0.75 },
+  guqin: { file: 'w-guqin.glb', dir: [0.996, -0.075, 0.049], c: [-0.206, 0.017, 0.001], lo: -0.803, hi: 1.218, blade: 1, grip: 0.5, len: 1.25 },
+};
+const pwCache = new Map<string, Promise<THREE.Object3D>>();
+/** a prop weapon laid along +Y with the grip at the origin (filled in when its file has loaded) */
+function propWeapon(key: string) {
+  const w = PW[key];
+  const holder = new THREE.Group();
+  let p = pwCache.get(w.file);
+  if (!p) {
+    p = new Promise((res, rej) => newLoader().load(`${import.meta.env.BASE_URL}models/${w.file}`, (g) => res(g.scene), undefined, rej));
+    pwCache.set(w.file, p);
+  }
+  p.then((scene) => {
+    const obj = scene.clone(true);
+    const dir = new THREE.Vector3(...w.dir).multiplyScalar(w.blade);
+    const s = w.len / (w.hi - w.lo);
+    const gripAt = w.lo + (w.hi - w.lo) * w.grip;
+    const grip = new THREE.Vector3(...w.c).addScaledVector(new THREE.Vector3(...w.dir), gripAt);
+    const inner = new THREE.Group();
+    inner.add(obj);
+    obj.position.copy(grip).multiplyScalar(-1);
+    inner.quaternion.setFromUnitVectors(dir, new THREE.Vector3(0, 1, 0));
+    inner.scale.setScalar(s);
+    obj.traverse((o: any) => {
+      if (o.isMesh) {
+        o.castShadow = true;
+        o.userData.weapon = true;
+      }
+    });
+    holder.add(inner);
+  }).catch((e) => console.warn('[tq2] weapon', w.file, e));
+  // the trail runs from near the grip to the tip
+  const base = new THREE.Object3D();
+  base.position.y = w.len * 0.15;
+  const tip = new THREE.Object3D();
+  tip.position.y = w.len * (1 - w.grip) * 0.95;
+  holder.add(base, tip);
+  return { group: holder, base, tip };
+}
+/** the added houses' hands (and backs) */
+export function heroWeapons(model: string): (ReturnType<typeof weaponsFor> & { back?: THREE.Object3D | null }) | null {
+  const none = { right: null, left: null, reverse: false, staff: null, base: null, tip: null, back: null };
+  const one = (k: string) => {
+    const r = propWeapon(k);
+    return { ...none, right: r.group, base: r.base, tip: r.tip };
+  };
+  switch (model) {
+    case 'hero-jianke.glb':
+      return one('jian');
+    case 'hero-fushi.glb':
+      return one('taomu');
+    case 'hero-qiangwang.glb':
+      return one('spear');
+    case 'hero-jiguan.glb':
+      return one('crossbow');
+    case 'hero-yushou.glb': {
+      const r = propWeapon('bonestaff');
+      return { ...none, staff: r.group };
+    }
+    case 'hero-gongshou.glb': {
+      const r = propWeapon('bow');
+      return { ...none, left: r.group };
+    }
+    case 'hero-shuangdao.glb': {
+      const a = propWeapon('saber'), b = propWeapon('saber');
+      return { ...none, right: a.group, left: b.group, base: a.base, tip: a.tip };
+    }
+    case 'hero-duzong.glb': {
+      const a = propWeapon('dagger'), b = propWeapon('dagger');
+      return { ...none, right: a.group, left: b.group, base: a.base, tip: a.tip };
+    }
+    case 'hero-qinshi.glb':
+      return { ...none, back: propWeapon('guqin').group };
+    case 'hero-quanshi.glb':
+    case 'hero-qizong.glb':
+      return none;
+    default:
+      return null;
+  }
+}

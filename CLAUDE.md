@@ -145,6 +145,20 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   keeps one of each out while asked). Quest xp x1.6. Story 4 saves map with `fromStory(idx, 4)`. Test: scratch esc.mts.
 - `Builder.roof` once moved its dark underside twice (every roof's underside floated at double its x, y, z); fixed.
 
+- 职业 and moves (owner: many slots, more than seven houses, nothing repeated, models at the highest precision):
+  the bar is 1 to 9, 0 and R (`BAR_KEYS`, `BAR_R` in progress.ts; old six-slot saves are widened). Every hero has
+  `tree` (three basic, the 4th at Lv 10, the ultimate at 30) plus `more` (five, opened at `MORE_LEVELS` 3 / 6 / 14 / 18
+  / 24). Eighteen houses: the seven plus 剑客 枪王 拳师 符师 琴师 御兽师 毒宗 弓手 双刀客 气宗 机关师 (`added`). The 145 new
+  moves are data in `src/game/moves2.ts`, run by `src/game/kit.ts` (timeline of strikes, shots, zones, buffs, blinks,
+  summons; the kit's own state on each fighter: poison / bleed / burn dots, parry, absorb, evade, thorns, a second
+  life, marks, sticky charges, orbits, pets; sim hooks kitGuard / kitAfter in hit, kitSwing in attack, kitStep,
+  kitSpeed, kitHidden). Pets drawn by render/Summons.tsx (s-wolf, s-hawk, s-puppet, s-turret, the deer). New heroes
+  `hero-*.glb` (Tripo quality=max, 2048 textures, full faces; BODY_AS borrows a house's clips); their weapons are
+  Tripo props `w-*.glb` (slimmed to ~20k faces) laid in the hand by `heroWeapons` (weapons.ts, each prop's long axis
+  found offline by PCA; scratch gt/prof.mjs). Portraits cropped from the Tripo preview. Tripo workflow input
+  `quality=max` drops the face cap and asks for detailed geometry. Test: `npx tsx tools/movecheck.ts <ids>` (D=1.8
+  puts the dummy close).
+
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported
   from 天阙 1: same timings, reach, damage, statuses; its `vfx.*` calls become `s.vfx(name, ...args)` commands in
