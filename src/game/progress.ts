@@ -33,7 +33,7 @@ export interface Progress {
   /** you bought the empty house in the village */
   home?: boolean;
 }
-export const STORY_V = 4;
+export const STORY_V = 5;
 
 const KEY = 'tq2_progress_v2';
 export const MAX_LEVEL = 30;
@@ -60,6 +60,7 @@ export function load(): Progress {
       // story 2 saves keep their place (story 3 only added quests); anything older starts the story over
       if (out.storyV === 2) out.storyV = -2; // the sim maps the quest number (it knows the quest list)
       else if (out.storyV === 3) out.storyV = -3;
+      else if (out.storyV === 4) out.storyV = -4;
       else if (out.storyV !== STORY_V) {
         out.quest = { idx: 0, count: 0, state: 'offered' };
         out.chapterSeen = undefined;

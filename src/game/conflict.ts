@@ -145,7 +145,9 @@ export function stepWar(s: Sim, dt: number) {
   }
   const lvl = Math.max(2, s.progress.level);
   // ---- patrols: three men walking a stretch of post road and back
-  const want = patrolsFor(W.dread);
+  // the story may want one out whatever the reach (冲散巡逻), or a checkpoint up (劫税银)
+  const qg = s.progress.quest.state === 'active' ? s.quest()?.goal.type : undefined;
+  const want = Math.max(patrolsFor(W.dread), qg === 'patrol' ? 1 : 0);
   while (W.patrols.length < want) {
     const k = W.patrols.length;
     W.patrols.push({ road: PATROL_ROADS[k], r: 140 + k * 70, dir: 1, ids: [], down: 0 });
@@ -159,6 +161,7 @@ export function stepWar(s: Sim, dt: number) {
       pt.down = s.worldT + DAY_S;
       shiftDread(s, -4);
       earn(s, 30, '伪朝巡逻队被你打散了！');
+      s.questEvent('patrol');
       addVillagePts(s, 1);
       s.chron('你在驿道上打散了一队伪朝巡逻。', '听说你在驿道上把伪朝的巡逻打得屁滚尿流，痛快！');
     }
@@ -192,7 +195,7 @@ export function stepWar(s: Sim, dt: number) {
     });
   });
   // ---- checkpoints: four men across the road at POST_R, a captain among them
-  const nposts = postsFor(W.dread);
+  const nposts = Math.max(postsFor(W.dread), qg === 'post' ? 1 : 0);
   W.posts.forEach((po, k) => {
     const live = alive(s, po.ids);
     if (po.active && po.ids.length && !live.length) {
@@ -201,6 +204,7 @@ export function stepWar(s: Sim, dt: number) {
       po.down = s.worldT + DAY_S * 2;
       shiftDread(s, -7);
       earn(s, 60, '关卡被你拔掉了！缴获关税 60 文');
+      s.questEvent('post');
       addVillagePts(s, 2);
       giveXp(s, 120);
       s.chron(`你拔掉了驿道上的一处伪朝关卡。`, '听说驿道上的关卡被人拔了，过往的商客都在念你的好。');

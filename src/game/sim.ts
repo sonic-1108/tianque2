@@ -11,7 +11,7 @@ import type { Folk } from './places';
 import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } from './types';
 import { DENS, DEN_R, FOE_KINDS, bossNameOf, menNameOf } from './foes';
 import { ICE, MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, buildingFloor, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
-import { JH_TOUCH, allyDown, allyPower, wear, allyThink, allyUp, doJhTouch, dropFrom, fullHp, gearOf, jhTouch, levelFor, makeArenaPool, makeJianghu, newJH, rivalBeaten, stepArena, stepRivals, stepSeasons, warm, addVillagePts, type JH } from './jianghu';
+import { JH_TOUCH, allyDown, allyPower, wear, startEscort, endEscort, allyThink, allyUp, doJhTouch, dropFrom, fullHp, gearOf, jhTouch, levelFor, makeArenaPool, makeJianghu, newJH, rivalBeaten, stepArena, stepRivals, stepSeasons, warm, addVillagePts, type JH } from './jianghu';
 
 /** what a body stands on: the ground, or the lake's surface (wading / swimming) */
 /** what a body stands on: the ground (or the river's bed), or, given its feet's height, a roof, a terrace or a step it's on */
@@ -228,14 +228,16 @@ export class Sim {
       }
     } catch {}
     this.clock = clockOf(this.worldT);
-    if (this.progress.storyV === -2 || this.progress.storyV === -3) {
-      // a story 2 or 3 save: the same quests with new ones slotted in between
-      const from = this.progress.storyV === -2 ? 2 : 3;
+    if (this.progress.storyV === -2 || this.progress.storyV === -3 || this.progress.storyV === -4) {
+      // an older story's save: the same quests with new ones slotted in between
+      const from = -this.progress.storyV as 2 | 3 | 4;
       const Q = this.progress.quest;
       this.progress.quest = { ...Q, idx: fromStory(Q.idx, from) };
       if (this.progress.chapterSeen !== undefined) this.progress.chapterSeen = fromStory(this.progress.chapterSeen, from);
       this.progress.storyV = STORY_V;
     }
+    // a quest the story no longer asks for (story 5 dropped most den clearing): move on past it
+    while (QUESTS[this.progress.quest.idx]?.skip) this.progress.quest = { idx: this.progress.quest.idx + 1, count: 0, state: 'offered' };
     const h = heroOf(this.progress.hero);
     const p = this.make('player', null, h ? h.name : WANDERER.name, h ? h.model : WANDERER.model, this.progress.level, VILLAGE_SPAWN[0], VILLAGE_SPAWN[1]);
     p.maxHp = p.hp = fullHp(this.progress);
@@ -262,7 +264,7 @@ export class Sim {
         const boss = d.boss && k === n - 1;
         const a = (k / n) * Math.PI * 2;
         const r = boss ? 0 : 6;
-        const f = this.make('sect', kind.house, boss ? bossNameOf(d) : menNameOf(d), boss ? (kind.bossModel ?? kind.model) : kind.model, d.level + (boss ? (d.ring === 0 ? 1 : 3) : k % 3), d.x + Math.cos(a) * r, d.z + Math.sin(a) * r);
+        const f = this.make('sect', kind.house, boss ? bossNameOf(d) : menNameOf(d), boss ? (d.bossModel ?? kind.bossModel ?? kind.model) : kind.model, d.level + (boss ? (d.ring === 0 ? 1 : 3) : k % 3), d.x + Math.cos(a) * r, d.z + Math.sin(a) * r);
         f.home = [f.pos[0], f.pos[2]];
         (f as any).den = di;
         if (!boss) f.maxHp = f.hp = Math.round(f.maxHp * 0.85); // the men go down quicker
@@ -286,6 +288,9 @@ export class Sim {
     makePools(this);
     makeJianghu(this);
     makeArenaPool(this);
+    // an escort under way when the game was closed starts again from its start
+    const q0 = this.quest();
+    if (q0?.escort && this.progress.quest.state === 'active') startEscort(this, q0.escort);
   }
   /** calls one of the sparring guards onto the floor */
   sparrer(k: number, _kind: unknown, name: string, level: number, x: number, z: number) {
@@ -712,7 +717,7 @@ export class Sim {
       (g.type === 'kill' && Q.count >= g.count) ||
       (g.type === 'boss' && Q.count >= 1) ||
       (g.type === 'visit' && Math.hypot(this.player.pos[0] - g.at[0], this.player.pos[2] - g.at[1]) < g.r) ||
-      (g.type === 'raid' && Q.count >= 1) ||
+      ((g.type === 'raid' || g.type === 'patrol' || g.type === 'post' || g.type === 'escort') && Q.count >= 1) ||
       (g.type === 'rival' && !!P.done?.['rival:' + g.id]) ||
       (g.type === 'home' && this.indoor >= 0 && ROOMS[this.indoor].theme === 'home') ||
       (g.type === 'hunt' && !!P.done?.hunt) ||
@@ -748,7 +753,7 @@ export class Sim {
     else this.note = n;
   }
   /** something a quest waits for happened (a raid held) */
-  questEvent(kind: 'raid') {
+  questEvent(kind: 'raid' | 'patrol' | 'post' | 'escort') {
     const Q = this.progress.quest, q = this.quest();
     if (q && Q.state === 'active' && q.goal.type === kind) Q.count++;
   }
@@ -757,6 +762,7 @@ export class Sim {
     const P = this.progress;
     if (q.start === 'home' && !P.home) P.home = true;
     if (q.start === 'bow') bag(P).bow = Math.max(1, bag(P).bow ?? 0);
+    if (q.escort) startEscort(this, q.escort);
     if (q.start === 'raid') {
       const c = this.clock;
       this.war.force = c.hour < 17.5 ? c.day : c.day + 1;
@@ -799,7 +805,9 @@ export class Sim {
       P.relics = [...(P.relics ?? []), 'sword'];
       this.toast('断剑重铸 · 伤害 +10%');
     }
-    P.quest = { idx: Q.idx + 1, count: 0, state: 'offered' };
+    let ni = Q.idx + 1;
+    while (QUESTS[ni]?.skip) ni++;
+    P.quest = { idx: ni, count: 0, state: 'offered' };
     const next = QUESTS[P.quest.idx];
     if (next?.direct) {
       P.quest.state = 'active';

@@ -15,13 +15,13 @@ export interface FoeKind {
   bossModel?: string; // the boss's body when it isn't the men's
 }
 export const FOE_KINDS: FoeKind[] = [
-  { name: '山贼', model: 'berserker.glb', house: 'kuangren', ranged: false, color: '#e0452b', skills: ['earth_cleave', 'bull_charge', 'whirlwind_blade'] },
-  { name: '女飞贼', model: 'ranger.glb', house: 'anqi', ranged: true, color: '#2dd4bf', skills: ['pin_dart', 'boomerang', 'swallow_flip'] },
-  { name: '野和尚', model: 'monk.glb', house: 'fanyin', ranged: false, color: '#f5b942', skills: ['vajra_palm', 'zen_domain', 'six_syllable_mantra'] },
-  { name: '刺客', model: 'shadowblade.glb', house: 'yingren', ranged: false, color: '#a78bfa', skills: ['shadow_step', 'fan_knives', 'burrow'] },
+  { name: '山贼', model: 'foe-bandit.glb', house: 'kuangren', ranged: false, color: '#e0452b', skills: ['earth_cleave', 'bull_charge', 'whirlwind_blade'] },
+  { name: '女飞贼', model: 'foe-thief.glb', house: 'anqi', ranged: true, color: '#2dd4bf', skills: ['pin_dart', 'boomerang', 'swallow_flip'] },
+  { name: '野和尚', model: 'foe-monk.glb', house: 'fanyin', ranged: false, color: '#f5b942', skills: ['vajra_palm', 'zen_domain', 'six_syllable_mantra'] },
+  { name: '刺客', model: 'foe-assassin.glb', house: 'yingren', ranged: false, color: '#a78bfa', skills: ['shadow_step', 'fan_knives', 'burrow'] },
   { name: '伪朝禁军', model: 'guard.glb', bossModel: 'emperor.glb', house: 'tianzi', ranged: false, color: '#ffd36a', skills: ['edict', 'jade_seal', 'phantom_guard'] },
-  { name: '奸商', model: 'trader.glb', house: 'jiaoyi', ranged: true, color: '#4ade80', skills: ['rolex_throw', 'make_it_rain'] },
-  { name: '妖道', model: 'dixian.glb', house: 'dixian', ranged: false, color: '#86efac', skills: ['drain_surplus', 'earth_spring', 'qingfeng'] },
+  { name: '奸商', model: 'foe-merchant.glb', house: 'jiaoyi', ranged: true, color: '#4ade80', skills: ['rolex_throw', 'make_it_rain'] },
+  { name: '妖道', model: 'foe-taoist.glb', house: 'dixian', ranged: false, color: '#86efac', skills: ['drain_surplus', 'earth_spring', 'qingfeng'] },
 ];
 
 export interface Den {
@@ -36,13 +36,15 @@ export interface Den {
   ring: number; // 0, 1, 2 out from the village; 3 = 天阙
   name?: string; // the men's name when it isn't the kind's
   bossName?: string;
+  /** the ring boss's own body */
+  bossModel?: string;
   peak?: boolean; // 天阙: on the mesa (the ground isn't flattened to the valley floor)
 }
 /** the story's bosses: one per ring (the ring's last den), then the false emperor on 天阙 */
-const RING_BOSS: { kind: number; bossName: string }[] = [
-  { kind: 0, bossName: '黑风寨主 · 雷彪' },
-  { kind: 6, bossName: '玄阴真人' },
-  { kind: 3, bossName: '影阁主 · 无面' },
+const RING_BOSS: { kind: number; bossName: string; bossModel: string }[] = [
+  { kind: 0, bossName: '黑风寨主 · 雷彪', bossModel: 'boss-leibiao.glb' },
+  { kind: 6, bossName: '玄阴真人', bossModel: 'boss-xuanyin.glb' },
+  { kind: 3, bossName: '影阁主 · 无面', bossModel: 'boss-wumian.glb' },
 ];
 export const TQ_DEN = 21;
 /** the name a den's boss goes by */
@@ -82,7 +84,7 @@ export const DENS: Den[] = (() => {
       }
       const boss = i === ring.n - 1;
       const k = kind++ % FOE_KINDS.length;
-      out.push({ x: dx, z: dz, kind: boss ? RING_BOSS[ri].kind : k, level: ring.lvl + Math.floor((i / ring.n) * ring.span), count: 3 + (i % 2), boss, road, r, ring: ri, bossName: boss ? RING_BOSS[ri].bossName : undefined });
+      out.push({ x: dx, z: dz, kind: boss ? RING_BOSS[ri].kind : k, level: ring.lvl + Math.floor((i / ring.n) * ring.span), count: 3 + (i % 2), boss, road, r, ring: ri, bossName: boss ? RING_BOSS[ri].bossName : undefined, bossModel: boss ? RING_BOSS[ri].bossModel : undefined });
     }
   });
   // 天阙: the false emperor and his gold-armoured guard

@@ -217,44 +217,44 @@ export const FOLK: Folk[] = (() => {
   {
     const p = by('smithy');
     const [x, z] = placeAt(p, 0, 5);
-    out.push({ name: '铁匠 · 张大锤', model: 'berserker.glb', x, z, lines: ['刀钝了？拿来我给你磨。不要钱，帮我把山上那帮抢铁料的打跑就行。', '天阙的人用的剑，都是我师父的师父打的。现在没人会了。', '打铁跟练武一样，火候到了，一锤就成。'] });
+    out.push({ name: '铁匠 · 张大锤', model: 'npc-smith.glb', x, z, lines: ['刀钝了？拿来我给你磨。不要钱，帮我把山上那帮抢铁料的打跑就行。', '天阙的人用的剑，都是我师父的师父打的。现在没人会了。', '打铁跟练武一样，火候到了，一锤就成。'] });
   }
   {
     const p = by('tavern');
     const [x, z] = placeAt(p, 2, 5.5);
-    out.push({ name: '酒肆掌柜 · 杏娘', model: 'ranger.glb', x, z, heal: '喝碗热酒歇歇（回满生命和内力）', lines: ['客官来碗酒？今年的杏花酿，劲大。', '前些日子来了个戴面具的，一句话不说，喝完就往北走了。', '石伯年轻时酒量可好了，现在一碗就倒。'] });
+    out.push({ name: '酒肆掌柜 · 杏娘', model: 'npc-tavern.glb', x, z, heal: '喝碗热酒歇歇（回满生命和内力）', lines: ['客官来碗酒？今年的杏花酿，劲大。', '前些日子来了个戴面具的，一句话不说，喝完就往北走了。', '石伯年轻时酒量可好了，现在一碗就倒。'] });
     const [x2, z2] = placeAt(p, -4, 7);
-    out.push({ name: '酒客', model: 'wanderer_m.glb', x: x2, z: z2, walk: 4, lines: ['嗝……别看我，我就是个过路的。', '听说天阙上的钟，二十年没响过了。', '我年轻时也想当大侠，后来发现酒比剑好使。'] });
+    out.push({ name: '酒客', model: 'npc-beggar.glb', x: x2, z: z2, walk: 4, lines: ['嗝……别看我，我就是个过路的。', '听说天阙上的钟，二十年没响过了。', '我年轻时也想当大侠，后来发现酒比剑好使。'] });
   }
   {
     const p = by('shrine');
     const [x, z] = placeAt(p, 2.5, 4);
-    out.push({ name: '庙祝 · 慧觉', model: 'monk.glb', x, z, lines: ['土地爷保佑青石村，也保佑你。', '香火钱随缘。你身上的杀气，倒是比香火重。', '这庙比村子还老。墙上那块碑，写的是天阙七家的名字，后来被人凿掉了。'] });
+    out.push({ name: '庙祝 · 慧觉', model: 'npc-monk.glb', x, z, lines: ['土地爷保佑青石村，也保佑你。', '香火钱随缘。你身上的杀气，倒是比香火重。', '这庙比村子还老。墙上那块碑，写的是天阙七家的名字，后来被人凿掉了。'] });
   }
   // round the square
   out.push({ name: '货郎', model: 'npc-peddler.glb', x: 5, z: 10, walk: 9, life: 'stroll', cry: ['针头线脑，胭脂水粉！', '拨浪鼓响，货郎来啦！'], lines: ['针头线脑、胭脂水粉，要啥有啥！', '山贼把路堵了，我的货都运不出去。', '外地人？我走南闯北，没见过你这样的眼神。'] });
   out.push({ name: '樵夫 · 老周', model: 'npc-farmer.glb', x: -12, z: -10, walk: 7, life: 'woodcutter', lines: ['林子里的狼少了，人倒是多了。', '往西北走，山越来越陡，路只剩一条。', '砍了四十年柴，没见过天阙的门开过。'] });
-  out.push({ name: '村妇 · 秀兰', model: 'ranger.glb', x: 13, z: -12, walk: 6, lines: ['孩子他爹被抓去寨子里干活，到现在没回来。', '谢谢你帮村里出头。', '石伯捡到你那天，雪下了三尺厚。'] });
-  out.push({ name: '更夫', model: 'dixian.glb', x: -4, z: 13, walk: 10, life: 'watchman', cry: ['天干物燥，小心火烛！', '咚！咚！一更天咯～'], lines: ['天干物燥，小心火烛。', '半夜我常听见北边有钟声，可天阙早没人了啊。', '咚，咚……习惯了，白天也想敲。'] });
+  out.push({ name: '村妇 · 秀兰', model: 'npc-maid.glb', x: 13, z: -12, walk: 6, lines: ['孩子他爹被抓去寨子里干活，到现在没回来。', '谢谢你帮村里出头。', '石伯捡到你那天，雪下了三尺厚。'] });
+  out.push({ name: '更夫', model: 'npc-farmer.glb', x: -4, z: 13, walk: 10, life: 'watchman', cry: ['天干物燥，小心火烛！', '咚！咚！一更天咯～'], lines: ['天干物燥，小心火烛。', '半夜我常听见北边有钟声，可天阙早没人了啊。', '咚，咚……习惯了，白天也想敲。'] });
   // a keeper at every waystation, and a traveller resting there
   for (const p of PLACES) {
     if (p.kind !== 'inn') continue;
     const [x, z] = placeAt(p, -2, 6.5);
     const k = p.road!;
-    out.push({ name: `${p.name}伙计`, model: k % 2 ? 'trader.glb' : 'wanderer_m.glb', x, z, heal: '歇歇脚（回满生命和内力）', lines: [`这里是${p.name}，往村里走还有好一段路，歇歇再走吧。`, RING_TALK[k % 3], '茶水管够，就是没有好菜。'] });
+    out.push({ name: `${p.name}伙计`, model: k % 2 ? 'npc-noodle.glb' : 'npc-peddler.glb', x, z, heal: '歇歇脚（回满生命和内力）', lines: [`这里是${p.name}，往村里走还有好一段路，歇歇再走吧。`, RING_TALK[k % 3], '茶水管够，就是没有好菜。'] });
     const [x2, z2] = placeAt(p, 2.5, 10);
-    out.push({ name: '赶路人', model: ['npc-novice.glb', 'ranger.glb', 'npc-peddler.glb', 'wanderer_m.glb'][k % 4], x: x2, z: z2, walk: 5, life: 'stroll', lines: ['我从外头来，路上的贼一伙比一伙凶。', '你也是要去天阙？那条古道上的灯，听说是自己亮的。', '歇够了，我得在天黑前赶到下一处驿站。'] });
+    out.push({ name: '赶路人', model: ['npc-novice.glb', 'npc-scholar.glb', 'npc-peddler.glb', 'npc-farmer.glb'][k % 4], x: x2, z: z2, walk: 5, life: 'stroll', lines: ['我从外头来，路上的贼一伙比一伙凶。', '你也是要去天阙？那条古道上的灯，听说是自己亮的。', '歇够了，我得在天黑前赶到下一处驿站。'] });
   }
   // 青石集: a keeper beside every stall, calling out, and townsfolk strolling the street
   const KEEPERS: Record<string, Omit<Folk, 'x' | 'z'>> = {
     'stall-fruit.glb': { name: '菜农 · 老刘', model: 'npc-farmer.glb', cry: ['新摘的桃，甜过蜜！', '水灵灵的白菜，三文一颗！'], lines: ['自家地里的，没上过粪……呃，上过一点。', '山贼不抢菜，这年头就菜最安全。', '你脸色不好，吃个桃补补。'] },
-    'stall-pottery.glb': { name: '窑工 · 陶三', model: 'wanderer_m.glb', cry: ['坛子罐子，摔不烂的瓦罐！', '腌菜坛子，买二送一！'], lines: ['这釉色是我烧了三窑才烧出来的。', '杏娘的酒坛都是我做的。', '别敲，敲碎了要赔。'] },
+    'stall-pottery.glb': { name: '窑工 · 陶三', model: 'npc-farmer.glb', cry: ['坛子罐子，摔不烂的瓦罐！', '腌菜坛子，买二送一！'], lines: ['这釉色是我烧了三窑才烧出来的。', '杏娘的酒坛都是我做的。', '别敲，敲碎了要赔。'] },
     'stall-silk.glb': { name: '绸缎庄 · 苏娘子', model: 'npc-lady.glb', cry: ['苏杭的绸，江南的缎！', '扯块花布，做身新衣裳！'], lines: ['这料子是柳三娘织的，城里卖三倍价。', '大侠穿这身破衣裳，可惜了这张脸。', '红的配你，信我。'] },
-    'stall-lantern.glb': { name: '灯笼匠 · 胡老爹', model: 'dixian.glb', cry: ['走夜路，带盏灯！', '红灯笼，照得鬼都不敢来！'], lines: ['天阙古道上的灯，就是我师父挂上去的。', '灯笼纸要刷三遍桐油，雨打不透。', '夜里别去北边，灯也照不亮那里。'] },
+    'stall-lantern.glb': { name: '灯笼匠 · 胡老爹', model: 'npc-oldman.glb', cry: ['走夜路，带盏灯！', '红灯笼，照得鬼都不敢来！'], lines: ['天阙古道上的灯，就是我师父挂上去的。', '灯笼纸要刷三遍桐油，雨打不透。', '夜里别去北边，灯也照不亮那里。'] },
     'stall-medicine.glb': { name: '云游道人 · 卖药', model: 'npc-fortune.glb', cry: ['跌打损伤，一贴就好！', '祖传膏药，专治刀伤！'], lines: ['贫道这膏药，治得了刀伤，治不了心病。', '你印堂发亮，此去必有奇遇。', '孙伯的草药好，可惜他不会吆喝。'] },
     'stall-noodle.glb': { name: '面摊 · 胖大海', model: 'npc-noodle.glb', cry: ['热汤面，加个蛋！', '大碗面，管饱！'], lines: ['我这碗面，石伯吃了三十年。', '吃饱了才有力气打山贼。', '辣子自己加，别客气。'] },
     'stall-tanghulu.glb': { name: '糖葫芦 · 小石头', model: 'npc-boy.glb', cry: ['糖葫芦，又酸又甜！', '冰糖葫芦，一文一串！'], lines: ['我爹说我卖完这一捆就能去学武了。', '你是大侠吗？给我签个名吧。', '这串给你，不要钱，你帮村里打过山贼。'] },
-    'stall-birds.glb': { name: '鸟贩 · 八哥张', model: 'trader.glb', cry: ['画眉百灵，会说话的八哥！', '鸟儿叫一声，好运跟一年！'], lines: ['这只八哥会说"天阙"两个字，不知道跟谁学的。', '鸟比人老实，你喂它，它就跟你。', '买只鸟吧，路上有个伴。'] },
+    'stall-birds.glb': { name: '鸟贩 · 八哥张', model: 'npc-peddler.glb', cry: ['画眉百灵，会说话的八哥！', '鸟儿叫一声，好运跟一年！'], lines: ['这只八哥会说"天阙"两个字，不知道跟谁学的。', '鸟比人老实，你喂它，它就跟你。', '买只鸟吧，路上有个伴。'] },
     'stall-weapons.glb': { name: '卖刀的 · 屠铁塔', model: 'npc-butcher.glb', cry: ['好刀好剑，削铁如泥！', '杀猪刀改的宝剑，便宜卖！'], lines: ['我以前是杀猪的，后来发现卖刀比杀猪赚钱。', '张大锤打的才是真家伙，我这些嘛，看着唬人。', '野猪？我一刀一个。你别学我，你去找铁匠。'] },
     'stall-books.glb': { name: '书摊 · 老夫子', model: 'npc-scholar.glb', cry: ['话本兵书，一文三本！', '《天阙志》残本，只此一册！'], lines: ['这本《天阙志》缺了最后三页，被人撕的。', '读书和练武一样，都是熬出来的。', '你识字吗？不识也没关系，有画。'] },
   };

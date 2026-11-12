@@ -10,9 +10,14 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
 - Ultimates must be held on R for 0.8 s (ULT_CHARGE); letting go or a hit cancels with nothing spent.
 - Open map: village in the middle, bandit dens on three rings (src/game/foes.ts), harder further out, a boss den per ring.
 - No sect camps or masters on the map (the owner said no).
-- Names must fit the body (owner's rule): ranger.glb is a young woman (女飞贼, 杏娘, 秀兰), emperor.glb is only ever
-  萧承乾 (`bossModel`; his men and kind 4 dens are 伪朝禁军 / 金甲卫 on guard.glb), trader.glb is a merchant (奸商),
-  monk.glb a monk (僧医 · 慧明, 庙祝 · 慧觉), plain folk use wanderer_m.glb. Check portraits/ before naming anyone.
+- Bodies (owner's rule): only the seven houses (the heroes you can pick) wear the houses' models (berserker, ranger,
+  monk, shadowblade, emperor, trader, dixian; wanderer_m is the 散人 player). Everyone else has a Tripo body: bandits
+  `foe-*.glb` per kind (FOE_KINDS), ring bosses `boss-*.glb` (RING_BOSS bossModel), the good wanted ones `comp-*.glb`
+  (RIVALS model), 乡勇 `ally-militia.glb`, townsfolk and story folk `npc-*.glb` (石伯 npc-elder, 慧明 / 慧觉 npc-monk,
+  杏娘 npc-tavern, 张大锤 npc-smith, 韩老三 npc-hunter). Fighting Tripo bodies borrow a house's clips, plan and weapons
+  (`BODY_AS` in Rig.tsx) and play only those clips (their own Tripo idle would turn them sideways); 萧承乾 keeps
+  emperor.glb (he is of the 天子 line), 伪朝禁军 / 金甲卫 guard.glb. Names still fit the body: check the preview png.
+  Facing check: `__T2_OBJ[id]` holds each rig (scratch jprobe.cjs reads shoulder bones).
 - Hit feel (owner wants it strong): every basic hit pushes (2.2), the third launches back (8, heavy); hit-stop 0.07 /
   0.12 s; a kill by the player adds `sim.slowmo`; struck bodies flash white and jolt back (Rig `hitAt`); the camera
   shakes and nudges along the blow (`juice.push`). Swings face the foe on the camera line, else anyone within 3.2 m.
@@ -133,6 +138,11 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   包金刚). Den quests after a ring's first are `direct` + `auto` + `quiet` (no walk back, a toast). Story 3 saves keep
   their place (`fromStory(idx, 3)`). Story cards queue (`sim.pushNote`, `noteQ`). Big map marks 家 猎 擂 铁, 萤 on
   summer nights. Test: scratch flow.mts (walks the quest line), story.mts (lists it).
+- Story 5 (owner: ring after ring of dens was dull): most den clearing is `skip` (kept in the list so save numbers
+  stay put; the line steps over them), replaced by kinds of mission: escorts (`escort` spec, goal `escort`: he waits
+  till you come, walks the road, ducks when foes are near, an ambush halfway via `war.huntT = 0`, falls back to the
+  start if he drops; jianghu.ts `startEscort`), rout a patrol (goal `patrol`), raze a checkpoint (goal `post`; conflict
+  keeps one of each out while asked). Quest xp x1.6. Story 4 saves map with `fromStory(idx, 4)`. Test: scratch esc.mts.
 - `Builder.roof` once moved its dark underside twice (every roof's underside floated at double its x, y, z); fixed.
 
 ## Code

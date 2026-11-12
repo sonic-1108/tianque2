@@ -49,6 +49,7 @@ export const SPEAKER_H: Record<string, number> = {
   'npc-girl.glb': 1.2, 'npc-boy.glb': 1.35, 'npc-kid2.glb': 1.22, 'npc-novice.glb': 1.6,
   'npc-granny.glb': 1.5, 'npc-oldman.glb': 1.62, 'npc-beggar.glb': 1.68,
   'npc-lady.glb': 1.64, 'npc-courtesan.glb': 1.63, 'npc-dancer.glb': 1.62, 'npc-princess.glb': 1.64, 'npc-maid.glb': 1.58, 'npc-nun.glb': 1.63, 'npc-merchantwoman.glb': 1.58,
+  'npc-elder.glb': 1.68, 'npc-monk.glb': 1.7, 'npc-tavern.glb': 1.62, 'npc-hunter.glb': 1.74, 'npc-smith.glb': 1.86,
   'npc-butcher.glb': 1.9, 'npc-general.glb': 1.92, 'npc-palaceguard.glb': 1.84, 'npc-noodle.glb': 1.72,
 };
 

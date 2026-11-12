@@ -14,6 +14,18 @@ import { SPEAKER_H } from './Calls';
 
 /** Tripo's rigged townsfolk (npc-*.glb): they face +x, and carry their own idle and walk (nothing to fight with) */
 const isTownsfolk = (m: string) => m.startsWith('npc-');
+/** Tripo bodies for everyone who fights and isn't one of the seven houses (owner: only the houses wear the houses'
+ *  looks): each fights the way a house does, borrowing that house's clips, plan and weapons; they face +x too */
+export const BODY_AS: Record<string, string> = {
+  'foe-bandit.glb': 'berserker.glb', 'boss-leibiao.glb': 'berserker.glb', 'comp-shimeng.glb': 'berserker.glb',
+  'foe-thief.glb': 'ranger.glb', 'comp-feiyan.glb': 'ranger.glb',
+  'foe-monk.glb': 'monk.glb', 'comp-liaochen.glb': 'monk.glb',
+  'foe-assassin.glb': 'shadowblade.glb', 'boss-wumian.glb': 'shadowblade.glb', 'comp-mohan.glb': 'shadowblade.glb', 'ally-militia.glb': 'shadowblade.glb',
+  'foe-merchant.glb': 'trader.glb',
+  'foe-taoist.glb': 'dixian.glb', 'boss-xuanyin.glb': 'dixian.glb',
+};
+// a borrowed house clip carries the house's own facing, so these bodies play only borrowed clips and need no turn
+const facesX = (m: string) => isTownsfolk(m);
 const TOWN_PLAN: Record<string, Spec> = { idle: { match: ['idle'], loop: true }, run: { match: ['walk'], loop: true } };
 
 const BASE = import.meta.env.BASE_URL + 'models/';
@@ -131,7 +143,11 @@ const PLAN_BY_MODEL: Record<string, Record<string, Spec>> = {
     skill_stomp: { match: ['angry_03'], start: 0.3, end: 0.8, fit: true },
   },
 };
-const planOf = (model: string): Record<string, Spec> => isTownsfolk(model) ? TOWN_PLAN : ({ ...PLAN, ...(PLAN_BY_MODEL[model] ?? (model === 'wanderer_m.glb' ? PLAN_BY_MODEL['shadowblade.glb'] : {})) });
+const planOf = (model: string): Record<string, Spec> => {
+  if (isTownsfolk(model)) return TOWN_PLAN;
+  const as = BODY_AS[model] ?? model;
+  return { ...PLAN, ...(PLAN_BY_MODEL[as] ?? (as === 'wanderer_m.glb' ? PLAN_BY_MODEL['shadowblade.glb'] : {})) };
+};
 
 /** flips and spins turn about the hips, not the feet */
 const PIVOT = 0.95;
@@ -218,13 +234,14 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
 
   useEffect(() => {
     let alive = true;
-    const extra = CLIP_SOURCE[f.model] ?? [];
+    const extra = BODY_AS[f.model] ? [BODY_AS[f.model], ...(CLIP_SOURCE[BODY_AS[f.model]] ?? [])] : CLIP_SOURCE[f.model] ?? [];
     Promise.all([loadModel(f.model), ...extra.map(loadModel)])
       .then(([m, ...more]) => {
         if (!alive) return;
         const obj = SkeletonUtils.clone(m.scene);
         // own clips first, borrowed ones fill the gaps
-        const raw = [...m.clips, ...more.flatMap((x) => x.clips.filter((c) => !m.clips.some((o) => o.name === c.name)))];
+        const own = BODY_AS[f.model] ? [] : m.clips;
+        const raw = [...own, ...more.flatMap((x) => x.clips.filter((c) => !own.some((o) => o.name === c.name)))];
         // each body holds its own weapon(s) (the old game's builders), in the Mixamo hand frame
         const bones: Record<string, THREE.Object3D> = {};
         obj.traverse((o) => {
@@ -232,7 +249,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
           if ((o as any).isBone && !bones[n]) bones[n] = o;
         });
         const glow = new THREE.Color(f.team === 'player' ? '#ff3b1f' : '#7dd3fc');
-        const w = weaponsFor(f.model, glow);
+        const w = weaponsFor(BODY_AS[f.model] ?? f.model, glow);
         if ((f as any).folk !== undefined) w.right = w.left = w.staff = undefined as any; // villagers go unarmed
         const held: THREE.Object3D[] = [];
         if (w.right && bones.righthand) {
@@ -264,10 +281,11 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
           if (!o.isMesh || !(o.material as any)?.isMeshStandardMaterial || o.userData.weapon) return;
           const mat = (o.material as THREE.MeshStandardMaterial).clone();
           mat.emissive = new THREE.Color('#000000');
-          applyCharacterShading(mat, f.team === 'player', f.model === 'monk.glb');
+          applyCharacterShading(mat, f.team === 'player', (BODY_AS[f.model] ?? f.model) === 'monk.glb');
           o.material = mat;
           ((obj as any).userData.mats ||= []).push(mat);
         });
+        ((globalThis as any).__T2_OBJ ??= {})[f.id] = obj; // headless tests read bone positions
         setModel({ obj, clips: buildClips(raw, planOf(f.model)), scale: m.scale, floor: m.floor });
       })
       .catch((e) => console.warn('[tq2] model', f.model, e));
@@ -432,7 +450,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
   return (
     <group ref={group}>
       <group ref={pose} position={[0, PIVOT, 0]}>
-        {model && <primitive object={model.obj} scale={model.scale} position={[0, model.floor - PIVOT, 0]} rotation={[0, isTownsfolk(f.model) ? -Math.PI / 2 : 0, 0]} />}
+        {model && <primitive object={model.obj} scale={model.scale} position={[0, model.floor - PIVOT, 0]} rotation={[0, facesX(f.model) ? -Math.PI / 2 : 0, 0]} />}
       </group>
       {!model && (
         <mesh position={[0, 0.9, 0]} castShadow>

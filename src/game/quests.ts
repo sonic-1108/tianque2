@@ -1,10 +1,10 @@
 // The main story: the village elder sends you out den by den, nearest first, back to him every few dens, out to the
 // last boss at the far edge. Built from the den layout, so it always matches the map.
 import { DENS, FOE_KINDS, bossNameOf, menNameOf } from './foes';
-import { FOLK, placeOf } from './places';
+import { FOLK, PLACES, placeOf } from './places';
 import { GD_PAV, roadPoint } from './layout';
 import { HOME } from './village';
-import { RIVALS } from './jianghu';
+import { RIVALS, roadPath, type EscortSpec } from './jianghu';
 
 export type Goal =
   | { type: 'learn' } // learn a first move (K)
@@ -19,7 +19,11 @@ export type Goal =
   | { type: 'rival'; id: string } // beat one of the wanted (RIVALS id)
   | { type: 'home' } // step into your house
   | { type: 'hunt' } // bring down game with the bow
-  | { type: 'gear'; n: number }; // own this many forged pieces
+  | { type: 'gear'; n: number } // own this many forged pieces
+  // story 5: fewer dens, more kinds of thing to do
+  | { type: 'patrol' } // rout a patrol of the false court
+  | { type: 'post' } // raze a checkpoint
+  | { type: 'escort' }; // bring someone safely along a road (Quest.escort)
 
 export type NpcRole = 'elder' | 'doctor' | 'teller';
 
@@ -48,12 +52,18 @@ export interface Quest {
   start?: 'home' | 'bow' | 'raid';
   /** a forged piece it gives when handed in (jianghu.ts GEAR id) */
   gear?: string;
+  /** added in story 5 */
+  v5?: boolean;
+  /** story 5 no longer asks for it (most den clearing): the line steps over it, numbers stay put */
+  skip?: boolean;
+  /** who to bring where (goal 'escort') */
+  escort?: EscortSpec;
 }
 
 export const NPCS: { role: NpcRole; name: string; model: string; x: number; z: number; greet: string }[] = [
-  { role: 'elder', name: '村长 · 石伯', model: 'dixian.glb', x: 0, z: -9, greet: '天冷了，山上的火光一夜比一夜多。' },
-  { role: 'doctor', name: '僧医 · 慧明', model: 'monk.glb', x: 9, z: 4, greet: '受伤了就来找我，药钱先欠着。' },
-  { role: 'teller', name: '说书人', model: 'wanderer_m.glb', x: -9, z: 4, greet: '客官，听段江湖事？' },
+  { role: 'elder', name: '村长 · 石伯', model: 'npc-elder.glb', x: 0, z: -9, greet: '天冷了，山上的火光一夜比一夜多。' },
+  { role: 'doctor', name: '僧医 · 慧明', model: 'npc-monk.glb', x: 9, z: 4, greet: '受伤了就来找我，药钱先欠着。' },
+  { role: 'teller', name: '说书人', model: 'npc-oldman.glb', x: -9, z: 4, greet: '客官，听段江湖事？' },
 ];
 
 /** what the elder says about each kind of outlaw, ring by ring (the story moves on as you go further out) */
@@ -146,6 +156,19 @@ export const QUESTS: Quest[] = (() => {
         xp: 220,
       });
     if (ring === 0 && inRing === 2)
+      extras.push({
+        title: '柴房里的人',
+        giver: 'elder',
+        direct: true,
+        auto: true,
+        v5: true,
+        intro: '寨子的柴房里关着一个人，手脚都捆着，是秀兰的丈夫周大！他腿上有伤，跑不快。护着他走官道回村，路上怕是有人截。',
+        done: '周大一进寨门就瘫坐在地上，抱着秀兰哭了。\n他说寨子里的人提起过“上面”，抢来的东西都往西北送。',
+        escort: { name: '周大', model: 'npc-farmer.glb', path: roadPath(d.road, d.r, 34, [d.x, d.z]), hello: '恩人！快，带我回村……我腿伤了，你走慢些。' },
+        goal: { type: 'escort' },
+        xp: 260,
+      });
+    if (ring === 0 && inRing === 2)
       extras.push({ title: '报个平安', giver: 'elder', direct: true, auto: true, v3: true, intro: '你从寨子的柴房里放出一个人，是秀兰的丈夫周大。回村跟秀兰说一声。', done: '他回来了？……谢谢你，谢谢你。\n他说在寨子里听那些贼人讲，抢来的粮食不分，全往西北山里送，说是孝敬"上面"的。\n上面是谁，他们自己也不知道。', goal: { type: 'folk', name: '村妇 · 秀兰' }, xp: 80 });
     if (ring === 0 && inRing === 2)
       extras.push({
@@ -157,6 +180,18 @@ export const QUESTS: Quest[] = (() => {
         goal: { type: 'rival', id: 'shimeng' },
         xp: 240,
       });
+    if (ring === 0 && inRing === 2)
+      extras.push({
+        title: '冲散巡逻',
+        giver: 'elder',
+        direct: true,
+        auto: true,
+        v5: true,
+        intro: '石猛说，伪朝的巡逻队沿着驿道一路搜过来，见了带刀的就抓，抓去天阙当苦力。驿道上碰见他们（大地图上的红点），把那一队人打散。',
+        done: '巡逻队长扔下腰牌就跑了。腰牌背面刻着：“天阙敕令 · 青石一带 · 搜守阙人余孽”。\n……他们在找的，是你。',
+        goal: { type: 'patrol' },
+        xp: 280,
+      });
     if (ring === 1 && inRing === 2) {
       extras.push({
         title: '燕子镖',
@@ -166,6 +201,29 @@ export const QUESTS: Quest[] = (() => {
         done: '燕家的丫头……她爹押的那趟贡品，送到天阙山门的那天夜里，钟就停了。\n她说她这些年劫的税银，箱子上都烙着同一个"阙"字。',
         goal: { type: 'rival', id: 'liufeiyan' },
         xp: 320,
+      });
+      extras.push({
+        title: '劫税银',
+        giver: 'elder',
+        direct: true,
+        auto: true,
+        v5: true,
+        intro: '柳飞燕说：伪朝在驿道上设了关卡，过路的一律抽三成，抽来的银子全往天阙送。一个人劫不动，咱俩一起去，把关卡拔了。（大地图上的“关卡”）',
+        done: '关卡的箱子撬开了，满满的税银，箱盖上都烙着“阙”字。\n柳飞燕抓起一把：“这些，都是七条官道上的人的血汗。”她把银子分给了过路的人，一文没留。',
+        goal: { type: 'post' },
+        xp: 380,
+      });
+      extras.push({
+        title: '护送药材',
+        giver: 'elder',
+        direct: true,
+        auto: true,
+        v5: true,
+        intro: `伪朝封了路，慧明的药材压在驿站运不进来。货郎周小乙敢走这一趟，你护着他从寨门出去，送到${dirName(...roadPoint(5, 300))}的驿站。`,
+        done: '周小乙把药材卸在驿站门口，腿还在抖：“大侠，下回您再走这条路，我请您喝酒！”',
+        escort: { name: '货郎 · 周小乙', model: 'npc-peddler.glb', path: roadPath(5, 40, innR(5) - 6, undefined, innAt(5)), hello: '走吧走吧，趁天亮！路上要是有人截，您可得护着我。' },
+        goal: { type: 'escort' },
+        xp: 360,
       });
       extras.push({
         title: '秋猎',
@@ -181,6 +239,19 @@ export const QUESTS: Quest[] = (() => {
     }
     if (ring === 1 && inRing === 3)
       extras.push({ title: '百炼', giver: 'elder', direct: true, auto: true, v4: true, intro: '张大锤托人带话：中环的贼人身上有铁料，头目身上有玄铁。凑够了料去找他，再打一件。（身上有两件打造的装备就算成。）', done: '张大锤摸着新打的家伙，乐得合不拢嘴：“这手艺，搁二十年前，够给天阙供货了。”', goal: { type: 'gear', n: 2 }, xp: 260 });
+    if (ring === 2 && inRing === 1)
+      extras.push({
+        title: '七家遗孤',
+        giver: 'elder',
+        direct: true,
+        auto: true,
+        v5: true,
+        intro: '那伙人寨子里押着个少年，是七家里燕家的后人，叫燕小六，伪朝要拿他上天阙“认罪”。把他带出来，送去最近的驿站藏着。',
+        done: '燕小六在驿站的马厩里躲下了。他说：“我爹说过，守阙人的孩子要是还活着，天阙的钟就还有人敲。”',
+        escort: { name: '燕小六', model: 'npc-novice.glb', path: [...roadPath(d.road, d.r, innR(d.road) + 6, [d.x, d.z], innAt(d.road))], hello: '你……你是来救我的？我跟你走！' },
+        goal: { type: 'escort' },
+        xp: 600,
+      });
     if (ring === 2 && inRing === 1)
       extras.push({
         title: '游方僧',
@@ -262,6 +333,7 @@ export const QUESTS: Quest[] = (() => {
         direct: inRing > 1 ? true : undefined,
         auto: inRing > 1 ? true : undefined,
         quiet: inRing > 1 ? true : undefined,
+        skip: inRing > (ring === 2 ? 1 : 2) ? true : undefined,
         done: ring === 0 ? '干得漂亮。' : ring === 1 ? '又是七家的功夫……这些人原本都是名门弟子。' : '好。离天阙越来越近了。',
         goal: { type: 'kill', den: i, count: d.count },
         xp: 60 + d.level * 18,
@@ -342,8 +414,18 @@ export const QUESTS: Quest[] = (() => {
     xp: 300,
   });
   q.push({ title: '散人之道', giver: 'elder', intro: '你学过七家的招，一家都不属于。到了三十级，按 K 可以转职，学一家的大招。也可以一直做个散人。路怎么走，你自己定。', done: '青石村记住你了。天阙的钟，往后由你来敲。', goal: { type: 'level', level: 30 }, xp: 500 });
+  // fewer dens to clear, so each story step pays more
+  for (const x of q) x.xp = Math.round(x.xp * 1.6);
   return q;
 })();
+
+function innAt(road: number): [number, number] {
+  const p = PLACES.find((pl) => pl.kind === 'inn' && pl.road === road)!;
+  return [p.x, p.z];
+}
+function innR(road: number) {
+  return Math.hypot(...innAt(road));
+}
 
 function dirName(x: number, z: number) {
   const a = Math.atan2(-z, x); // east 0, north +90
@@ -368,6 +450,8 @@ export function goalPos(g: Goal): [number, number] | null {
     return roadPoint(r.road, (r.r0 + r.r1) / 2);
   }
   if (g.type === 'home') return HOME.door;
+  if (g.type === 'post') return roadPoint(2, 330);
+  if (g.type === 'escort') return null; // questTarget follows the escortee
   if (g.type === 'gear') {
     const sm = placeOf('smithy');
     return [sm.x, sm.z];
@@ -394,7 +478,7 @@ export const TELLER_LINES = [
 ];
 
 /** where the player should go right now: the goal, or back to whoever gives / takes the quest */
-export function questTarget(sim: { progress: { quest: { idx: number; state: string } } }): [number, number] | null {
+export function questTarget(sim: { progress: { quest: { idx: number; state: string } }; jh?: any; fighters?: any[] }): [number, number] | null {
   const Q = sim.progress.quest;
   const q = QUESTS[Q.idx];
   if (!q) return null;
@@ -402,14 +486,18 @@ export function questTarget(sim: { progress: { quest: { idx: number; state: stri
     const n = NPCS.find((x) => x.role === q.giver)!;
     return [n.x, n.z];
   }
+  if (q.goal.type === 'escort' && sim.jh?.escort && sim.fighters) {
+    const E = sim.jh.escort, f = sim.fighters[sim.jh.escortId];
+    return E.waiting ? [f.pos[0], f.pos[2]] : E.path[E.path.length - 1];
+  }
   return goalPos(q.goal);
 }
 
 /** an older story's quest number in this one (story 2 had none of the v3 or v4 quests, story 3 none of the v4) */
-export function fromStory(idx: number, from: 2 | 3) {
+export function fromStory(idx: number, from: 2 | 3 | 4) {
   let k = -1;
   for (let i = 0; i < QUESTS.length; i++) {
-    if (QUESTS[i].v4 || (from === 2 && QUESTS[i].v3)) continue;
+    if (QUESTS[i].v5 || (from <= 3 && QUESTS[i].v4) || (from === 2 && QUESTS[i].v3)) continue;
     if (++k === idx) return i;
   }
   return QUESTS.length;

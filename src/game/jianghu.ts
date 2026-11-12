@@ -27,8 +27,24 @@ export interface JH {
   arenaPool: number[];
   /** when each firefly glade has more to catch (world time) */
   glades: number[];
+  /** someone the story has you bring safely somewhere (the escortee's fighter id, his road, how far along) */
+  escort: Escort | null;
+  escortId: number;
 }
-export const newJH = (): JH => ({ vpts: 0, vlvl: 0, arena: null, arenaPool: [], glades: [] });
+export interface EscortSpec {
+  name: string;
+  model: string;
+  path: [number, number][];
+  /** what he says when you reach him, when you fall behind, when the ambush comes */
+  hello: string;
+}
+export interface Escort extends EscortSpec {
+  k: number;
+  waiting: boolean;
+  ambushed: number;
+  failT: number;
+}
+export const newJH = (): JH => ({ vpts: 0, vlvl: 0, arena: null, arenaPool: [], glades: [], escort: null, escortId: -1 });
 
 // ================================================================ gear: forged at 张记铁铺, worn on three slots
 export type Slot = 'weapon' | 'armor' | 'charm';
@@ -138,8 +154,9 @@ export function dropFrom(s: Sim, def: Fighter) {
 export interface Rival {
   id: string;
   name: string;
-  /** FOE_KINDS index: their body and their moves */
+  /** FOE_KINDS index: their moves (and body, unless `model`) */
   kind: number;
+  model?: string;
   lvl: number;
   bounty: number;
   /** beaten, they come along */
@@ -157,28 +174,28 @@ export interface Rival {
 }
 export const RIVALS: Rival[] = [
   {
-    id: 'shimeng', name: '断刀客 · 石猛', kind: 0, lvl: 5, bounty: 80, join: true, road: 3, r0: 180, r1: 290,
+    id: 'shimeng', name: '断刀客 · 石猛', kind: 0, model: 'comp-shimeng.glb', lvl: 5, bounty: 80, join: true, road: 3, r0: 180, r1: 290,
     crime: '黑风寨叛徒，伪朝悬赏', meet: '又是来领赏的？我石猛的脑袋，没那么好拿！', beat: '好……好功夫。我在黑风寨砍了十年人，今天算是服了。',
     joinLine: '我欠这世道一条命。你要是信得过，我这把断刀跟你走。',
     story: ['我以前是黑风寨的二当家。雷彪抢粮那年，我把一车粮偷偷放回了村里，从此成了叛徒。', '这把刀是我爹的，断在雷彪手里。我留着它，提醒自己别再替恶人卖命。', '兄弟，往后你走到哪儿，我石猛就砍到哪儿。'],
   },
   { id: 'mabiao', name: '独眼狼 · 马彪', kind: 0, lvl: 9, bounty: 90, join: false, road: 6, r0: 210, r1: 320, crime: '拦路抢劫，杀过三个货郎', meet: '小子，把钱袋留下！', beat: '饶命！饶命啊大侠！' },
   {
-    id: 'liufeiyan', name: '燕子镖 · 柳飞燕', kind: 1, lvl: 11, bounty: 120, join: true, road: 5, r0: 250, r1: 380,
+    id: 'liufeiyan', name: '燕子镖 · 柳飞燕', kind: 1, model: 'comp-feiyan.glb', lvl: 11, bounty: 120, join: true, road: 5, r0: 250, r1: 380,
     crime: '劫天阙税银，伪朝悬赏', meet: '站住！……哦，不是官兵。那你挡我道做什么？', beat: '行，算你厉害。官府悬赏我，是因为我劫了天阙的税银，分给了沿路的穷人。',
     joinLine: '跟着你，劫伪朝的车更方便。说好了，银子我分一半给穷人。',
     story: ['我爹是燕家的镖师，那年护送天阙的贡品，再也没回来。', '飞镖是跟我娘学的。她说女人家没刀，就得眼快手快。', '你知道吗，这是我头一回觉得，有人能护着我后背。'],
   },
   { id: 'housan', name: '鬼手 · 侯三', kind: 3, lvl: 13, bounty: 110, join: false, road: 0, r0: 200, r1: 310, crime: '偷遍青石集，还偷了县太爷的官印', meet: '嘿嘿，你的钱袋真沉。', beat: '我、我再也不偷了！' },
   {
-    id: 'liaochen', name: '游方僧 · 了尘', kind: 2, lvl: 14, bounty: 100, join: true, road: 2, r0: 360, r1: 480,
+    id: 'liaochen', name: '游方僧 · 了尘', kind: 2, model: 'comp-liaochen.glb', lvl: 14, bounty: 100, join: true, road: 2, r0: 360, r1: 480,
     crime: '私医逃兵，伪朝悬赏', meet: '阿弥陀佛。施主若要动手，贫僧只好得罪了。', beat: '施主手下留情，贫僧谢过。悬赏贫僧的是伪朝，只因贫僧给逃兵治过伤。',
     joinLine: '贫僧会些医术。跟着施主，能少死几个人。（了尘会在你伤重时给你疗伤）',
     story: ['贫僧出家之前，是天阙山下的郎中。', '那年雪夜，贫僧给一个抱着婴儿的妇人包扎过伤口，后来再没见过她。', '施主，你那块玉，贫僧见过。那妇人怀里的孩子，就戴着它。'],
   },
   { id: 'huarui', name: '毒娘子 · 花蕊', kind: 1, lvl: 17, bounty: 160, join: false, road: 4, r0: 300, r1: 420, crime: '在井里下毒，害了一村人', meet: '好俊的小哥，过来让姐姐瞧瞧……', beat: '你……你竟然不怕我的毒。' },
   {
-    id: 'mohan', name: '夜行客 · 莫寒', kind: 3, lvl: 19, bounty: 180, join: true, road: 6, r0: 480, r1: 600,
+    id: 'mohan', name: '夜行客 · 莫寒', kind: 3, model: 'comp-mohan.glb', lvl: 19, bounty: 180, join: true, road: 6, r0: 480, r1: 600,
     crime: '影阁叛逃的刺客', meet: '（黑暗里一声冷笑）你走路的声音太响了。', beat: '……你是第一个看清我出手的人。',
     joinLine: '影阁的人在追杀我。跟着你，至少死得热闹些。',
     story: ['我从小在影阁长大，无面是我师父。', '他让我去杀一个守阙人的后人。我下不了手，就逃了。', '现在我知道了，那个人就是你。还好当年我没动手。'],
@@ -215,7 +232,7 @@ export function makeJianghu(s: Sim) {
   RIVALS.forEach((r, i) => {
     const kind = FOE_KINDS[r.kind];
     const [x, z] = roadPoint(r.road, r.r0);
-    const f = S.make('sect', kind.house, r.name, kind.model, r.lvl, x, z) as Fighter;
+    const f = S.make('sect', kind.house, r.name, r.model ?? kind.model, r.lvl, x, z) as Fighter;
     const a = f as any;
     a.rival = i;
     a.foeKind = kind;
@@ -229,13 +246,20 @@ export function makeJianghu(s: Sim) {
       else bench(f);
     }
   });
+  // the one you'll escort (a story quest gives him a name, a body and a road)
+  {
+    const f = S.make('ally', null, '护送', 'npc-farmer.glb', 1, 0, -60) as Fighter;
+    (f as any).escortee = true;
+    bench(f);
+    s.jh.escortId = f.id;
+  }
   // 乡勇: two village lads who hold the gates once the village has grown (a 散人's plain body)
   [
     ['乡勇 · 大柱', 92],
     ['乡勇 · 铁牛', 272],
   ].forEach(([name, deg]) => {
     const a = ((deg as number) * Math.PI) / 180, x = Math.cos(a) * (WALL_R - 6), z = Math.sin(a) * (WALL_R - 6);
-    const f = S.make('ally', null, name, 'wanderer_m.glb', P.level, x, z) as Fighter;
+    const f = S.make('ally', null, name, 'ally-militia.glb', P.level, x, z) as Fighter;
     const m = f as any;
     m.militia = true;
     m.foeKind = FOE_KINDS[3];
@@ -381,6 +405,7 @@ export function setMode(s: Sim, f: Fighter, mode: Comp['mode']) {
 export function allyThink(s: Sim, f: Fighter, dt: number) {
   const a = f as any, p = s.player, P = s.progress;
   a.wish = [0, 0];
+  if (a.escortee) return escortThink(s, f, dt);
   if (f.hp <= 0) return;
   // the militia only stand once the village has grown
   if (a.militia) {
@@ -765,4 +790,88 @@ export function doJhTouch(s: Sim, t: Touch) {
       return;
     }
   }
+}
+
+// ================================================================ 护送: bring someone safely along a road
+/** the story asks: he waits at the start until you come, then walks the road; halfway a band jumps you */
+export function startEscort(s: Sim, spec: EscortSpec) {
+  const f = s.fighters[s.jh.escortId], a = f as any;
+  s.jh.escort = { ...spec, k: 0, waiting: true, ambushed: 0, failT: 0 };
+  f.name = spec.name;
+  f.model = spec.model;
+  a.benched = false;
+  (s as any).revive(f);
+  const [x, z] = spec.path[0];
+  f.pos = [x, groundHeight(x, z), z];
+  f.level = s.progress.level;
+  f.maxHp = f.hp = Math.round(playerMaxHp(s.progress.level) * 0.9);
+}
+export function endEscort(s: Sim) {
+  const f = s.fighters[s.jh.escortId];
+  bench(f);
+  s.jh.escort = null;
+}
+function escortThink(s: Sim, f: Fighter, dt: number) {
+  const E = s.jh.escort, a = f as any, p = s.player;
+  if (!E) return;
+  if (f.hp <= 0) {
+    // he fell: back to the start (the men who did it go home), try again
+    if (!E.failT) {
+      E.failT = 6;
+      s.toast(`${E.name}倒下了！……他缓了过来，退回了原处。再护他一回。`);
+    }
+    E.failT -= dt;
+    if (E.failT <= 0) startEscort(s, E);
+    return;
+  }
+  const d = s.dist(f, p);
+  if (E.waiting) {
+    f.st.invuln = 1; // nobody harms him before you've come for him
+    s.faceTo(f, p.pos[0], p.pos[2]);
+    if (d < 6 && p.hp > 0) {
+      E.waiting = false;
+      s.say(f.pos[0], f.pos[1] + 2.2, f.pos[2], E.hello);
+      s.toast(`${E.name}：“${E.hello}”`);
+    }
+    return;
+  }
+  // foes about: he ducks and waits for you to deal with them
+  const threat = s.fighters.some((o) => o.team === 'sect' && o.hp > 0 && !(o as any).benched && o.aggro && s.dist(o, f) < 9);
+  if (threat || d > 14) {
+    if (d > 14 && (a.callT = (a.callT ?? 0) - dt) <= 0) {
+      a.callT = 8;
+      s.say(f.pos[0], f.pos[1] + 2.2, f.pos[2], '等等我！');
+    }
+    return;
+  }
+  const [gx, gz] = E.path[Math.min(E.k + 1, E.path.length - 1)];
+  const dx = gx - f.pos[0], dz = gz - f.pos[2], L = Math.hypot(dx, dz);
+  // the last point is the door of where he's going: near it is there
+  const last = E.k + 1 >= E.path.length - 1;
+  if (L < (last ? 7 : 2)) {
+    E.k++;
+    if (E.k >= E.path.length - 1) {
+      s.toast(`${E.name}平安到了！`);
+      s.questEvent('escort');
+      endEscort(s);
+      return;
+    }
+    // halfway along: they've been waiting for you
+    if (!E.ambushed && E.k >= Math.floor((E.path.length - 1) / 2)) {
+      E.ambushed = 1;
+      s.war.huntT = 0;
+      s.say(f.pos[0], f.pos[1] + 2.2, f.pos[2], '有埋伏！');
+    }
+    return;
+  }
+  a.wish = [(dx / L) * 0.62, (dz / L) * 0.62];
+}
+/** a road from a den (or any point by a road) back toward the village, or out to a road's waystation */
+export function roadPath(road: number, from: number, to: number, start?: [number, number], end?: [number, number]): [number, number][] {
+  const out: [number, number][] = [];
+  if (start) out.push(start);
+  const n = Math.max(2, Math.ceil(Math.abs(to - from) / 30));
+  for (let i = 0; i <= n; i++) out.push(roadPoint(road, from + ((to - from) * i) / n));
+  if (end) out.push(end);
+  return out;
 }
