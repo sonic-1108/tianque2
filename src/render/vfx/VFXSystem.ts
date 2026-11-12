@@ -1293,14 +1293,14 @@ export class VFXSystem {
     }
   }
 
-  kitArc(pos: THREE.Vector3, yaw: number, r: number, spread: number, color: THREE.ColorRepresentation, life?: number, tilt?: number) {
-    this.kit.arc(pos, yaw, r, spread, color, life, tilt);
+  kitArc(pos: THREE.Vector3, yaw: number, r: number, spread: number, color: THREE.ColorRepresentation, life?: number, tilt?: number, house?: string) {
+    this.kit.arc(pos, yaw, r, spread, color, life, tilt, house);
   }
-  kitBeam(from: THREE.Vector3, to: THREE.Vector3, w: number, color: THREE.ColorRepresentation, life?: number) {
-    this.kit.beam(from, to, w, color, life);
+  kitBeam(from: THREE.Vector3, to: THREE.Vector3, w: number, color: THREE.ColorRepresentation, life?: number, house?: string) {
+    this.kit.beam(from, to, w, color, life, house);
   }
-  kitSigil(pos: THREE.Vector3, r: number, color: THREE.ColorRepresentation, life?: number, spin?: number) {
-    this.kit.sigil(pos, r, color, life, spin);
+  kitSigil(pos: THREE.Vector3, r: number, color: THREE.ColorRepresentation, life?: number, spin?: number, house?: string) {
+    this.kit.sigil(pos, r, color, life, spin, house);
   }
 
   update(dt: number) {

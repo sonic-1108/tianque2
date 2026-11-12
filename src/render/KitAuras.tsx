@@ -8,7 +8,9 @@ import type { Sim } from '../game/sim';
 import type { Fighter, Zone } from '../game/types';
 import { kitWorld } from '../game/kit';
 import type { VFXSystem } from './vfx/VFXSystem';
-import { sigilTex } from './vfx/KitFX';
+import { sigilTex, lookOf } from './vfx/KitFX';
+import { sigilOf } from './vfx/sigils';
+import { SKILLS } from '../game/skills';
 
 const additive = (o: Partial<THREE.MeshBasicMaterialParameters> = {}) =>
   new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, toneMapped: false, ...o });
@@ -180,6 +182,13 @@ export function KitAuras({ sim, vfx }: { sim: Sim; vfx: VFXSystem }) {
         (disc.material as THREE.MeshBasicMaterial).color.set(color);
         (disc.material as THREE.MeshBasicMaterial).opacity = 0.3 * fade * seen * (0.85 + 0.15 * Math.sin(time * 3 + z.x));
         (sig.material as THREE.MeshBasicMaterial).color.set(color);
+        {
+          const tex = sigilOf(lookOf(SKILLS[z.skill]?.sect as string | undefined).sigil), sm = sig.material as THREE.MeshBasicMaterial;
+          if (sm.map !== tex) {
+            sm.map = tex;
+            sm.needsUpdate = true;
+          }
+        }
         (sig.material as THREE.MeshBasicMaterial).opacity = 0.7 * fade * seen;
         sig.rotation.y = time * (trap ? 2 : 0.5) + z.x;
         const kind: string | undefined = a?.fx;
