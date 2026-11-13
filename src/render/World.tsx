@@ -20,6 +20,8 @@ import { Animals } from './Animals';
 import { CT_POS, CT_ROT, CT_Y, WALL_X } from '../game/court';
 import { Climate } from './Climate';
 import { PlayThings } from './Play';
+import { NightLights } from './NightLights';
+import { NightMarket } from './NightMarket';
 import { Festive } from './Festive';
 import { War } from './War';
 import { Stockade } from './Stockade';
@@ -348,6 +350,8 @@ export function World({ sim }: { sim: Sim }) {
         <Home sim={sim} />
         <Summons sim={sim} />
         <Festive sim={sim} />
+        <NightLights sim={sim} />
+        <NightMarket sim={sim} />
         <War sim={sim} />
         <Tianque />
         <Gudao />

@@ -10,8 +10,24 @@ import type { Folk } from './places';
 import { ROOMS } from './interiors';
 import { ctWorld, HALL_DOOR } from './court';
 import { BUILDINGS, groundHeight, inBuilding, WATER_Y } from './world';
+import { roadFrame } from './layout';
+import { MARKET_FROM, MARKET_ROAD, MARKET_TO } from './props';
 
-export type LifeKind = 'stall' | 'stroll' | 'street' | 'court' | 'woodcutter' | 'watchman' | 'fisher' | 'road';
+/** 夜市: where the village goes of an evening, spots along 青石集's street (a villager keeps to one by name) */
+export const NIGHT_SPOTS: [number, number][] = Array.from({ length: 9 }, (_, k) => {
+  const f = roadFrame(MARKET_ROAD, MARKET_FROM + 8 + (k * (MARKET_TO - MARKET_FROM - 14)) / 8);
+  const side = k % 2 ? 1.6 : -1.6;
+  return [f.x + side * f.uz, f.z - side * f.ux];
+});
+const hash = (t: string) => {
+  let h = 7;
+  for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0;
+  return h;
+};
+/** does this villager live near enough to walk to the night market */
+const local = (h: Haunts) => Math.hypot(h.spot[0], h.spot[1]) < 190;
+
+export type LifeKind = 'stall' | 'stroll' | 'street' | 'court' | 'woodcutter' | 'watchman' | 'fisher' | 'road' | 'night';
 export interface Plan {
   /** where to be */
   at: [number, number];
@@ -65,16 +81,24 @@ export function planFor(folk: Folk, h: Haunts, c: ClockInfo, w: Weather, war: { 
   const rainAct = weatherMix(w, 'snow') > 0.5 ? '在屋檐下避雪' : '在屋檐下躲雨';
   switch (folk.life) {
     case 'stall': {
-      const close = lantern ? 24 : 18.5;
+      // dry evenings the stalls stay lit for the night market till the second watch; the lantern night till midnight
+      const close = lantern ? 24 : wet ? 18.5 : 23;
       if (inHours(hr, 5.5, 7)) return { at: h.spot, roam: 0.6, away: false, act: '出摊', cry: false };
-      if (inHours(hr, 7, close)) return { at: h.spot, roam: 0.6, away: false, act: lantern && hr > 18 ? '灯会夜市' : wet ? '守着摊子' : '看摊', cry: !wet || hr % 2 < 1 };
+      if (inHours(hr, 7, close)) return { at: h.spot, roam: 0.6, away: false, act: hr > 18 ? (lantern ? '灯会夜市' : '夜市') : wet ? '守着摊子' : '看摊', cry: !wet || hr % 2 < 1 };
       if (!lantern && inHours(hr, close, 21.5)) return wet ? shelter(rainAct) : { at: h.evening, roam: 3, away: false, act: '收了摊，喝茶听书', cry: false };
       return home;
     }
     case 'stroll': {
       if (inHours(hr, 7.5, 18)) return wet ? shelter(rainAct) : { at: h.spot, roam: folk.walk ?? 8, away: false, act: fest ? `过${fest}` : '闲逛', cry: true };
+      // after supper the village goes out to the night market
+      if (!wet && local(h) && inHours(hr, 18, 22.5)) return { at: NIGHT_SPOTS[hash(folk.name) % NIGHT_SPOTS.length], roam: 7, away: false, act: '逛夜市', cry: true };
       if (inHours(hr, 18, 21)) return wet ? shelter(rainAct) : { at: h.evening, roam: 4, away: false, act: '饭后溜达', cry: false };
       return home;
+    }
+    case 'night': {
+      // the night market's own people: food carts, lantern sellers, performers; they come out at dusk on dry nights
+      if (!wet && inHours(hr, 17.5, 23.5)) return { at: h.spot, roam: folk.walk ?? 0.6, away: false, act: hr < 18.3 ? '支摊子' : folk.act ?? '摆夜摊', cry: hr >= 18.3 };
+      return { ...home, act: wet ? '下雨天不出摊' : '白天睡觉，晚上出摊' };
     }
     case 'street':
     case 'court': {
@@ -84,6 +108,7 @@ export function planFor(folk: Folk, h: Haunts, c: ClockInfo, w: Weather, war: { 
     }
     case 'woodcutter': {
       if (inHours(hr, 6, 15.5)) return wet ? shelter(rainAct) : { at: h.woods ?? h.spot, roam: 6, away: false, act: '上山砍柴', cry: false };
+      if (!wet && local(h) && inHours(hr, 18.5, 21.5)) return { at: NIGHT_SPOTS[hash(folk.name) % NIGHT_SPOTS.length], roam: 6, away: false, act: '卖完柴逛夜市', cry: false };
       if (inHours(hr, 15.5, 20)) return { at: h.spot, roam: folk.walk ?? 5, away: false, act: '砍柴回来', cry: false };
       return home;
     }
@@ -100,6 +125,7 @@ export function planFor(folk: Folk, h: Haunts, c: ClockInfo, w: Weather, war: { 
     }
     case 'fisher': {
       if (inHours(hr, 5, 18.5)) return wet ? { at: h.spot, roam: 0, away: false, act: '披着蓑衣钓雨', cry: false } : { at: h.spot, roam: 0.5, away: false, act: '钓鱼', cry: true };
+      if (!wet && local(h) && inHours(hr, 18.5, 21.5)) return { at: NIGHT_SPOTS[hash(folk.name) % NIGHT_SPOTS.length], roam: 5, away: false, act: '提着鱼逛夜市', cry: false };
       if (inHours(hr, 18.5, 21)) return { at: h.evening, roam: 3, away: false, act: '提着鱼去喝两口', cry: false };
       return home;
     }
@@ -135,7 +161,9 @@ export function worldRemark(c: ClockInfo, w: Weather, deeds: string[], seed: num
   const k = w.amt > 0.5 ? w.kind : w.prev;
   if (WEATHER_TALK[k]) pool.push(...WEATHER_TALK[k]);
   pool.push(...SEASON_TALK[c.season]);
-  if (c.night) pool.push('这么晚了还在外头晃？夜里不太平。', '天黑了，早点歇着吧。');
+  if (c.night && c.hour < 23 && c.hour > 12 && weatherMix(w, 'rain') + weatherMix(w, 'storm') + weatherMix(w, 'snow') < 0.5)
+    pool.push('东门外的夜市开了，灯笼一直挂到集尾，去逛逛？', '老周头的馄饨，夜里喝一碗最舒坦。', '喷火的赤练今晚又要露一手，去晚了可挤不进去。', '夜里出寨子小心些，过了集市就黑了。');
+  else if (c.night) pool.push('这么晚了还在外头晃？夜里不太平。', '天黑了，早点歇着吧。');
   for (const d of deeds.slice(-3)) pool.push(d, d);
   if (!pool.length) return null;
   return pool[Math.floor(seed * pool.length) % pool.length];

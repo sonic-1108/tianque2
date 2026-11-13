@@ -181,7 +181,14 @@ export interface Folk {
   route?: [number, number][];
   /** only there once the village has grown this far (jianghu.ts VLEVELS) */
   vlvl?: number;
+  /** what a night-market folk is about (life 'night'): shown in the talk hint */
+  act?: string;
+  /** a night-market folk's cart or act (render/NightMarket.tsx draws it, `perform` its show) */
+  cart?: CartKind;
+  /** where that cart stands, facing the street: x, z, turn */
+  cartAt?: [number, number, number];
 }
+export type CartKind = 'wonton' | 'yam' | 'tangyuan' | 'lamps' | 'sugar' | 'skewer' | 'fire' | 'juggle' | 'sanxian' | 'rings';
 const RING_TALK = [
   '往外走二里地就是黑风寨的人了，夜里别赶路。',
   '再往外是七家的旧地，那些人的招式邪门得很。',
@@ -324,6 +331,38 @@ export const FOLK: Folk[] = (() => {
     ['城门守卫', 'npc-guard.glb', at(8.2, 59), 3, undefined, undefined, ['站岗站久了，腿都站直了。', '大柱和铁牛是我表兄，他们守西门。', '夜里有动静，我就敲锣。']],
   ];
   for (const [name, model, [x, z], vlvl, walk, life, lines, cry, heal] of GROW) out.push({ name, model, x, z, walk, life, lines, cry, vlvl, heal });
+  // 夜市: who comes out on 青石集's street after dark (life 'night'): food carts, a lantern seller, performers, and the
+  // village's evening crowd (life.ts sends the strollers here too). Carts stand at the street's edge between the stalls.
+  const NIGHT: [string, string, number, number, CartKind, string, string[], string[]][] = [
+    ['馄饨挑子 · 老周头', 'npc-oldman.glb', MARKET_FROM + 4, -1, 'wonton', '煮馄饨', ['这副挑子我挑了四十年，一头是锅，一头是碗。', '夜里冷，喝碗馄饨汤再走。', '你半夜还在外头跑，是守寨子的那位吧？'], ['馄饨～热乎的馄饨～', '皮薄馅大，一碗暖到天亮！']],
+    ['烤红薯 · 黑娃', 'npc-boy.glb', MARKET_FROM + 17, 1, 'yam', '烤红薯', ['炉子里的炭是我爹烧的。', '烫！慢点吃，别烫着嘴。', '我攒够钱就去学武，跟你一样。'], ['烤红薯，又香又甜！', '刚出炉的，烫手！']],
+    ['汤圆 · 宋大姐', 'npc-merchantwoman.glb', MARKET_FROM + 30, -1, 'tangyuan', '下汤圆', ['芝麻馅、花生馅，还有桂花酒酿。', '天一黑，集上就是我们这些夜摊的天下。', '坐下吃吧，板凳是干净的。'], ['芝麻汤圆～桂花酒酿～', '甜甜蜜蜜，团团圆圆！']],
+    ['花灯 · 灯婆婆', 'npc-granny.glb', MARKET_FROM + 43, 1, 'lamps', '扎花灯', ['兔子灯、荷花灯、走马灯，都是我自己扎的。', '提一盏回家，夜路不怕黑。', '年轻时我也提着灯，在这条街上等过一个人。'], ['花灯一盏，照你回家路～', '走马灯，转呀转～']],
+    ['吹糖人 · 糖李', 'npc-peddler.glb', MARKET_FROM + 56, -1, 'sugar', '吹糖人', ['要什么吹什么：老虎、猴子、大将军。', '给你吹一个提刀的大侠，像不像你？', '糖稀要熬三个时辰，急不得。'], ['吹糖人咯，要啥吹啥！', '糖老虎，糖猴子！']],
+    ['烤串 · 阿木', 'npc-farmer.glb', MARKET_FROM + 69, 1, 'skewer', '烤肉串', ['我从西边来，那边的人都这么烤。', '孜然一撒，香飘半条街。', '吃肉才有力气打架，来两串？'], ['羊肉串，孜然辣子！', '烤串烤串，香掉舌头！']],
+    ['喷火的 · 赤练', 'npc-butcher.glb', MARKET_FROM + 24, 1, 'fire', '喷火卖艺', ['这口火练了十年，烧过眉毛，烧过胡子。', '看官给个赏，我再喷一口大的！', '你会使火？那可比我这个厉害。'], ['看好了，火龙出洞！', '好！再来一个！']],
+    ['杂耍 · 小飞燕', 'npc-dancer.glb', MARKET_FROM + 50, -1, 'juggle', '顶碗转盘', ['顶碗转盘，都是童子功。', '摔过的碗能堆成一座山。', '你看我转得快，还是你的刀快？'], ['顶碗转盘，看好咯！', '叮叮当当～']],
+    ['弹三弦的 · 瞎子刘', 'npc-elder.glb', MARKET_FROM + 63, 1, 'sanxian', '弹三弦说唱', ['我眼睛看不见，耳朵可灵着呢。你走路的声音，像练过的。', '我唱的是青石村的老故事，你爱听哪段？', '赏钱放碗里就行。'], ['♪ 青石村头月儿弯～', '♪ 天阙山高水长流～']],
+    ['套圈的 · 胡二', 'npc-peddler.glb', MARKET_FROM + 76, -1, 'rings', '摆套圈', ['三文钱五个圈，套中就归你。', '那个泥娃娃最难套，到现在没人套中过。', '你手稳，你来试试？'], ['套中就归你，三文五个圈！', '套泥娃娃，套小乌龟！']],
+  ];
+  for (const [name, model, r, side, cart, act, lines, cry] of NIGHT) {
+    const f = roadFrame(MARKET_ROAD, r), off = side * 4.0, co = side * 5.5;
+    const cx = f.x + co * f.uz, cz = f.z - co * f.ux;
+    out.push({ name, model, x: f.x + off * f.uz, z: f.z - off * f.ux, walk: cart === 'fire' || cart === 'juggle' ? 1.2 : 0.5, lines, cry, life: 'night', act, cart, cartAt: [cx, cz, Math.atan2(f.x - cx, f.z - cz)] });
+  }
+  // the evening crowd: out only at night, strolling the street
+  const CROWD: [string, string, string[], string[]?][] = [
+    ['提灯的姑娘', 'npc-lady.glb', ['我娘只许我逛到二更天。', '这盏荷花灯是灯婆婆送我的。', '集上晚上比白天热闹多了。'], ['好漂亮的灯！']],
+    ['带孩子的汉子', 'npc-farmer.glb', ['白天下地，晚上带娃来逛逛。', '这小子非要吃糖人，吃了三个了。', '有你们守着寨子，晚上才敢出来。']],
+    ['馋嘴的娃娃', 'npc-kid2.glb', ['我要吃汤圆！还要吃糖人！', '喷火的叔叔好厉害！', '你也会喷火吗？'], ['爹！我要那个！']],
+    ['看热闹的书生', 'npc-scholar.glb', ['白日读书，夜里看戏，人生两大快事。', '那个弹三弦的，唱词比我写的还好。', '不知不觉又逛到三更了。'], ['好！好！']],
+    ['卖完菜的农妇', 'npc-merchantwoman.glb', ['白天卖菜，晚上买点针线回去。', '夜市的东西比白天便宜。', '我家那口子又跑去看喷火了。']],
+    ['小丫头 · 阿圆', 'npc-girl.glb', ['我套中过一只小乌龟！', '花灯我要兔子的。', '你是大侠吗？你的刀给我看看。'], ['再套一次！']],
+  ];
+  CROWD.forEach(([name, model, lines, cry], k) => {
+    const f = roadFrame(MARKET_ROAD, MARKET_FROM + 10 + k * 13);
+    out.push({ name, model, x: f.x, z: f.z, walk: 9, lines, cry, life: 'night', act: '逛夜市' });
+  });
   // travellers on the post roads, back and forth between two points, in a waystation by night
   const TRAVEL: [string, string, number, number, number, string[], string[]?][] = [
     ['镖师 · 雷五', 'npc-swordsman.glb', 2, 110, 380, ['走镖二十年，没丢过一趟货。', '最近路上多了伪朝的兵，比山贼还难缠。', '你一个人走路？胆子不小。'], ['镖局走镖，闲人让路！']],
