@@ -52,6 +52,8 @@ export interface Post {
 }
 export interface Raid {
   stage: 'warned' | 'on' | 'over';
+  /** the 20:00 reminder has been given */
+  reminded?: boolean;
   wave: number;
   waveT: number;
   ids: number[];
@@ -235,23 +237,44 @@ export function stepWar(s: Sim, dt: number) {
 /** the houses' doors: where the raiders go to set fires */
 const DOORS = ROOMS.filter((r) => r.theme !== 'tavern' && r.theme !== 'inn' && r.theme !== 'shrine' && r.theme !== 'teahouse' && r.theme !== 'throne' && r.theme !== 'home' && Math.hypot(r.door[0], r.door[1]) < 40).map((r) => r.door);
 export const raidNight = (day: number) => day % 2 === 1;
+/** is a raid still to come tonight (warned, or due and not yet warned)? */
+export function raidDueTonight(s: Sim) {
+  const W = s.war, c = s.clock;
+  if (W.raid) return W.raid.stage === 'warned';
+  return (raidNight(c.day) || W.raidDay < 0 || W.force === c.day) && W.raidDay !== c.day && c.hour >= 16.5 && c.hour < 21;
+}
+/** dusk on a raid night: word comes that they're on the way (the first time, a card says how raids go) */
+export function warnRaid(s: Sim) {
+  const W = s.war, c = s.clock;
+  if (W.raid) return;
+  W.raid = { stage: 'warned', wave: 0, waveT: 0, ids: [], hp: 100, road: [2, 3, 5, 6][c.day % 4], t: 0 };
+  W.raidDay = c.day;
+  s.toast('樵夫老周慌慌张张跑回来：“村外林子里有人马，今夜怕是要出事！”');
+  const D = (s.progress.done ??= {});
+  if (!D.raidIntro) {
+    D.raidIntro = 1;
+    s.pushNote({ title: '今夜有贼', text: '樵夫老周说，村外林子里聚了一伙山贼。\n\n隔一夜他们就会来劫一次青石村：天黑报信，戌时末（夜里九点）杀到，分三波从大路上冲进寨门，见房就烧。\n\n留在村里，守住寨门，别让他们靠近房子。守住了全村请客，守不住集市要停一天。' });
+  }
+}
 function stepRaid(s: Sim, dt: number, c: Sim['clock'], p: Fighter) {
   const W = s.war;
   const R = W.raid;
   if (!R) {
     // every other night; and the first evening you're about, whatever night it is
     if ((!raidNight(c.day) && W.raidDay >= 0 && W.force !== c.day) || W.raidDay === c.day) return;
-    if (c.hour >= 17.5 && c.hour < 21) {
-      W.raid = { stage: 'warned', wave: 0, waveT: 0, ids: [], hp: 100, road: [2, 3, 5, 6][c.day % 4], t: 0 };
-      W.raidDay = c.day;
-      s.toast('樵夫老周慌慌张张跑回来：“村外林子里有人马，今夜怕是要出事！”');
-    }
+    if (c.hour >= 17.5 && c.hour < 21) warnRaid(s);
     return;
   }
   if (R.stage === 'warned') {
+    if (c.hour >= 20 && !R.reminded) {
+      R.reminded = true;
+      if (s.indoor >= 0 || Math.hypot(p.pos[0], p.pos[2]) < 400) s.toast('天黑透了，寨门外的林子里火把晃动……山贼快来了，去寨门守着！');
+    }
     if (c.hour < 21 && c.hour >= 17) return;
     // far away: the village holds the night on its own, at a cost
-    if (Math.hypot(p.pos[0], p.pos[2]) > 260 || s.indoor >= 0 && Math.hypot(...ROOMS[s.indoor].door) > 260) {
+    // (indoors, a room's floor sits far off the map: where you are is its door)
+    const at = s.indoor >= 0 ? ROOMS[s.indoor].door : [p.pos[0], p.pos[2]];
+    if (Math.hypot(at[0], at[1]) > 260) {
       s.chron('夜里山贼劫了青石村。你不在，村民们拿着锄头扁担守了一夜，伤了好几个人。', '那天夜里山贼来劫村，你去哪了？');
       s.toast('青石村昨夜遭了劫，村民们勉强守住了。');
       shiftDread(s, 4);
@@ -260,7 +283,7 @@ function stepRaid(s: Sim, dt: number, c: Sim['clock'], p: Fighter) {
     }
     R.stage = 'on';
     R.t = 0;
-    s.toast('山贼劫村了！守住青石村！');
+    s.toast(s.indoor >= 0 ? '外头锣声大作，喊杀声四起！山贼劫村了，快出门守住青石村！' : '山贼劫村了！守住青石村！');
     s.shake(0.4, 0, 0);
   }
   if (R.stage === 'on') {

@@ -185,14 +185,24 @@ export class Sim {
       this.camSnap = 0;
       this.toast(r.name);
     } else if (this.door === -2 && this.indoor >= 0) {
-      const r = ROOMS[this.indoor];
-      const fx = Math.sin(r.doorYaw), fz = Math.cos(r.doorYaw); // the way out of the door
-      const x = r.door[0] + fx * 0.8, z = r.door[1] + fz * 0.8;
-      p.pos = [x, groundHeight(x, z), z];
-      p.yaw = Math.atan2(-fx, -fz);
-      this.camSnap = p.yaw;
-      this.indoor = -1;
+      this.leaveRoom();
+      return;
     } else return;
+    p.vel = [0, 0, 0];
+    p.grounded = true;
+    this.fadeT = 0.45;
+    this.door = -1;
+  }
+  /** out of the room you're in, onto its doorstep facing away from the door */
+  leaveRoom() {
+    if (this.indoor < 0) return;
+    const p = this.player, r = ROOMS[this.indoor];
+    const fx = Math.sin(r.doorYaw), fz = Math.cos(r.doorYaw); // the way out of the door
+    const x = r.door[0] + fx * 0.8, z = r.door[1] + fz * 0.8;
+    p.pos = [x, groundHeight(x, z), z];
+    p.yaw = Math.atan2(-fx, -fz);
+    this.camSnap = p.yaw;
+    this.indoor = -1;
     p.vel = [0, 0, 0];
     p.grounded = true;
     this.fadeT = 0.45;

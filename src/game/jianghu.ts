@@ -16,6 +16,7 @@ import { CT_POS, ctWorld } from './court';
 import { mapWater } from './mapsample';
 import { okSpot, type Animal } from './animals';
 import type { Touch } from './play';
+import { raidDueTonight, warnRaid } from './conflict';
 import { SKILLS } from './skills';
 
 /** the sim's share of all this, saved with the world */
@@ -733,9 +734,18 @@ export function rackSpot(): [number, number] {
 /** sleep: through the night to dawn, or a few hours by day; never with raiders on the way */
 export function sleep(s: Sim) {
   const c = s.clock, W = s.war;
-  const raidSoon = (W.raid && W.raid.stage !== 'over') || ((c.day % 2 === 1 || W.raidDay < 0) && c.hour >= 16.5 && W.raidDay !== c.day);
-  if (raidSoon) return s.toast('外头不太平，今晚怕是有人要来，睡不着。');
+  if (W.raid?.stage === 'on') return s.toast('山贼正在村里放火，哪睡得着！快出去守住寨子！');
   const h = c.hour;
+  if (raidDueTonight(s)) {
+    // you lie down; at nine the gongs wake you and you run out the door
+    warnRaid(s);
+    s.worldT += ((21 - h) / 24) * DAY_S + 0.5;
+    s.healFull();
+    s.leaveRoom();
+    s.fadeT = 1.2;
+    s.pushNote({ title: '夜袭', text: '刚合上眼没多久，寨门外就响起了锣声和喊杀声。\n\n山贼来劫村了！你抓起兵器冲出家门。别让他们靠近房子。' });
+    return;
+  }
   const hours = h >= 18 ? 24 - h + 6 : h < 6 ? 6 - h : 3;
   s.worldT += (hours / 24) * DAY_S;
   s.healFull();
