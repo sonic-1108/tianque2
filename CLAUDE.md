@@ -183,3 +183,11 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   run on sim time, so slow software frames still show the right moment).
 - Deploy = push to `main` (GitHub Pages workflow). Site: https://sonic-1108.github.io/tianque2/
 - Don't `pkill -f` a pattern that is in your own command line.
+- 夜晚 (owner: the village lit up, a busy night market): `render/NightLights.tsx` (lantern poles down 青石集 and the village
+  roads, strings across the market, a pair at every stall and house door, light pools, 6 real lights picked near you, lit
+  from dusk by `clock.light`), `render/NightMarket.tsx` (carts of the `life: 'night'` folk in places.ts NIGHT / CROWD,
+  steam, smoke, the fire breather). life.ts: stalls stay open till 23:00 on dry nights, strollers go to `NIGHT_SPOTS`.
+- Raids: indoors counts as where the room's door is (a room at 21:00 used to settle the raid off screen). The bed on a raid
+  night wakes you at 21:00 and puts you outside (`raidDueTonight`, `warnRaid`, `Sim.leaveRoom`).
+- Effects: `render/vfx/KitFX.ts` (per-house sweeps / strips / circles, `HOUSE_LOOK`), `vfx/sigils.ts` (18 circles),
+  `render/KitAuras.tsx` (zones, buffs, dots), `render/shotLook.ts` (arrows, talismans, notes, qi). `tools/fxaudit.ts`.
