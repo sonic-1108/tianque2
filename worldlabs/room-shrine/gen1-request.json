@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_69c7daf718191d8fca6171cb88b431c9"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_3f05919ce2097b4d746e7bd1b635c6b0"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 1791.9564208984375,
+     "fy": 1791.441650390625,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 841.5059417275821,
+    "fy": 841.5059417275821,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 841.5059417275821,
+    "fy": 841.5059417275821,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 841.5059417275821,
+    "fy": 841.5059417275821,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 841.5059417275821,
+    "fy": 841.5059417275821,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 841.5059417275821,
+    "fy": 841.5059417275821,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 841.5059417275821,
+    "fy": 841.5059417275821,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 841.5059417275821,
+    "fy": 841.5059417275821,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic game environment view of an ancient Chinese earth god shrine, centered on a smiling white-bearded clay deity amid candlelit incense smoke.\",\"scene\":\"Inside a small, old village earth god shrine in ancient China, a painted clay statue of a smiling white-bearded earth god stands on a raised plinth at the far end of the room. A low altar before the statue holds a bronze incense burner filled with smoking incense sticks, offerings of fruit and steamed buns, red candles, and a cylinder of fortune sticks. Faded red banners and folded paper offerings hang against soot-darkened walls and beams, while warm candlelight pools across the worn stone floor. The image is rendered as sharply textured, semi-realistic painterly game environment art with no people present.\",\"subjects\":[{\"name\":\"earth god statue\",\"description\":\"A painted clay statue of an elderly earth god with a gentle smiling face and a long white beard.\",\"action_or_state\":\"static, seated upright on a raised plinth\",\"appearance\":\"weathered ivory-painted face, white beard, faded earth-toned robes with chipped red and green painted accents, rounded benevolent features\",\"position_or_relationship\":\"centered on the rear plinth behind the altar\"},{\"name\":\"altar\",\"description\":\"A low dark wooden offering altar arranged for worship.\",\"action_or_state\":\"static, covered with ritual objects and offerings\",\"appearance\":\"smoke-stained wood with worn edges, red candle wax drips and ash scattered across its surface\",\"position_or_relationship\":\"center foreground, directly before the earth god statue\"},{\"name\":\"bronze incense burner\",\"description\":\"A squat traditional bronze censer filled with upright incense sticks.\",\"action_or_state\":\"smoke rises continuously from the burning incense\",\"appearance\":\"aged dark bronze with a dull green-brown patina, ash-filled bowl, thin pale gray smoke trails\",\"position_or_relationship\":\"centered on the altar in front of the statue\"},{\"name\":\"offerings\",\"description\":\"A small ceremonial arrangement of fruit, steamed buns, red candles, and a fortune-stick cylinder.\",\"action_or_state\":\"static\",\"appearance\":\"golden pears, red apples, pale pleated steamed buns on ceramic plates, thick red candles with bright flames, bamboo cylinder holding slender fortune sticks\",\"position_or_relationship\":\"clustered symmetrically around the incense burner on the altar\"}],\"setting\":\"A cramped rural earth god shrine with soot-blackened timber beams, aged plaster walls, faded red ceremonial banners, and a rough stone floor worn smooth along the central path. Paper offerings are tucked into wall niches and pinned near the altar.\",\"composition\":\"Wide eye-level view from the middle of the room, looking straight toward the altar and centered deity statue. The stone floor forms a clear leading path through the foreground, with smoky beams and hanging banners framing the shrine interior.\",\"style\":\"Semi-realistic painterly game environment art with crisp material detail, believable age, and hand-painted surface variation. A historically grounded ancient Chinese village shrine interior, designed as an atmospheric exploration-game location.\",\"lighting\":\"Warm red-orange candlelight illuminates the altar and statue from below and front, creating soft flickering highlights on bronze and clay. Dim ambient light filters through the smoky interior, leaving the upper beams and room corners in deep brown shadow.\",\"color_palette\":[\"aged crimson red\",\"warm candle amber\",\"smoke black\",\"weathered bronze brown\",\"dusty clay beige\",\"faded jade green\",\"stone gray\"],\"materials_and_textures\":\"Cracked painted clay, oxidized bronze, charred timber, faded woven fabric banners, thin rice paper offerings, wax-dripped candles, powdery incense ash, and uneven worn stone slabs. Layered incense smoke softens the distant beams while leaving foreground ritual objects sharply defined.\",\"mood\":\"quiet, reverent, ancient, smoky, warmly lit\",\"supporting_details\":\"Thin incense smoke curls upward and gathers beneath the dark beams. Red paper offerings with folded edges are tucked around the altar, and old wax has pooled at the bases of the candles. The walls carry mottled soot stains and faded pigments, with no human figures anywhere in the shrine.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}
