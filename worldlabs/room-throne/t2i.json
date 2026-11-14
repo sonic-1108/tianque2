@@ -1,0 +1,193 @@
+{
+ "id": "3423c5cd41fd4b31bce07571b9093719",
+ "ownerId": "acct_0e971b19f5e44d3895747449c8feb339",
+ "metadata": {
+  "@type": "type.worldlabs.ai/wlt.marble.v2.atlasTextToImage.metadata",
+  "state": "SUCCEEDED",
+  "status": "SUCCEEDED",
+  "surface": "DEVELOPER_API",
+  "task": "atlasTextToImage",
+  "taskVersion": "v1"
+ },
+ "done": true,
+ "error": null,
+ "expiresAtSecs": null,
+ "createdAtSecs": 1794697263,
+ "response": {
+  "aspectRatio": "16:9",
+  "frames": [
+   {
+    "camera": {
+     "extrinsics": {
+      "coordinateSystem": "rub",
+      "position": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "quaternion": [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     },
+     "intrinsics": {
+      "cx": 1360.0,
+      "cy": 768.0,
+      "fx": 1754.736083984375,
+      "fy": 1754.2320556640625,
+      "height": 1536,
+      "width": 2720
+     }
+    },
+    "depth": {
+     "confidenceAsset": {
+      "assetId": "asset_3a5ee5758da70d3e38c3a8579fd50967",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_3a5ee5758da70d3e38c3a8579fd50967?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230219Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_3a5ee5758da70d3e38c3a8579fd50967.png%22&X-Goog-Signature=5dfaba89565a7fe000669d28334fe62e0ac9f313128da55f84d7c24b43f523f96c26ea687ab0259995e1dad26a2b10923d5d2df6d460705f876c4baf619d056975dd44d5edaabcc9b02512895c4c9e43b2d5e41e2ffdf165ba4563808ef05144805de0a9ff7870252c43c475e93dfe3dee688ba6a3be8f980b9f62f68ca0f752bc18434366824cfe44c30721a22f53d0ff998ec4b38818742bcdae75d2a87feaef063c348ca945e19229e92d605053ac22c5221a26bdc22cc609eebbab2fc62f295cfeb844a3633e750d0a0f93bc09d30c9108fe88bcf2f1f253b7433c42d48b9b1b8d20a0a438654d7b237910a4dc56a9f4eeb75de598ff770dc75d2ae497dd"
+     },
+     "depthAsset": {
+      "assetId": "asset_c3df31ab5e4b526fc2cb76311b0db808",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_c3df31ab5e4b526fc2cb76311b0db808?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230219Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_c3df31ab5e4b526fc2cb76311b0db808.exr%22&X-Goog-Signature=5820360b602db66985465f824ce1337c747d0f3ce3026d4a1d60ea9de96a91ac4a146759a2cbd9b57d9b1a90c2cc5f867726062e6cffbe3f1449382505edb173d6c81db3f470c9259c9173cb2e9c4d8c7b2316a4a74d6f7c4f6df83aaae974ec35ef99d9fda54f003b0219ec6a0b7a74a5430bc1f2a8b88435e4afdced60ea37347fa7aafe420553f255681594db12c613fd5b905d6dc113506a5936e37c13b22fe449ee259d6d9219b6d101f36ec0ae11b7bf304eb43c65acfcd90ee8b79c06fe41c711546c91eef9f21d490ede7b15fdc320b2573391c943cc376bd13fc8ef47d439b9d23432bc0d2740833cd654e028a24dc478d02f841467df23faf356c1"
+     }
+    },
+    "imageAsset": {
+     "assetId": "asset_bbaf247ca20169dd291f7b2a263bd066",
+     "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_bbaf247ca20169dd291f7b2a263bd066?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230219Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_bbaf247ca20169dd291f7b2a263bd066.png%22&X-Goog-Signature=8b8d594b54bc2a1f857ff23d43f95be4132a56ddc354686bdb80e5ee1b2da9ebe7f3f9ddcd05f5ae054fb731bb69bcc3f2c899751130d0ed862f027aaca12d8c9c2ed2108c68f2c991ee0fc7d5a3ad6033a7078f1f1cc855392d0387cd02d70ee1905ca0b1728b692a69c5212258c5cbaf173e9280384fb9f277ee7299157e7fd491f26ba4c2510e84027d31affe1cceef29dcdfe91afe32fddc1f96e0357bdfdc8c051809e27535783624e378820b3be422bf6aa01c2b02572f6d63be0073faa7c7d186b8d74dee3992ad48faa56da9bbd331560ca02f485618ed681c41c7cee8f2879e944db0361079024ce626e4550182ad41b932781a9d7393118a8e2407"
+    },
+    "maskAsset": null
+   },
+   {
+    "camera": {
+     "extrinsics": {
+      "coordinateSystem": "rub",
+      "position": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "quaternion": [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     },
+     "intrinsics": {
+      "cx": 1360.0,
+      "cy": 768.0,
+      "fx": 1635.51123046875,
+      "fy": 1635.0413818359375,
+      "height": 1536,
+      "width": 2720
+     }
+    },
+    "depth": {
+     "confidenceAsset": {
+      "assetId": "asset_ab44aeb761f4a392ea29c6c579b8dc11",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_ab44aeb761f4a392ea29c6c579b8dc11?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230219Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_ab44aeb761f4a392ea29c6c579b8dc11.png%22&X-Goog-Signature=4247739efc64bb46e719debe6f1031a5e35b31a075ba6a3aa323f7349c7fe27cb5112e2b99a384e5b63fcee6906fecf0f86fbcf0ba68d8dd5d0e9912f946003b376e45e876fdc2bab07b43e09932bce1d96fc93967779c45fe804ce8e4ec3d24c9f2cd9e8bf0b99fa0685649d3f4636ca7204b6ac7c53e9e11df3fbeeaf84fb65ad0165fe2ebe01e359d7683f0c2c8c262c2c1c3b228eee3d7d719370cebe4b8cc7f8f42774ffc6a7dd86e25cc7e3cf99052a94c6ac27625fc4812e3a5b45adaab84a3937e62176e21c3ccc5f6c609e4d7bfac09624bcf016e60546034573d0ecda310c2631f7808ac75364c1c28388a1522d61d23fd7f8f23722ae00a43332e"
+     },
+     "depthAsset": {
+      "assetId": "asset_44c5934a96369bb99745ed3a4adef6cb",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_44c5934a96369bb99745ed3a4adef6cb?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230219Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_44c5934a96369bb99745ed3a4adef6cb.exr%22&X-Goog-Signature=a21440ef8e2ed025b8b077af05f1ba2c444234ba7b84b80a0c4935e2178f7b46193e001b334479379365c6a9c3588457835c51c3d13df645da562d66b672d206ce6dd8d993efa81163f5a28876854c349c8317f33e6e48682f675df7c0772298f4c0709edff0bcd414d7deae38515e0c17cbe2ca48df7a5660991041c5d533711f7ca0db870089a92131acc68ea171700bc4f6e9c02f84546ab20a0c026b26a0415993dd6f707dcfab5078f20ae151a4b75ef86f9920d56a01d5b952ee6f480c3a5eff087d5205bb70a14718c17ada2cc660c91e8c6711ae5349cc4fd23c98281155281b47c2277541cd5e2c0c6fcfb979bc502d1a645d69d7ea4dca9bc155f0"
+     }
+    },
+    "imageAsset": {
+     "assetId": "asset_8c2113e010cd1fe9e29a46a7ef771fd1",
+     "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_8c2113e010cd1fe9e29a46a7ef771fd1?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230219Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_8c2113e010cd1fe9e29a46a7ef771fd1.png%22&X-Goog-Signature=500963eba2a7c61e0ffa7ba25dc27efe4785a43c2f685c09d21a001dd79e0283f2c13fdf6b59fb4d74fc8cb102a8274af3754bdbe2449b3e34cc9767af51c4bbd116097145a58e5c6fd2c5e19c7d7e0db2d489b86f3bc4c05f9d1fdb13c06872e3e0148d87f170363eec8cf2f7eb36d39255befd60604b23c6c6e74195518dd0e2ec662a196893f31ea07f1c30af9a04c1fcf798b7807cb053667e537c6bf26d2db318dbfe8d84a65103d3d805b545407c5df885750f862a81f3a6925f7429cb7f007bed10b3ed840df6d2a76080cb78fc79a55e4968f9d07a9a081d202ea3632a340e788cc93ecc3e319c271b3fdaccd18787bedfedd819644db35c5c1baefd"
+    },
+    "maskAsset": null
+   },
+   {
+    "camera": {
+     "extrinsics": {
+      "coordinateSystem": "rub",
+      "position": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "quaternion": [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     },
+     "intrinsics": {
+      "cx": 1360.0,
+      "cy": 768.0,
+      "fx": 1804.8834228515625,
+      "fy": 1804.3648681640625,
+      "height": 1536,
+      "width": 2720
+     }
+    },
+    "depth": {
+     "confidenceAsset": {
+      "assetId": "asset_856f8b5c5ef5f09f5ff2dc287d5cfee6",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_856f8b5c5ef5f09f5ff2dc287d5cfee6?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230219Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_856f8b5c5ef5f09f5ff2dc287d5cfee6.png%22&X-Goog-Signature=6130dc11c17feb4d6b038624ffa37947a79f42cced94dddf54e3e35befd197b03edef7d5990265cb8ff227656c2a2b4b3259396f7c85cf5494233b27dbc1f223089652af4c66432720797a4b38bf5d76def6efcb0ca5d412e1db879f3d2f286b3edabdb7ae8e5f8957efd23c4e0b12c9e0f6431436ad8fc506159110cbfe1673af90a647d99682d5f751b3f1782c230194f67a9c83f927b6d3c44294c849d7a28611a7439c40c68f4e1729b083cc9e44bf7a4cab9d024970cd8aa49848ec51a449810df3eeadc28e0e1d7514392cae1655c0ddbf0cf3634804dc3ef15289154413dfb4833ef8c01db57367f9fcf43f0bff6e6b231b1d12e956dd860750c7173c"
+     },
+     "depthAsset": {
+      "assetId": "asset_4564333b4902e386c8f0caad5b1e7e4c",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_4564333b4902e386c8f0caad5b1e7e4c?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230219Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_4564333b4902e386c8f0caad5b1e7e4c.exr%22&X-Goog-Signature=810400e886045fb7d5015f45b46969244bbc880a6256e9be73f8c319405ec440b7e467f6da5f3aaa761532f61ae6061fb4bd627b25fc5c81069f848f7f3dcf9e0658fb0083214990a45071d3410473354f3aca4fec5333e498d8f75d0d689d9cbc551355da19b8441db1c84b71995ab37128af0515061c33627ad49686203302fa79bbd554727c08dacac62db332976e20c475f9202207fb67313302c2069012fe1ebf84a1aacbdb2de2763499517f51b3af0190e3be890d2041b8e17db9a2cb5a27a2c36798917315df58a11a5c0d429a8f6f41a0f3cc3bd81f29d987b403b71fd748486d9b0e5e228f7d6eff08cbc1f5f93ee05a3dd6e779ac097aae4def88"
+     }
+    },
+    "imageAsset": {
+     "assetId": "asset_da840a1d497866982ebea70b602895ab",
+     "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_da840a1d497866982ebea70b602895ab?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230219Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_da840a1d497866982ebea70b602895ab.png%22&X-Goog-Signature=3441a26fa588cf101e7413aead6f315bade7a34b8711aa7da33cdfe2bd8d4db0175d5c0e67f1e44c20b72f725e005b98c66a3c462347f331f1a3ac72436aeab064bcd20c0c8c4b6fd0e3a11f7eb1485c2072e784fab1e5f342eb62c0f5c65d0b620ce714d123296f597322266d3441d0550e0e3baa15b664d6d82e2e374761eb78d9d29e3b40d2acb112ae68b17af42b70edd05faa6163751d33cfb3682ac64c26bc6e06d9370270806578e52aec5e1dc8ef79b0c93fd81e65fcc155070f07a45ff1134c3bf79231f442845399fba6539cfd6e0314a07ef941cbd1f7febc352494a1e6a556e154c0250e7712e6d67b1de9e361aab2d0497fb2f2c0b4c2bc6356"
+    },
+    "maskAsset": null
+   },
+   {
+    "camera": {
+     "extrinsics": {
+      "coordinateSystem": "rub",
+      "position": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "quaternion": [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     },
+     "intrinsics": {
+      "cx": 1360.0,
+      "cy": 768.0,
+      "fx": 1866.0345458984375,
+      "fy": 1865.49853515625,
+      "height": 1536,
+      "width": 2720
+     }
+    },
+    "depth": {
+     "confidenceAsset": {
+      "assetId": "asset_264c6baef8a9ca2aabf6ad51adb273a8",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_264c6baef8a9ca2aabf6ad51adb273a8?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230219Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_264c6baef8a9ca2aabf6ad51adb273a8.png%22&X-Goog-Signature=9dbfc5f2fc1902335935047d2987b502c6abad1a52d05fd6cf604be129d3d1726b7342d1d1a2979c87fecd79881a52c84563f40e5c65547f873d887d6ff3de2ec0a7013326150fa4a601218a4a094f675d97ac86eab40f6b18c0a52bfb8869a989af35cd0967f4af237ffb5baac1a5a566520d37422424614af9c0a855d967a01b2152b6a10aa25b7fb0c090eea05e8912a8d2cbeec0d9cc4f5f5b1d319f93d643df4321eda875c351525b008a1b9513cc7e8f4cc1a0323bf0ea9b09241b9d6501ace460071efc5bd848b54a81a1c501d69d07cbf91941022fcddfd435cb9e2f07574971fe1c808b41c767b88a09fe2b4706f225cb6dcada9b3c27b20e08330f"
+     },
+     "depthAsset": {
+      "assetId": "asset_5b68eebe3abc30b414d357e912139a2c",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_5b68eebe3abc30b414d357e912139a2c?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230219Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_5b68eebe3abc30b414d357e912139a2c.exr%22&X-Goog-Signature=1654198d28c2d90a0910b0f6e3191fb790d9385bed78efba729df5131fae4240a2462bd0455271fbfa58b8275f24d54d5484372e60bfbbb46f5980fa0c95b60ac249909fbadaa13d98a71376898c431db3be3b7649926efef8f92bf80f1f80dddf2e02be9f989a1e1340b725e3e16404be14fba1819b6c0cdf7281f75bcde90a2b176047a6430ff641c0de6dffa15e2f8e8b07e980b839507d7d21896ab8e3e7710b9c1696a2a9777cbeed5ade3932778be90857df43c59c7426844959f389a2129bf347605ebde275afc4311b13db3af207475e281b8a7fd4b1bcaee5811acdaaaa445ced60256064b233a40a3c594092b067513097fe225c7237c2f145e28e"
+     }
+    },
+    "imageAsset": {
+     "assetId": "asset_60ec01568e8a3b6f925b8028505c2422",
+     "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_60ec01568e8a3b6f925b8028505c2422?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230219Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_60ec01568e8a3b6f925b8028505c2422.png%22&X-Goog-Signature=49c54d2d693f4bf4e0956633f31acf6cdac05846235868431f311cc55ada859f0efb556ad078b2d0a23e8444443d137918b0c3ea3f3db958b05520deec971279c098538d7121acd6073306f9cf9755c422e44488d73fb4c88f3d78bafcc648f48f7db044289b86de8c3bef6bab90586d938c9c14c4d60bd29e506e78c5d974013f35218003eb31fa1ee851d398ae2bbefc7aab02faa56e48e6f8bf9974842bdb62444b5e64ea5bfbd9061f809c4fd94b3860f926fa17c3bba8153383cd6d1f285de03b331dc7f1f0b2616ec2648bdf0acea75aebd1625b93af85f960431077fdd81fb94bf550368810a5b546da3796d9a8b22999e0e5c2825739642549e1f194"
+    },
+    "maskAsset": null
+   }
+  ],
+  "promptUsed": "{\"short_caption\":\"A wide semi-realistic painterly game-environment view of an empty golden dragon throne in a grand ancient Chinese imperial hall.\",\"scene\":\"A vast ancient Chinese imperial throne hall stands empty, viewed at eye level from the middle of the room. A golden dragon throne rests atop a high stepped dais beneath an elaborate carved golden screen, while immense red lacquered pillars wrapped in gilded dragons form ceremonial rows along both sides. The polished dark stone floor reflects muted gold and red tones, and drifting dust catches shafts of daylight entering through tall doors.\",\"subjects\":[{\"name\":\"golden dragon throne\",\"description\":\"An ornate imperial throne with dragon-armrests, a high sculpted back, and a raised footrest.\",\"action_or_state\":\"empty and static\",\"appearance\":\"burnished gold, dense dragon relief carving, broad ceremonial proportions, subtly worn edges on raised details\",\"position_or_relationship\":\"centered on the highest tier of the stepped dais at the far end of the hall\"},{\"name\":\"carved golden screen\",\"description\":\"A monumental decorative screen densely carved with layered clouds, dragons, and radiating imperial motifs.\",\"action_or_state\":\"static\",\"appearance\":\"deep gold with shadowed recesses and intricate raised reliefs\",\"position_or_relationship\":\"standing directly behind the golden dragon throne\"},{\"name\":\"red lacquered pillars\",\"description\":\"Massive structural columns arranged in formal parallel rows, each encircled by a sculpted golden dragon.\",\"action_or_state\":\"static\",\"appearance\":\"glossy cinnabar-red lacquer, gilded dragon coils, dark bases, towering scale\",\"position_or_relationship\":\"lining both sides of the central aisle and framing the throne dais\"},{\"name\":\"bronze ceremonial objects\",\"description\":\"Tall bronze cranes and low bronze incense burners used as formal hall ornaments.\",\"action_or_state\":\"static, with thin incense smoke rising from the burners\",\"appearance\":\"aged dark bronze with green-brown patina, engraved feather and cloud details\",\"position_or_relationship\":\"placed symmetrically at the base and sides of the stepped dais\"}],\"setting\":\"A grand enclosed imperial throne hall of ancient China, built around a long central ceremonial aisle leading to the elevated dais. Tall wooden doors at the distant sides admit narrow shafts of daylight, while a richly painted coffered ceiling spans the enormous chamber overhead.\",\"composition\":\"Wide eye-level view from the middle of the room, using a centered central aisle and symmetrical pillar rows to lead directly toward the empty throne. The dark reflective floor occupies the lower foreground, with the throne and golden screen as the dominant focal point.\",\"style\":\"Semi-realistic painterly game environment art with crisp architectural forms, sharply rendered decorative textures, and controlled atmospheric depth. The scene is designed as an explorable historical palace interior with no characters present.\",\"lighting\":\"Cool daylight streams through tall doors in distinct angled shafts, illuminating airborne dust and creating long soft-edged highlights across the dark stone floor. Warm reflected gold light glows around the throne, screen, and dragon carvings, with deep shadows between the pillar rows.\",\"color_palette\":[\"burnished gold\",\"cinnabar red\",\"polished charcoal black\",\"aged bronze\",\"deep umber\",\"muted jade green\",\"pale dusty sunlight\"],\"materials_and_textures\":\"Glossy red lacquer pillars show fine reflections and slight age wear around their bases. The throne and screen have densely carved, burnished gold surfaces with dark recesses; the floor is smooth polished dark stone with faint mirrored reflections. Bronze cranes and incense burners carry oxidized patina, while the ceiling displays layered painted wood coffers.\",\"mood\":\"solemn, ceremonial, monumental, still, reverent\",\"supporting_details\":\"Fine incense smoke rises in narrow curls from the bronze burners. Painted ceiling panels feature subdued cloud scrolls and geometric borders, while small pools of dust collect along the edges of the dais steps. The room remains completely unoccupied, with no people or figures anywhere in the hall.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+  "promptsUsed": [
+   "{\"short_caption\":\"A wide semi-realistic painterly game-environment view of an empty golden dragon throne in a grand ancient Chinese imperial hall.\",\"scene\":\"A vast ancient Chinese imperial throne hall stands empty, viewed at eye level from the middle of the room. A golden dragon throne rests atop a high stepped dais beneath an elaborate carved golden screen, while immense red lacquered pillars wrapped in gilded dragons form ceremonial rows along both sides. The polished dark stone floor reflects muted gold and red tones, and drifting dust catches shafts of daylight entering through tall doors.\",\"subjects\":[{\"name\":\"golden dragon throne\",\"description\":\"An ornate imperial throne with dragon-armrests, a high sculpted back, and a raised footrest.\",\"action_or_state\":\"empty and static\",\"appearance\":\"burnished gold, dense dragon relief carving, broad ceremonial proportions, subtly worn edges on raised details\",\"position_or_relationship\":\"centered on the highest tier of the stepped dais at the far end of the hall\"},{\"name\":\"carved golden screen\",\"description\":\"A monumental decorative screen densely carved with layered clouds, dragons, and radiating imperial motifs.\",\"action_or_state\":\"static\",\"appearance\":\"deep gold with shadowed recesses and intricate raised reliefs\",\"position_or_relationship\":\"standing directly behind the golden dragon throne\"},{\"name\":\"red lacquered pillars\",\"description\":\"Massive structural columns arranged in formal parallel rows, each encircled by a sculpted golden dragon.\",\"action_or_state\":\"static\",\"appearance\":\"glossy cinnabar-red lacquer, gilded dragon coils, dark bases, towering scale\",\"position_or_relationship\":\"lining both sides of the central aisle and framing the throne dais\"},{\"name\":\"bronze ceremonial objects\",\"description\":\"Tall bronze cranes and low bronze incense burners used as formal hall ornaments.\",\"action_or_state\":\"static, with thin incense smoke rising from the burners\",\"appearance\":\"aged dark bronze with green-brown patina, engraved feather and cloud details\",\"position_or_relationship\":\"placed symmetrically at the base and sides of the stepped dais\"}],\"setting\":\"A grand enclosed imperial throne hall of ancient China, built around a long central ceremonial aisle leading to the elevated dais. Tall wooden doors at the distant sides admit narrow shafts of daylight, while a richly painted coffered ceiling spans the enormous chamber overhead.\",\"composition\":\"Wide eye-level view from the middle of the room, using a centered central aisle and symmetrical pillar rows to lead directly toward the empty throne. The dark reflective floor occupies the lower foreground, with the throne and golden screen as the dominant focal point.\",\"style\":\"Semi-realistic painterly game environment art with crisp architectural forms, sharply rendered decorative textures, and controlled atmospheric depth. The scene is designed as an explorable historical palace interior with no characters present.\",\"lighting\":\"Cool daylight streams through tall doors in distinct angled shafts, illuminating airborne dust and creating long soft-edged highlights across the dark stone floor. Warm reflected gold light glows around the throne, screen, and dragon carvings, with deep shadows between the pillar rows.\",\"color_palette\":[\"burnished gold\",\"cinnabar red\",\"polished charcoal black\",\"aged bronze\",\"deep umber\",\"muted jade green\",\"pale dusty sunlight\"],\"materials_and_textures\":\"Glossy red lacquer pillars show fine reflections and slight age wear around their bases. The throne and screen have densely carved, burnished gold surfaces with dark recesses; the floor is smooth polished dark stone with faint mirrored reflections. Bronze cranes and incense burners carry oxidized patina, while the ceiling displays layered painted wood coffers.\",\"mood\":\"solemn, ceremonial, monumental, still, reverent\",\"supporting_details\":\"Fine incense smoke rises in narrow curls from the bronze burners. Painted ceiling panels feature subdued cloud scrolls and geometric borders, while small pools of dust collect along the edges of the dais steps. The room remains completely unoccupied, with no people or figures anywhere in the hall.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+   "{\"short_caption\":\"A wide eye-level game environment painting of an empty golden dragon throne in a grand ancient Chinese imperial hall.\",\"scene\":\"A vast ancient Chinese imperial throne hall stands completely empty, viewed from the middle of the room at eye level. A golden dragon throne rests atop a high stepped dais, backed by an intricately carved gilded screen, while monumental red lacquered pillars wrapped in golden dragons recede in ordered rows. The polished dark stone floor mirrors the pillars, bronze cranes, and incense burners as dust drifts through bright shafts of light entering from tall open doors. Above, a deeply coffered ceiling is covered in elaborate painted ornament.\",\"subjects\":[{\"name\":\"golden dragon throne\",\"description\":\"An ornate imperial throne with curling dragon arms, a high sculpted back, and raised clawed feet.\",\"action_or_state\":\"empty and static\",\"appearance\":\"rich aged gold with finely carved scales, cloud motifs, and subtle darker patina in recessed details\",\"position_or_relationship\":\"centered at the top of the high stepped dais at the far end of the hall\"},{\"name\":\"carved golden screen\",\"description\":\"A towering decorative screen densely carved with interlocking dragons, clouds, and radiating imperial motifs.\",\"action_or_state\":\"static\",\"appearance\":\"gilded relief carving with layered depth, dark shadowed crevices, and worn luminous highlights\",\"position_or_relationship\":\"standing directly behind the golden dragon throne\"},{\"name\":\"red lacquered pillars\",\"description\":\"Massive structural columns wrapped by sculpted golden dragons ascending toward the ceiling.\",\"action_or_state\":\"static\",\"appearance\":\"glossy deep vermilion lacquer, gold dragon scales, curling whiskers, and polished claw details\",\"position_or_relationship\":\"arranged in symmetrical rows on both sides of the central aisle\"},{\"name\":\"bronze ceremonial objects\",\"description\":\"Tall bronze cranes and broad incense burners placed as formal court ornaments.\",\"action_or_state\":\"static, with faint incense smoke rising from the burners\",\"appearance\":\"dark aged bronze with green-brown patina, engraved feather and cloud patterns\",\"position_or_relationship\":\"flanking the dais and spaced along the central approach\"}],\"setting\":\"A monumental imperial throne hall of ancient China with a long central aisle, a high ceremonial dais, towering doors, and a painted coffered ceiling. The room is unoccupied, immaculately arranged, and expansive enough for the pillars to fade into the distance.\",\"composition\":\"Wide eye-level view from the middle of the hall, with a strong symmetrical central axis leading across the reflective stone floor to the throne. Repeating pillar rows frame the scene and emphasize the height, depth, and scale of the chamber.\",\"style\":\"Semi-realistic painterly game environment art with sharply resolved architectural textures, precise ornamental carving, and cinematic spatial depth. The image is a detailed uninhabited interior environment, not a character scene.\",\"lighting\":\"Strong pale daylight streams inward through tall doors, forming visible diagonal shafts through suspended dust. Warm gold reflections glow on the throne and pillars while the floor and ceiling retain cool, deep shadowed contrast.\",\"color_palette\":[\"imperial vermilion red\",\"aged ceremonial gold\",\"polished charcoal stone\",\"dark bronze\",\"warm amber light\",\"cool dusty gray\",\"deep teal shadow\"],\"materials_and_textures\":\"High-gloss red lacquer pillars reflect narrow highlights, while the gilded throne and screen show crisp carved relief, burnished edges, and darker aged recesses. The dark stone floor is smooth and reflective with subtle seams, and the bronze cranes and burners have oxidized patina and engraved surfaces. Painted ceiling panels show layered mineral-pigment patterns and weathered lacquer detail.\",\"mood\":\"solemn, majestic, ceremonial, silent, monumental\",\"supporting_details\":\"Broad dark stone steps rise to the throne dais, their edges catching thin bands of light. Fine incense smoke curls above the bronze burners, mixing with drifting dust motes. Painted ceiling coffers contain repeating cloud scrolls, dragons, and geometric borders, while tall doors at the rear and side openings silhouette the distant exterior brightness.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+   "{\"short_caption\":\"A wide eye-level game environment painting of an empty golden dragon throne in a grand ancient Chinese imperial hall filled with drifting dust-lit air.\",\"scene\":\"A vast ancient Chinese imperial throne hall stands completely empty, viewed from the middle of the room at eye level. A gilded dragon throne crowns a high, broad stepped dais beneath an elaborate carved golden screen, while immense red lacquered pillars wrapped in sculpted golden dragons march in symmetrical rows toward the foreground. Tall open doors cast bright shafts of daylight across the polished dark stone floor, illuminating bronze cranes, incense burners, and suspended dust beneath a painted coffered ceiling.\",\"subjects\":[{\"name\":\"golden dragon throne\",\"description\":\"An ornate imperial throne with curling dragon armrests, a tall ceremonial back, and dense gilded relief ornament.\",\"action_or_state\":\"empty and static\",\"appearance\":\"aged luminous gold with sharply carved dragon scales, clawed feet, cloud motifs, and subtly worn edges\",\"position_or_relationship\":\"centered atop the high stepped dais at the far end of the hall\"},{\"name\":\"carved golden screen\",\"description\":\"A monumental decorative screen densely carved with dragons, swirling clouds, and layered imperial motifs.\",\"action_or_state\":\"static\",\"appearance\":\"richly gilded relief with deep shadowed recesses and irregular antique patina\",\"position_or_relationship\":\"rising directly behind the golden dragon throne\"},{\"name\":\"red lacquered pillars\",\"description\":\"Massive structural columns arranged in long symmetrical rows through the throne hall.\",\"action_or_state\":\"static\",\"appearance\":\"deep vermilion lacquer, glossy worn surfaces, each pillar encircled by a sculpted golden dragon\",\"position_or_relationship\":\"lining both sides of the central aisle and framing the distant throne\"},{\"name\":\"bronze ceremonial furnishings\",\"description\":\"Tall bronze crane statues and heavy incense burners arranged as formal court ornaments.\",\"action_or_state\":\"static, with faint incense smoke rising from the burners\",\"appearance\":\"dark aged bronze with green-brown patina, engraved feather and cloud details\",\"position_or_relationship\":\"flanking the lower steps of the dais and spaced along the central approach\"}],\"setting\":\"A grand enclosed imperial throne hall of ancient China, built on a monumental ceremonial scale. A dark polished stone floor forms a broad central aisle beneath a richly painted coffered ceiling, and tall doors at the near end admit angled daylight.\",\"composition\":\"Wide eye-level view from the middle of the empty room, using strict bilateral symmetry and converging pillar rows to lead toward the centered throne and dais. The reflective floor occupies the lower frame, while the ornate ceiling fills the upper depth.\",\"style\":\"Semi-realistic painterly game environment art with crisp architectural edges, highly detailed carved ornament, and sharp readable material textures. The image is an uninhabited historical palace environment, not a character scene.\",\"lighting\":\"Strong natural daylight pours through tall doors behind the viewer, forming long luminous shafts through drifting dust and catching bright highlights on gold leaf and lacquer. The distant throne area remains warmly illuminated against deep, cool shadowed recesses between the pillars.\",\"color_palette\":[\"imperial vermilion red\",\"antique gold\",\"dark charcoal stone\",\"aged bronze\",\"warm ivory daylight\",\"deep umber shadows\",\"muted jade patina\"],\"materials_and_textures\":\"Glossy red lacquer reflects narrow bands of light on the pillars, while gilded carvings show crisp scale patterns and worn metallic edges. The dark stone floor is mirror-polished with subtle seams and soft reflections; aged bronze carries mottled patina, and the ceiling coffers show layered painted woodwork.\",\"mood\":\"solemn, monumental, ceremonial, still, reverent\",\"supporting_details\":\"Low incense smoke curls upward from the bronze burners and dissolves into the sunbeams. The painted ceiling features geometric coffers with cloud patterns and restrained blue-green accents. Fine dust motes hang visibly in the light, and shallow reflections of pillars and cranes ripple across the stone floor.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+   "{\"short_caption\":\"A wide eye-level game environment painting of an empty golden dragon throne in a grand ancient Chinese imperial hall.\",\"scene\":\"A vast ancient Chinese imperial throne hall stands empty, viewed from the middle of the room at eye level. A golden dragon throne rests atop a high stepped dais beneath an elaborate carved golden screen, while monumental red lacquered pillars wrapped in gilded dragons recede in symmetrical rows. Tall doors cast bright shafts of light across the polished dark stone floor, revealing drifting dust, bronze cranes, and ceremonial incense burners.\",\"subjects\":[{\"name\":\"golden dragon throne\",\"description\":\"An empty imperial throne with sculpted dragons curling around its armrests, backrest, and footed base.\",\"action_or_state\":\"static and unoccupied\",\"appearance\":\"rich burnished gold, ornate high back, clawed feet, dense relief carving, slightly aged patina in recessed details\",\"position_or_relationship\":\"centered on the highest tier of the stepped dais at the far end of the hall\"},{\"name\":\"carved golden screen\",\"description\":\"A monumental gilded screen densely carved with layered dragons, swirling clouds, and stylized waves.\",\"action_or_state\":\"static\",\"appearance\":\"luminous old gold with deep shadowed carvings and raised polished edges\",\"position_or_relationship\":\"standing directly behind the golden dragon throne\"},{\"name\":\"red lacquered pillars\",\"description\":\"Massive structural columns coiled by sculpted golden dragons.\",\"action_or_state\":\"static\",\"appearance\":\"deep vermilion lacquer with glossy reflections, gold dragon scales and raised cloud motifs\",\"position_or_relationship\":\"arranged in long symmetrical rows on both sides of the central aisle\"},{\"name\":\"bronze ceremonial objects\",\"description\":\"Tall bronze cranes and wide-bellied incense burners used as formal court ornaments.\",\"action_or_state\":\"static, incense burners releasing thin pale smoke\",\"appearance\":\"dark aged bronze with green-black patina, engraved feather and cloud details\",\"position_or_relationship\":\"placed in balanced pairs along the dais and beside the central aisle\"}],\"setting\":\"An immense imperial throne chamber in ancient China, enclosed by towering red columns, monumental doors, and a richly painted coffered ceiling. The dark stone floor mirrors broken highlights from gold ornament and daylight, with no people anywhere in the hall.\",\"composition\":\"A wide, eye-level view from the center of the room, using a straight central aisle and symmetrical pillar rows to lead directly toward the distant throne and dais. The throne forms the focal point, framed by the golden screen and layered architectural depth.\",\"style\":\"Semi-realistic painterly game environment art with highly detailed architectural ornament, sharp material textures, and grounded monumental scale. Crisp sculptural forms and controlled brushwork preserve readable details across the vast interior.\",\"lighting\":\"Cool daylight streams inward through the tall doors in distinct angled shafts, illuminating drifting dust over the central floor. Dim warm ambient reflections glint from the gilded throne, dragons, and bronze objects, while the surrounding bays fall into deep restrained shadow.\",\"color_palette\":[\"imperial vermilion\",\"burnished gold\",\"polished charcoal stone\",\"aged bronze\",\"smoky black\",\"cool daylight blue\",\"muted jade patina\"],\"materials_and_textures\":\"Glossy red lacquer reflects narrow streaks of light on the pillars, while the gilded carvings show crisp scales, worn edges, and dark recesses. The floor is smooth dark stone with faint reflections and seams, contrasted by heavy bronze patina, translucent incense smoke, and painted wooden ceiling coffers.\",\"mood\":\"solemn, majestic, ceremonial, empty, hushed\",\"supporting_details\":\"The painted coffered ceiling features turquoise, dark blue, red, and gold cloud-and-dragon motifs. Faint incense smoke curls upward from the burners, and dust motes float visibly through the beams of door light. Low stone steps lead to the dais, with small bronze vessels placed evenly at its corners.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}"
+  ]
+ },
+ "name": "accounts/acct_0e971b19f5e44d3895747449c8feb339/projects/proj_f480f7f91d7e4a06b5c6804b3c485223/operations/3423c5cd41fd4b31bce07571b9093719"
+}
