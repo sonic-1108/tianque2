@@ -1,0 +1,1604 @@
+{
+ "prompt": "{\"short_caption\":\"A wide semi-realistic painterly game environment view of an ancient Chinese village herbalist's house, filled with medicine drawers, hanging herbs, and a simmering clay pot.\",\"scene\":\"A highly detailed, semi-realistic painterly game environment depicts the interior of an ancient Chinese village herbalist's house with no people present. A tall wooden medicine cabinet with hundreds of tiny labelled drawers dominates the back wall, while bundles of drying herbs and roots hang densely from dark ceiling beams. In the foreground, brass scales, folded paper packets, baskets of ginseng and mushrooms, and a stone mortar and pestle crowd a worn counter; a clay stove supports a gently simmering medicine pot beside a simple patient cot.\",\"subjects\":[{\"name\":\"wooden medicine cabinet\",\"description\":\"A towering apothecary cabinet composed of hundreds of small square drawers, each with a small pale paper label and a dark pull handle.\",\"action_or_state\":\"static\",\"appearance\":\"aged dark elm wood, densely gridded drawer fronts, worn edges, faint dust in the crevices, irregular handwritten-looking drawer labels without legible text\",\"position_or_relationship\":\"occupying most of the rear wall as the central focal structure\"},{\"name\":\"hanging herbs and roots\",\"description\":\"Dense bundles of medicinal leaves, roots, seed heads, and bark strips tied with twine.\",\"action_or_state\":\"hanging motionless from the ceiling beams\",\"appearance\":\"muted sage leaves, tan roots, dried brown stems, pale fibrous ginseng roots, rough natural textures\",\"position_or_relationship\":\"suspended overhead across the upper half of the room in front of and beside the medicine cabinet\"},{\"name\":\"herbalist counter\",\"description\":\"A broad, worn wooden preparation counter holding medicine-making tools and ingredients.\",\"action_or_state\":\"static\",\"appearance\":\"dark scratched wood covered with brass balance scales, folded paper packets, small ceramic bowls, a stone mortar and pestle, and loose dried plant fragments\",\"position_or_relationship\":\"stretching across the foreground, slightly left of center\"},{\"name\":\"clay stove and medicine pot\",\"description\":\"A low clay stove with a round-bellied earthenware pot heating herbal medicine.\",\"action_or_state\":\"the pot is gently simmering, releasing a thin plume of steam\",\"appearance\":\"soot-darkened terracotta stove, brown glazed clay pot, glowing orange embers visible through the fire opening\",\"position_or_relationship\":\"on the right side of the room beside the counter and near the patient cot\"},{\"name\":\"patient cot\",\"description\":\"A narrow wooden cot prepared for visiting patients.\",\"action_or_state\":\"empty and static\",\"appearance\":\"simple timber frame, thin woven mat, folded muted indigo blanket, small cylindrical headrest\",\"position_or_relationship\":\"set along the right wall beneath shelves of medicinal jars\"}],\"setting\":\"The room is a compact rural herbalist workshop inside an ancient Chinese village house, built with timber posts, plastered earthen walls, and dark exposed roof beams. A latticed paper window on the left admits soft daylight, while shelves of glazed jars line the side walls and woven baskets of ginseng and mushrooms rest beneath the counter.\",\"composition\":\"A wide eye-level view from the middle of the room, with the medicine cabinet centered on the far wall and the counter forming a layered foreground. Hanging herbs frame the upper view, while the glowing stove and cot balance the right side of the composition.\",\"style\":\"Semi-realistic painterly game environment art with crisp, sharply resolved surface detail and hand-painted atmospheric depth. The image is an unoccupied interior environment designed as a believable historical apothecary space.\",\"lighting\":\"Warm amber lamplight pools across the counter, clay stove, and lower cabinet drawers, while cool diffused daylight enters through the paper window at left. The mixed light creates soft directional shadows, subtle steam highlights, and warm reflections on the brass scales.\",\"color_palette\":[\"aged walnut brown\",\"warm amber\",\"muted sage green\",\"earthy terracotta\",\"smoky tan\",\"dusty indigo\",\"soft paper cream\",\"brass gold\"],\"materials_and_textures\":\"Rough-grained aged timber, cracked earthen plaster, fibrous dried roots, brittle leaves, woven bamboo baskets, matte paper packets, tarnished brass, porous stone, and glazed ceramic jars are rendered with sharp tactile detail. A faint layer of herbal dust softens the counter and floorboards.\",\"mood\":\"warm, medicinal, rustic, orderly, quietly lived-in\",\"supporting_details\":\"Rows of corked ceramic and glass jars occupy narrow wall shelves, with their contents visible as dried leaves, seeds, powders, and twisted roots. Woven baskets beneath the counter hold pale ginseng and dark clustered mushrooms. Steam curls above the medicine pot, and a few dried leaves are scattered across the floorboards near the stove.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"Small paper labels are attached to the medicine drawers and jars, but their markings remain non-legible decorative brushlike strokes with no readable text.\"},\"artifacts_and_overlays\":\"none\"}",
+ "frames": [
+  {
+   "image": "v-00.jpg",
+   "view": {
+    "pos": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "yaw": 0,
+    "pitch": 0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_26d6dd040cdeb41846f05a1f8a182c8d",
+   "depth": {
+    "confidenceAsset": "asset_502f78b5af252765b0e3347efe07c9ae",
+    "depthAsset": "asset_a2bb824741b7329aa207299c44c3babd"
+   }
+  },
+  {
+   "image": "v-01.jpg",
+   "view": {
+    "pos": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "yaw": 35,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.2007517527228661,
+      0.0,
+      -0.28670321550114714
+     ],
+     "quaternion": [
+      0.0,
+      0.3007057995042731,
+      0.0,
+      0.9537169507482269
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_1debca3419edc2bd40ddb8cb3ce6ea82",
+   "depth": {
+    "confidenceAsset": "asset_39583a6cdbe9c62b386b4d2408dee212",
+    "depthAsset": "asset_8850475c86ae0b4fc44d6b5d3bd54122"
+   }
+  },
+  {
+   "image": "v-02.jpg",
+   "view": {
+    "pos": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "yaw": -35,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.2007517527228661,
+      0.0,
+      -0.28670321550114714
+     ],
+     "quaternion": [
+      0.0,
+      -0.3007057995042731,
+      0.0,
+      0.9537169507482269
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_0dc85f4bc7878fc9899442089ee0a02d",
+   "depth": {
+    "confidenceAsset": "asset_65a02349a2b94c9df12db29364956559",
+    "depthAsset": "asset_4f553c9d98262b9947bebd6bf8e0faef"
+   }
+  },
+  {
+   "image": "v-03.jpg",
+   "view": {
+    "pos": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "yaw": 70,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.3288924172750679,
+      0.0,
+      -0.11970705016398409
+     ],
+     "quaternion": [
+      0.0,
+      0.573576436351046,
+      0.0,
+      0.8191520442889918
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_5e25a9a0f5ba51d55e9a376ab72ae26a",
+   "depth": {
+    "confidenceAsset": "asset_3c260204d2b4c502e2305e8e23351623",
+    "depthAsset": "asset_8afe818b0bd13067530af9674acabd69"
+   }
+  },
+  {
+   "image": "v-04.jpg",
+   "view": {
+    "pos": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "yaw": -70,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.3288924172750679,
+      0.0,
+      -0.11970705016398409
+     ],
+     "quaternion": [
+      0.0,
+      -0.573576436351046,
+      0.0,
+      0.8191520442889918
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_6e5f8ac1d1b366a1f5cb148a185a5594",
+   "depth": {
+    "confidenceAsset": "asset_351472bb3f53f322c82e3f156fc785ae",
+    "depthAsset": "asset_025267e404cafff6229192b5e7c4bff3"
+   }
+  },
+  {
+   "image": "v-05.jpg",
+   "view": {
+    "pos": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "yaw": 0,
+    "pitch": -40
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -0.35
+     ],
+     "quaternion": [
+      -0.3420201433256687,
+      0.0,
+      0.0,
+      0.9396926207859084
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_ed4d468321b90c4fffb8013c8d2bb3a3",
+   "depth": {
+    "confidenceAsset": "asset_1e66384c782297d0e73251f973178a3c",
+    "depthAsset": "asset_3175ffca75e251ce2397898ba7940101"
+   }
+  },
+  {
+   "image": "v-06.jpg",
+   "view": {
+    "pos": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "yaw": 0,
+    "pitch": 0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -2.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_f4756ea9d3456e3fddb6583f8ffab5f4",
+   "depth": {
+    "confidenceAsset": "asset_7d4277511320861766858a31a07297c7",
+    "depthAsset": "asset_09f31a068ae7982e5f8eeb60fb2b36ef"
+   }
+  },
+  {
+   "image": "v-07.jpg",
+   "view": {
+    "pos": [
+     -0.3380740392011739,
+     0.0,
+     0.09058666578588229
+    ],
+    "yaw": 105,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.3380740392011739,
+      0.0,
+      0.09058666578588229
+     ],
+     "quaternion": [
+      0.0,
+      0.7933533402912352,
+      0.0,
+      0.6087614290087207
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_849b319b5fd112daadd1559e0150cb45",
+   "depth": {
+    "confidenceAsset": "asset_b1e84514cc962687f264de5171712b40",
+    "depthAsset": "asset_fc567af0da3ca561c65a646803cb9af2"
+   }
+  },
+  {
+   "image": "v-08.jpg",
+   "view": {
+    "pos": [
+     0.3380740392011739,
+     0.0,
+     0.09058666578588229
+    ],
+    "yaw": -105,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.3380740392011739,
+      0.0,
+      0.09058666578588229
+     ],
+     "quaternion": [
+      0.0,
+      -0.7933533402912352,
+      0.0,
+      0.6087614290087207
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_2619203229534b82a67702c0e45ff5ec",
+   "depth": {
+    "confidenceAsset": "asset_67e20dfec0ba1f6a712d35df6ae920d5",
+    "depthAsset": "asset_0413ff5223372dc2692fe3f9327afa85"
+   }
+  },
+  {
+   "image": "v-09.jpg",
+   "view": {
+    "pos": [
+     -0.2249756633902888,
+     0.0,
+     0.26811555509164225
+    ],
+    "yaw": 140,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.2249756633902888,
+      0.0,
+      0.26811555509164225
+     ],
+     "quaternion": [
+      0.0,
+      0.9396926207859083,
+      0.0,
+      0.3420201433256688
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_088e356b1f2420d7926ce2465c2080eb",
+   "depth": {
+    "confidenceAsset": "asset_dba04967508fdd556d8f6913f2e6d467",
+    "depthAsset": "asset_97c5a020d694d6a9f09ae2053644ca88"
+   }
+  },
+  {
+   "image": "v-10.jpg",
+   "view": {
+    "pos": [
+     0.2249756633902888,
+     0.0,
+     0.26811555509164225
+    ],
+    "yaw": -140,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.2249756633902888,
+      0.0,
+      0.26811555509164225
+     ],
+     "quaternion": [
+      0.0,
+      -0.9396926207859083,
+      0.0,
+      0.3420201433256688
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_101d7f233ce7ee87220644cd44c64501",
+   "depth": {
+    "confidenceAsset": "asset_5abb9b73a3a180ff7916b102f4ef3d64",
+    "depthAsset": "asset_8f3f1e94cc015f209bc0b5c8584fca3e"
+   }
+  },
+  {
+   "image": "v-11.jpg",
+   "view": {
+    "pos": [
+     -4.286263797015736e-17,
+     0.0,
+     0.35
+    ],
+    "yaw": 180,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -4.286263797015736e-17,
+      0.0,
+      0.35
+     ],
+     "quaternion": [
+      0.0,
+      1.0,
+      0.0,
+      6.123233995736766e-17
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_df390092a4a45bc3180c40623d30ce68",
+   "depth": {
+    "confidenceAsset": "asset_657fe8bcaf80e8a174c892778b32743f",
+    "depthAsset": "asset_7837772376eb27218a7726dc69e183b1"
+   }
+  },
+  {
+   "image": "v-12.jpg",
+   "view": {
+    "pos": [
+     -0.3031088913245535,
+     0.0,
+     -0.17500000000000002
+    ],
+    "yaw": 60,
+    "pitch": -45
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.3031088913245535,
+      0.0,
+      -0.17500000000000002
+     ],
+     "quaternion": [
+      -0.3314135740355918,
+      0.4619397662556433,
+      0.19134171618254486,
+      0.8001031451912656
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_edacad25fc2163b968d37fad98fa1550",
+   "depth": {
+    "confidenceAsset": "asset_311c5125039b522a6adb24578c48142a",
+    "depthAsset": "asset_da87196fbd8aa5ef1bee97f340e5dcb6"
+   }
+  },
+  {
+   "image": "v-13.jpg",
+   "view": {
+    "pos": [
+     -0.30310889132455354,
+     0.0,
+     0.1749999999999999
+    ],
+    "yaw": 120,
+    "pitch": -45
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.30310889132455354,
+      0.0,
+      0.1749999999999999
+     ],
+     "quaternion": [
+      -0.19134171618254495,
+      0.8001031451912655,
+      0.3314135740355918,
+      0.4619397662556435
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_ce41a3f2aa4dc626115ba39e87ad44e1",
+   "depth": {
+    "confidenceAsset": "asset_0a10ace295454444fea75d19fbd82c9b",
+    "depthAsset": "asset_1d97a8a1704a5ef30bd6cbb0289586a1"
+   }
+  },
+  {
+   "image": "v-14.jpg",
+   "view": {
+    "pos": [
+     -4.286263797015736e-17,
+     0.0,
+     0.35
+    ],
+    "yaw": 180,
+    "pitch": -45
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -4.286263797015736e-17,
+      0.0,
+      0.35
+     ],
+     "quaternion": [
+      -2.3432602026631493e-17,
+      0.9238795325112867,
+      0.3826834323650898,
+      5.657130561438501e-17
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_ee88c800e634b6d7aa4356f0c11feba7",
+   "depth": {
+    "confidenceAsset": "asset_8a525ec1839d94017814af489bcb6b9e",
+    "depthAsset": "asset_4f937d274a4bc9646cbb5d454936e152"
+   }
+  },
+  {
+   "image": "v-15.jpg",
+   "view": {
+    "pos": [
+     0.30310889132455354,
+     0.0,
+     0.1749999999999999
+    ],
+    "yaw": -120,
+    "pitch": -45
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.30310889132455354,
+      0.0,
+      0.1749999999999999
+     ],
+     "quaternion": [
+      -0.19134171618254495,
+      -0.8001031451912655,
+      -0.3314135740355918,
+      0.4619397662556435
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_839cb214bfc7a437ae3025534ff594f8",
+   "depth": {
+    "confidenceAsset": "asset_cead0942cd8ec33e00e2dc29eaf5e7f4",
+    "depthAsset": "asset_589d6f38dbeee47e9b9cced1c0fdcb0c"
+   }
+  },
+  {
+   "image": "v-16.jpg",
+   "view": {
+    "pos": [
+     0.3031088913245535,
+     0.0,
+     -0.17500000000000002
+    ],
+    "yaw": -60,
+    "pitch": -45
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.3031088913245535,
+      0.0,
+      -0.17500000000000002
+     ],
+     "quaternion": [
+      -0.3314135740355918,
+      -0.4619397662556433,
+      -0.19134171618254486,
+      0.8001031451912656
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_1ad323bfe61dfc838c5a7dddcbac3a60",
+   "depth": {
+    "confidenceAsset": "asset_30685af50771c74277f9646ab9b1710f",
+    "depthAsset": "asset_39b77f29a904abe1e2cda1fd8f323104"
+   }
+  },
+  {
+   "image": "v-17.jpg",
+   "view": {
+    "pos": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "yaw": 0,
+    "pitch": 35
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -0.35
+     ],
+     "quaternion": [
+      0.3007057995042731,
+      0.0,
+      0.0,
+      0.9537169507482269
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_e18f5c35dfc782b593c42b635da9194f",
+   "depth": {
+    "confidenceAsset": "asset_08772bbd5028c1e614719ca05df2534f",
+    "depthAsset": "asset_1f036dfc594098c2d422660bc0c13740"
+   }
+  },
+  {
+   "image": "v-18.jpg",
+   "view": {
+    "pos": [
+     -0.35,
+     0.0,
+     -2.143131898507868e-17
+    ],
+    "yaw": 90,
+    "pitch": 35
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.35,
+      0.0,
+      -2.143131898507868e-17
+     ],
+     "quaternion": [
+      0.2126311099715939,
+      0.6743797232066278,
+      -0.21263110997159387,
+      0.6743797232066279
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_e56b811b8046a08006d6865d2e56bade",
+   "depth": {
+    "confidenceAsset": "asset_9c615aba164faf4a87d914387fd50e58",
+    "depthAsset": "asset_b17f036ec1a64af7f861765cdd4f747e"
+   }
+  },
+  {
+   "image": "v-19.jpg",
+   "view": {
+    "pos": [
+     -4.286263797015736e-17,
+     0.0,
+     0.35
+    ],
+    "yaw": 180,
+    "pitch": 35
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -4.286263797015736e-17,
+      0.0,
+      0.35
+     ],
+     "quaternion": [
+      1.841291974239769e-17,
+      0.9537169507482269,
+      -0.3007057995042731,
+      5.83983205513195e-17
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_2f2ea739583a27ada336725d3e20efb2",
+   "depth": {
+    "confidenceAsset": "asset_82f439f451bb209a2900e07e98c834a6",
+    "depthAsset": "asset_093522ebbdb502e8bf951e2dd6a77f77"
+   }
+  },
+  {
+   "image": "v-20.jpg",
+   "view": {
+    "pos": [
+     0.35,
+     0.0,
+     -2.143131898507868e-17
+    ],
+    "yaw": -90,
+    "pitch": 35
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.35,
+      0.0,
+      -2.143131898507868e-17
+     ],
+     "quaternion": [
+      0.2126311099715939,
+      -0.6743797232066278,
+      0.21263110997159387,
+      0.6743797232066279
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_205abdf4bcc052219537b0e30933256d",
+   "depth": {
+    "confidenceAsset": "asset_a5237a515a97d73200da8cf9f6f26bd6",
+    "depthAsset": "asset_d92b216fde2ac2804f8c8e4828512801"
+   }
+  },
+  {
+   "image": "v-21.jpg",
+   "view": {
+    "pos": [
+     0.0,
+     0.0,
+     -0.2
+    ],
+    "yaw": 0,
+    "pitch": 70
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -0.2
+     ],
+     "quaternion": [
+      0.573576436351046,
+      0.0,
+      0.0,
+      0.8191520442889918
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_9d85d93571d2bd93327156ff12bf91b0",
+   "depth": {
+    "confidenceAsset": "asset_7a1eb4b2fb1ead97c07a3ca3cd07d3e5",
+    "depthAsset": "asset_25376cd74df66fe7dee55a9e136be04c"
+   }
+  },
+  {
+   "image": "v-22.jpg",
+   "view": {
+    "pos": [
+     -2.4492935982947065e-17,
+     0.0,
+     0.2
+    ],
+    "yaw": 180,
+    "pitch": 70
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -2.4492935982947065e-17,
+      0.0,
+      0.2
+     ],
+     "quaternion": [
+      3.5121427342182706e-17,
+      0.8191520442889918,
+      -0.573576436351046,
+      5.015859645267624e-17
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_86416b264f534679d5c3fa76898be249",
+   "depth": {
+    "confidenceAsset": "asset_6d56d999cb51eabe323cfe845470ee0c",
+    "depthAsset": "asset_032cbd83e7b9425bd3b552d7b953ca1d"
+   }
+  },
+  {
+   "image": "v-23.jpg",
+   "view": {
+    "pos": [
+     -0.0,
+     0.0,
+     -1.2
+    ],
+    "yaw": 0.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -1.2
+     ],
+     "quaternion": [
+      -0.10452846326765347,
+      0.0,
+      0.0,
+      0.9945218953682733
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_2a638af24bbbd6bc0556663c9c146fc7",
+   "depth": {
+    "confidenceAsset": "asset_2ef7d443b448633ab657a854e7daff6a",
+    "depthAsset": "asset_f45d9e2065a719e4a2c559ac6b88f3c6"
+   }
+  },
+  {
+   "image": "v-24.jpg",
+   "view": {
+    "pos": [
+     -0.0,
+     0.0,
+     -1.2
+    ],
+    "yaw": 70.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -1.2
+     ],
+     "quaternion": [
+      -0.08562470437208512,
+      0.570434324618422,
+      0.0599550634583119,
+      0.8146646436810838
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_3fd325379dc53b35f457d8ec1ea74cf4",
+   "depth": {
+    "confidenceAsset": "asset_2a61ce11da491170f3823f3e8a0a0d0d",
+    "depthAsset": "asset_0ba224d71712449345fc035b170061b9"
+   }
+  },
+  {
+   "image": "v-25.jpg",
+   "view": {
+    "pos": [
+     0.0,
+     0.0,
+     -1.2
+    ],
+    "yaw": -70.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -1.2
+     ],
+     "quaternion": [
+      -0.08562470437208512,
+      -0.570434324618422,
+      -0.0599550634583119,
+      0.8146646436810838
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_e7ffe501ce9a4b8b23a61553f08f9960",
+   "depth": {
+    "confidenceAsset": "asset_a21a79f14777bb2e6f59e2481b1d7052",
+    "depthAsset": "asset_57217cbfb474eea82966987794ac0a98"
+   }
+  },
+  {
+   "image": "v-26.jpg",
+   "view": {
+    "pos": [
+     -0.0,
+     0.0,
+     -1.2
+    ],
+    "yaw": 180.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -1.2
+     ],
+     "quaternion": [
+      -6.400522398026175e-18,
+      0.9945218953682733,
+      0.10452846326765347,
+      6.089690279223575e-17
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_ebff2003c035eb5289b18d8ff7a304eb",
+   "depth": {
+    "confidenceAsset": "asset_ee52b1a5f5db25c1f2fdcf3728f8f440",
+    "depthAsset": "asset_e506a3b8d8e3b7973b1a98f1ff284303"
+   }
+  },
+  {
+   "image": "v-27.jpg",
+   "view": {
+    "pos": [
+     -1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": 90.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.07391278520356671,
+      0.7032331762534041,
+      0.0739127852035667,
+      0.7032331762534042
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_229f467626c5dae000a0274c4d0448d3",
+   "depth": {
+    "confidenceAsset": "asset_04d016f8dbbe85eb77c89fdb805ac86f",
+    "depthAsset": "asset_ef0273fef694e4c56b69fb0ebb568fad"
+   }
+  },
+  {
+   "image": "v-28.jpg",
+   "view": {
+    "pos": [
+     -1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": 160.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.0181511771607527,
+      0.9794128730990714,
+      0.10294044103643694,
+      0.1726969147805623
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_ac11db335db0abe484e15e1ac89bcd14",
+   "depth": {
+    "confidenceAsset": "asset_0c88082111db0d6ba753d668584a2c97",
+    "depthAsset": "asset_67ebbf5b179a879adeb9f0eb442d2c02"
+   }
+  },
+  {
+   "image": "v-29.jpg",
+   "view": {
+    "pos": [
+     -1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": 20.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.10294044103643694,
+      0.1726969147805622,
+      0.01815117716075269,
+      0.9794128730990714
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_1fb347eb91e23a151042a38f51833f2c",
+   "depth": {
+    "confidenceAsset": "asset_c617aa9d6bb0d72f36461c973152870b",
+    "depthAsset": "asset_ce28cbc8739030fda56c723790efa8db"
+   }
+  },
+  {
+   "image": "v-30.jpg",
+   "view": {
+    "pos": [
+     -1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": 270.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      0.0739127852035667,
+      0.7032331762534042,
+      0.07391278520356671,
+      -0.7032331762534041
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_d26f380ce2a68bd4b661cd64304b6ab9",
+   "depth": {
+    "confidenceAsset": "asset_565b846e969b97772bf562569a7e3e60",
+    "depthAsset": "asset_7aff2e64a739b254507ff168efe4152f"
+   }
+  },
+  {
+   "image": "v-31.jpg",
+   "view": {
+    "pos": [
+     1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": -90.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.07391278520356671,
+      -0.7032331762534041,
+      -0.0739127852035667,
+      0.7032331762534042
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_0a8e08aff712478d3cc1ca5233aed08c",
+   "depth": {
+    "confidenceAsset": "asset_418e6212d57af9f792346b11d5a13c13",
+    "depthAsset": "asset_0b7b93ac02757acf934c50342c6dcbe2"
+   }
+  },
+  {
+   "image": "v-32.jpg",
+   "view": {
+    "pos": [
+     1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": -20.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.10294044103643694,
+      -0.1726969147805622,
+      -0.01815117716075269,
+      0.9794128730990714
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_1827603af48165be6c02426918bf21f9",
+   "depth": {
+    "confidenceAsset": "asset_6dfe5b29d98388f7125ff80c8c0d0364",
+    "depthAsset": "asset_28ed2b1af24c542dc783f7708376fd2e"
+   }
+  },
+  {
+   "image": "v-33.jpg",
+   "view": {
+    "pos": [
+     1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": -160.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.0181511771607527,
+      -0.9794128730990714,
+      -0.10294044103643694,
+      0.1726969147805623
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_fd8e3f49b9d0f9296b16a4e8b4cc97a6",
+   "depth": {
+    "confidenceAsset": "asset_2f9aa6016d7032593aaf3c1ad41f8026",
+    "depthAsset": "asset_b70649e05635b76078361f6188a7e6df"
+   }
+  },
+  {
+   "image": "v-34.jpg",
+   "view": {
+    "pos": [
+     1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": 90.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.07391278520356671,
+      0.7032331762534041,
+      0.0739127852035667,
+      0.7032331762534042
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_a4145832760327e26e9e63ab02887f32",
+   "depth": {
+    "confidenceAsset": "asset_1edbf0c4309a3148dcfcf96c896808c1",
+    "depthAsset": "asset_77d9d39cb2ef1cc647820b2e56699286"
+   }
+  },
+  {
+   "image": "v-35.jpg",
+   "view": {
+    "pos": [
+     -1.4695761589768238e-16,
+     0.0,
+     1.2
+    ],
+    "yaw": 180.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.4695761589768238e-16,
+      0.0,
+      1.2
+     ],
+     "quaternion": [
+      -6.400522398026175e-18,
+      0.9945218953682733,
+      0.10452846326765347,
+      6.089690279223575e-17
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_6e0570097e62b8edc4f821be809cc371",
+   "depth": {
+    "confidenceAsset": "asset_74c524804ccbfcfa8ba343fe0ae0ef47",
+    "depthAsset": "asset_bb8fe5163994b99c56d0b83fbdc27290"
+   }
+  },
+  {
+   "image": "v-36.jpg",
+   "view": {
+    "pos": [
+     -1.4695761589768238e-16,
+     0.0,
+     1.2
+    ],
+    "yaw": 250.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.4695761589768238e-16,
+      0.0,
+      1.2
+     ],
+     "quaternion": [
+      0.059955063458311905,
+      0.8146646436810837,
+      0.08562470437208512,
+      -0.5704343246184221
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_0f83b875ffa485e2763fe3ce9d0f7d84",
+   "depth": {
+    "confidenceAsset": "asset_161bfe26dfe5be802ce801dec1e4352f",
+    "depthAsset": "asset_248b0e328c5d9569cb356ee184762424"
+   }
+  },
+  {
+   "image": "v-37.jpg",
+   "view": {
+    "pos": [
+     -1.4695761589768238e-16,
+     0.0,
+     1.2
+    ],
+    "yaw": 110.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.4695761589768238e-16,
+      0.0,
+      1.2
+     ],
+     "quaternion": [
+      -0.059955063458311905,
+      0.8146646436810838,
+      0.08562470437208512,
+      0.5704343246184221
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_80a5575996e4cba68cd885e6282bd92c",
+   "depth": {
+    "confidenceAsset": "asset_8c639c65fc377af0b6d4f18acc87a383",
+    "depthAsset": "asset_6fe772a5c9ba2baa50789f8eefae7f8e"
+   }
+  },
+  {
+   "image": "v-38.jpg",
+   "view": {
+    "pos": [
+     -1.4695761589768238e-16,
+     0.0,
+     1.2
+    ],
+    "yaw": 360.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.4695761589768238e-16,
+      0.0,
+      1.2
+     ],
+     "quaternion": [
+      0.10452846326765347,
+      1.217938055844715e-16,
+      1.280104479605235e-17,
+      -0.9945218953682733
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 674.267769981833,
+     "fy": 674.267769981833,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_583e7cbcb53ac3d5fed40d66faddcb64",
+   "depth": {
+    "confidenceAsset": "asset_ed3dd481ef07bc3737094148256c85ef",
+    "depthAsset": "asset_2513ca7a9544125ada81c35a9109db95"
+   }
+  }
+ ]
+}

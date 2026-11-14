@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_4081c93952e5cdf966f3ec82782dfa6d"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_02316500c90bc4096ab9b783b9019a8f"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 1435.828857421875,
+     "fy": 1435.416259765625,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 674.267769981833,
+    "fy": 674.267769981833,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 674.267769981833,
+    "fy": 674.267769981833,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 674.267769981833,
+    "fy": 674.267769981833,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 674.267769981833,
+    "fy": 674.267769981833,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 674.267769981833,
+    "fy": 674.267769981833,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 674.267769981833,
+    "fy": 674.267769981833,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 674.267769981833,
+    "fy": 674.267769981833,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic painterly game environment view of an ancient Chinese village herbalist's house, filled with medicine drawers, hanging herbs, and a simmering clay pot.\",\"scene\":\"A highly detailed, semi-realistic painterly game environment depicts the interior of an ancient Chinese village herbalist's house with no people present. A tall wooden medicine cabinet with hundreds of tiny labelled drawers dominates the back wall, while bundles of drying herbs and roots hang densely from dark ceiling beams. In the foreground, brass scales, folded paper packets, baskets of ginseng and mushrooms, and a stone mortar and pestle crowd a worn counter; a clay stove supports a gently simmering medicine pot beside a simple patient cot.\",\"subjects\":[{\"name\":\"wooden medicine cabinet\",\"description\":\"A towering apothecary cabinet composed of hundreds of small square drawers, each with a small pale paper label and a dark pull handle.\",\"action_or_state\":\"static\",\"appearance\":\"aged dark elm wood, densely gridded drawer fronts, worn edges, faint dust in the crevices, irregular handwritten-looking drawer labels without legible text\",\"position_or_relationship\":\"occupying most of the rear wall as the central focal structure\"},{\"name\":\"hanging herbs and roots\",\"description\":\"Dense bundles of medicinal leaves, roots, seed heads, and bark strips tied with twine.\",\"action_or_state\":\"hanging motionless from the ceiling beams\",\"appearance\":\"muted sage leaves, tan roots, dried brown stems, pale fibrous ginseng roots, rough natural textures\",\"position_or_relationship\":\"suspended overhead across the upper half of the room in front of and beside the medicine cabinet\"},{\"name\":\"herbalist counter\",\"description\":\"A broad, worn wooden preparation counter holding medicine-making tools and ingredients.\",\"action_or_state\":\"static\",\"appearance\":\"dark scratched wood covered with brass balance scales, folded paper packets, small ceramic bowls, a stone mortar and pestle, and loose dried plant fragments\",\"position_or_relationship\":\"stretching across the foreground, slightly left of center\"},{\"name\":\"clay stove and medicine pot\",\"description\":\"A low clay stove with a round-bellied earthenware pot heating herbal medicine.\",\"action_or_state\":\"the pot is gently simmering, releasing a thin plume of steam\",\"appearance\":\"soot-darkened terracotta stove, brown glazed clay pot, glowing orange embers visible through the fire opening\",\"position_or_relationship\":\"on the right side of the room beside the counter and near the patient cot\"},{\"name\":\"patient cot\",\"description\":\"A narrow wooden cot prepared for visiting patients.\",\"action_or_state\":\"empty and static\",\"appearance\":\"simple timber frame, thin woven mat, folded muted indigo blanket, small cylindrical headrest\",\"position_or_relationship\":\"set along the right wall beneath shelves of medicinal jars\"}],\"setting\":\"The room is a compact rural herbalist workshop inside an ancient Chinese village house, built with timber posts, plastered earthen walls, and dark exposed roof beams. A latticed paper window on the left admits soft daylight, while shelves of glazed jars line the side walls and woven baskets of ginseng and mushrooms rest beneath the counter.\",\"composition\":\"A wide eye-level view from the middle of the room, with the medicine cabinet centered on the far wall and the counter forming a layered foreground. Hanging herbs frame the upper view, while the glowing stove and cot balance the right side of the composition.\",\"style\":\"Semi-realistic painterly game environment art with crisp, sharply resolved surface detail and hand-painted atmospheric depth. The image is an unoccupied interior environment designed as a believable historical apothecary space.\",\"lighting\":\"Warm amber lamplight pools across the counter, clay stove, and lower cabinet drawers, while cool diffused daylight enters through the paper window at left. The mixed light creates soft directional shadows, subtle steam highlights, and warm reflections on the brass scales.\",\"color_palette\":[\"aged walnut brown\",\"warm amber\",\"muted sage green\",\"earthy terracotta\",\"smoky tan\",\"dusty indigo\",\"soft paper cream\",\"brass gold\"],\"materials_and_textures\":\"Rough-grained aged timber, cracked earthen plaster, fibrous dried roots, brittle leaves, woven bamboo baskets, matte paper packets, tarnished brass, porous stone, and glazed ceramic jars are rendered with sharp tactile detail. A faint layer of herbal dust softens the counter and floorboards.\",\"mood\":\"warm, medicinal, rustic, orderly, quietly lived-in\",\"supporting_details\":\"Rows of corked ceramic and glass jars occupy narrow wall shelves, with their contents visible as dried leaves, seeds, powders, and twisted roots. Woven baskets beneath the counter hold pale ginseng and dark clustered mushrooms. Steam curls above the medicine pot, and a few dried leaves are scattered across the floorboards near the stove.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"Small paper labels are attached to the medicine drawers and jars, but their markings remain non-legible decorative brushlike strokes with no readable text.\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}
