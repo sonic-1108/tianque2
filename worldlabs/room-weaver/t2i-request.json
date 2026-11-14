@@ -1,0 +1,7 @@
+{
+ "prompt": "Inside a weaver's house in an ancient Chinese mountain village: a large wooden loom with a half woven bolt of blue silk, a spinning wheel, baskets of silk cocoons and spools of coloured thread, bolts of dyed cloth hanging from bamboo poles across the room, an embroidery frame by a lattice window, a neat bed with a patterned quilt, soft daylight and warm lamp light. Highly detailed, sharp textures, semi-realistic painterly game environment art, wide eye-level view from the middle of the room, no people.",
+ "aspectRatio": "16:9",
+ "returnDepth": true,
+ "numSamples": 4,
+ "seed": 52
+}
