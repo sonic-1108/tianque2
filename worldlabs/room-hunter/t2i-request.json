@@ -1,0 +1,7 @@
+{
+ "prompt": "Inside a hunter's log cabin in an ancient Chinese mountain village: deer antlers and tanned pelts on rough plank walls, hunting bows, quivers and spears on racks, a stone hearth with a crackling fire and a hanging iron pot, strings of dried meat and herbs under the beams, a fur covered bed, traps and snares piled in a corner, a heavy wooden table with a skinning knife, warm firelight and daylight from a small window. Highly detailed, sharp textures, semi-realistic painterly game environment art, wide eye-level view from the middle of the room, no people.",
+ "aspectRatio": "16:9",
+ "returnDepth": true,
+ "numSamples": 4,
+ "seed": 51
+}
