@@ -281,11 +281,12 @@ def stage_world():
     ring = [f for f in allf if f['_view']['pitch'] == 0][:11]
     r3 = []
     R = float(SPEC.get('walk', 3.0))
-    for out in (0, 90, -90, 180):
-        b = fwd(out)
-        base = (b[0] * R, 0.0, b[2] * R)
+    # standpoints: a ring of four at R, or the spec's own (x, z) list (a corridor walks along its length)
+    stands = SPEC.get('stands') or [[fwd(o)[0] * R, fwd(o)[2] * R] for o in (0, 90, -90, 180)]
+    for sx, sz in stands:
+        out = math.degrees(math.atan2(-sx, -sz)) if math.hypot(sx, sz) > 1e-6 else 0.0
         for dy in (0, 70, -70, 180):
-            r3.append(view(out + dy, -12, 0.0, base))
+            r3.append(view(out + dy, -12, 0.0, (sx, 0.0, sz)))
     allf += gen_round(rig, ring, r3, prompt, 'gen3')
     # keep every view for review
     scene = {'prompt': prompt, 'frames': []}
