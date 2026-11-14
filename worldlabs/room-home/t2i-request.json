@@ -1,0 +1,7 @@
+{
+ "prompt": "Inside a modest but cosy village house in ancient China that someone has just moved into: a wooden bed with a fresh quilt, a weapon and armour rack on the wall holding a sword and a leather coat, a wooden chest, a square table and stools, a clay stove with a kettle, a lattice window, a few potted plants, a swept wooden floor, warm lamp light. Highly detailed, sharp textures, semi-realistic painterly game environment art, wide eye-level view from the middle of the room, no people.",
+ "aspectRatio": "16:9",
+ "returnDepth": true,
+ "numSamples": 4,
+ "seed": 62
+}
