@@ -1,0 +1,7 @@
+{
+ "prompt": "Standing inside a vast frozen cave that has swallowed an ancient Chinese mountain temple. Walls and a vaulted ceiling of translucent blue glacier ice hung with thick icicles; a colossal seated stone Buddha, half encased in ice, fills the far end; broken red lacquered timber pillars, a collapsed temple roof with curved glazed tiles and carved wooden brackets, stone lanterns, a bronze incense cauldron, tattered prayer banners stiff with frost, scattered sutra scrolls; a shaft of pale daylight falls through a crack in the ceiling onto a flat stone-paved floor dusted with snow; faint blue glow inside the ice, low cold mist. Highly detailed, sharp textures, semi-realistic painterly game environment art, wide eye-level view from the middle of the floor, no people.",
+ "aspectRatio": "16:9",
+ "returnDepth": true,
+ "numSamples": 4,
+ "seed": 31
+}
