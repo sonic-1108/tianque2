@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_9a053de074d928fce1f4cfa8a326f302"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_e7ad4f493b4b01fca26142bb54e9fd8e"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 1487.5970458984375,
+     "fy": 1487.169677734375,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 698.5782275480383,
+    "fy": 698.5782275480383,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 698.5782275480383,
+    "fy": 698.5782275480383,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 698.5782275480383,
+    "fy": 698.5782275480383,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 698.5782275480383,
+    "fy": 698.5782275480383,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 698.5782275480383,
+    "fy": 698.5782275480383,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 698.5782275480383,
+    "fy": 698.5782275480383,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 698.5782275480383,
+    "fy": 698.5782275480383,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic painterly game-environment view of an old village elder\u2019s timber house in an ancient Chinese mountain village, empty and softly lit by daylight and oil lamps.\",\"scene\":\"An empty, modest timber house belonging to an old village elder in an ancient Chinese mountain village, viewed at eye level from the middle of the room. A low writing desk rests beneath a large faded hand-painted map of a palace on a cliff, pinned to a cracked plaster wall. An old empty wooden cradle stands beside a partially concealed bed, while a camphor chest, clay stove with an iron kettle, drying gourds, straw raincoat, carved lattice window, oil lamps, and worn reed mats establish a lived-in rural interior.\",\"subjects\":[{\"name\":\"writing desk and palace map\",\"description\":\"A low, dark wooden writing desk beneath a large hand-painted wall map depicting a palace perched on a sheer cliff.\",\"action_or_state\":\"static, with the map visibly faded and pinned at its corners\",\"appearance\":\"the desk has worn edges, ink stains, a small brush rest, and uneven wood grain; the map is parchment-toned with muted mineral-pigment ink, curled edges, and age stains\",\"position_or_relationship\":\"centered on the back plaster wall, forming the main focal point of the room\"},{\"name\":\"wooden cradle\",\"description\":\"An old empty wooden cradle with rounded rockers and simple hand-cut joinery.\",\"action_or_state\":\"static\",\"appearance\":\"weathered brown wood, softly polished by age, with an empty faded cloth lining\",\"position_or_relationship\":\"beside the bed on the right side of the room\"},{\"name\":\"bed and folding screen\",\"description\":\"A low wooden bed half hidden behind a folding paper screen.\",\"action_or_state\":\"static\",\"appearance\":\"a rough indigo quilt and flattened linen pillow are visible through the gap; the screen has aged cream paper panels in a dark wooden frame, patched and slightly bowed\",\"position_or_relationship\":\"recessed into the right-rear corner behind the cradle and screen\"},{\"name\":\"clay stove and iron kettle\",\"description\":\"A squat clay stove holding a blackened iron kettle.\",\"action_or_state\":\"the kettle is warming over a small contained ember glow\",\"appearance\":\"the stove is soot-stained reddish clay; the kettle has a rounded body, arched handle, and dark matte iron surface\",\"position_or_relationship\":\"left of the writing desk near the lattice window\"},{\"name\":\"camphor chest\",\"description\":\"A rectangular camphor-wood storage chest with a heavy lid and dark iron fittings.\",\"action_or_state\":\"static, closed\",\"appearance\":\"honey-brown wood with carved floral corner motifs, scuffs, and a dulled brass latch\",\"position_or_relationship\":\"placed in the foreground near the foot of the partially screened bed\"}],\"setting\":\"A single-room rural timber interior with heavy exposed beams, irregular plaster walls, and a packed earth floor covered in worn reed mats. The carved lattice window overlooks an unseen mountain village and admits pale daylight into the otherwise warm, enclosed room.\",\"composition\":\"Wide eye-level view from the center of the room, with the writing desk and cliff-palace map anchored on the rear wall. The clay stove and window create a left-side light source, while the screen, cradle, bed, and chest layer the right side; open reed-mat floor occupies the foreground.\",\"style\":\"Semi-realistic painterly game environment art with sharply resolved hand-painted textures, grounded historical detail, and deliberate environmental storytelling. Brushwork is controlled and tactile, with realistic proportions and softly stylized edges.\",\"lighting\":\"Soft cool daylight filters through the carved lattice window, casting geometric shadow patterns across the earth floor and reed mats. Small warm oil lamps and the ember-lit clay stove create amber pools of light, gentle reflections on the kettle, and soft shadowed corners.\",\"color_palette\":[\"aged timber brown\",\"warm amber\",\"faded parchment beige\",\"muted indigo\",\"soot black\",\"reddish clay\",\"dusty plaster gray\",\"soft daylight blue\"],\"materials_and_textures\":\"Rough timber beams show splits, knots, and darkened grain; the plaster wall is cracked, chalky, and patched. Reed mats are frayed and flattened, the packed earth floor is dusty and uneven, and the paper screen has fibrous translucency and repaired tears. Iron, clay, worn wood, dried gourd skins, and straw fibers each retain distinct tactile surfaces.\",\"mood\":\"quiet, aged, humble, historically grounded, warmly sheltered\",\"supporting_details\":\"Dried gourds and a straw raincoat hang from wooden wall hooks beside the doorframe. Two small oil lamps sit on a shelf and desk corner, their flames contained in shallow ceramic dishes. A rolled sleeping mat, a pair of simple cloth shoes, and faint ash scattered around the stove add restrained domestic detail without introducing people.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}
