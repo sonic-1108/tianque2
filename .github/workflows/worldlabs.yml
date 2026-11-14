@@ -4,6 +4,8 @@
 #   action=task    POST /tasks:<task> with <body> (JSON), wait for the operation, download every asset in its result
 #                  and keep them on the worldlabs branch under worldlabs/<name>/ (with the request and the result JSON)
 #   action=fetch   download the results of an operation already submitted (<operation> id) the same way
+#   action=scene   tools/atlas/scene.py with <body> as its spec (stage t2i, world or mesh): a walkable splat place,
+#                  every step kept on the worldlabs branch under worldlabs/<name>/ (even when a step fails)
 # Run: gh api -X POST repos/sonic-1108/tianque2/actions/workflows/worldlabs.yml/dispatches -f ref=main \
 #        -f 'inputs[action]=check'
 name: World Labs Atlas
@@ -11,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: check, task or fetch
+        description: check, task, fetch or scene
         default: check
       task:
         description: atlasTextToImage, atlasGenerate, images2PosedRGBD, posedImages2Splats, splats2Mesh, atlasChisel
@@ -59,14 +61,25 @@ jobs:
             exit 0
           fi
           mkdir -p out
+          if [ "$ACTION" = scene ]; then
+            mkdir -p prev
+            if git ls-remote --exit-code origin worldlabs >/dev/null; then
+              git fetch -q origin worldlabs
+              for f in t2i.json scene.json; do git show "origin/worldlabs:worldlabs/$NAME/$f" > "prev/$f" 2>/dev/null || rm -f "prev/$f"; done
+            fi
+            SPEC="$BODY" OUT=out PREV=prev python3 tools/atlas/scene.py
+            ls -la out
+            exit 0
+          fi
           if [ "$ACTION" = task ]; then
             echo "$TASK" | grep -Eq '^[A-Za-z0-9]+$' || { echo "bad task"; exit 1; }
             echo "$BODY" | jq . > out/request.json
             res=$(curl -sS -X POST "$API/tasks:$TASK" -H "WLT-Api-Key: $KEY" -H 'Content-Type: application/json' -H "Idempotency-Key: $(uuidgen)" -d @out/request.json)
-            OP=$(echo "$res" | jq -r '.name // .id // empty' | sed 's#^operations/##')
+            OP=$(echo "$res" | jq -r '.id // .name // empty' | sed 's#.*operations/##')
             [ -n "$OP" ] || { echo "submit failed: $res"; exit 1; }
             echo "operation $OP"
           fi
+          OP=$(echo "$OP" | sed 's#.*operations/##')
           [ -n "$OP" ] || { echo "no operation"; exit 1; }
           # wait: a 404 just after submitting is normal; poll every 15 s up to two hours
           for i in $(seq 1 480); do
@@ -91,13 +104,14 @@ jobs:
           done
           ls -la out
       - name: Keep it on the worldlabs branch
-        if: inputs.action != 'check'
+        if: always() && inputs.action != 'check'
         env:
           NAME: ${{ inputs.name }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          [ -d out ] && [ -n "$(ls -A out)" ] || { echo "nothing to keep"; exit 0; }
           mv out /tmp/out
           if git ls-remote --exit-code origin worldlabs >/dev/null; then git fetch origin worldlabs; git checkout -B worldlabs origin/worldlabs; else git checkout --orphan worldlabs; git rm -rfq .; fi
           mkdir -p "worldlabs/$NAME" && cp /tmp/out/* "worldlabs/$NAME/"
