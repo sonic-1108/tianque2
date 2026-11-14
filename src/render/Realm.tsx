@@ -36,18 +36,22 @@ function bar(name: string) {
 }
 
 function meshFor(R: Realm) {
-  let m = meshes.get(R.id);
-  if (m) return m;
-  const b = bar(R.name);
-  m = new SplatMesh({
-    url: import.meta.env.BASE_URL + R.url,
-    onProgress: (e: ProgressEvent) => b.set(e.total ? e.loaded / e.total : 0, e.loaded / 1048576),
-    onLoad: () => {
-      loaded.add(R.id);
-      b.done();
-    },
-  });
-  m.initialized.catch(() => b.done());
+  // one mesh per file (the seven inns share theirs), set where this room wants it each time it's shown
+  let m = meshes.get(R.url);
+  if (!m) {
+    const b = bar(R.name);
+    const url = R.url;
+    m = new SplatMesh({
+      url: import.meta.env.BASE_URL + url,
+      onProgress: (e: ProgressEvent) => b.set(e.total ? e.loaded / e.total : 0, e.loaded / 1048576),
+      onLoad: () => {
+        loaded.add(url);
+        b.done();
+      },
+    });
+    m.initialized.catch(() => b.done());
+    meshes.set(url, m);
+  }
   // the capture point to (ox, 0, oz): the file's floor there is `eye` under its origin; a file stored y down turns
   // over, then the grid's levelling turn makes its floor flat (floor.py worked out both)
   m.position.set(R.ox, R.grid.eye * R.scale, R.oz);
@@ -56,7 +60,7 @@ function meshFor(R: Realm) {
   if (R.grid.flip) q.multiply(new THREE.Quaternion(1, 0, 0, 0));
   m.quaternion.copy(q);
   m.scale.setScalar(R.scale);
-  meshes.set(R.id, m);
+  m.updateMatrixWorld(true);
   return m;
 }
 
@@ -130,4 +134,4 @@ export function RealmScene({ room, sim }: { room: Room; sim: Sim }) {
 }
 
 /** for tests: has this realm's splat finished loading */
-(globalThis as any).__T2_REALM_LOADED = (id: string) => loaded.has(id);
+(globalThis as any).__T2_REALM_LOADED = (id: string) => loaded.has(realmById(id)?.url ?? `splats/${id}.spz`);

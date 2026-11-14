@@ -11,7 +11,8 @@ import { DAY_S } from './clock';
 import { playerMaxHp, playerPower, save, type Progress } from './progress';
 import { addTitle, bag, done, earn, giveXp, purse } from './play';
 import { HOME, HOME_YARD, WALL_R } from './village';
-import { ROOMS, inRoom } from './interiors';
+import { ROOMS, inRoom, roomRealm } from './interiors';
+import { openSpots } from './realms';
 import { CT_POS, ctWorld } from './court';
 import { mapWater } from './mapsample';
 import { okSpot, type Animal } from './animals';
@@ -721,16 +722,19 @@ export function buyHome(s: Sim) {
   s.chron('你在青石村买下了一间屋子，有了自己的家。', '听说你在村里安了家？好，好，往后就是一家人了。');
   save(P);
 }
-export function bedSpot(): [number, number] {
+/** the bed and the rack: the built room's, or in a splat room the spots worked out for it (realms.ts) */
+function homeSpot(k: 'bed' | 'rack'): [number, number] {
   const r = homeRoom();
-  const b = r.furn.find((f) => f.k === 'bed')!;
+  const R = roomRealm(r);
+  if (R) {
+    const sp = R.spots?.[k] ?? openSpots(R, 2)[k === 'bed' ? 0 : 1] ?? R.spawn;
+    return [R.ox + sp[0], R.oz + sp[1]];
+  }
+  const b = r.furn.find((f) => f.k === k)!;
   return inRoom(r, b.x, b.z);
 }
-export function rackSpot(): [number, number] {
-  const r = homeRoom();
-  const b = r.furn.find((f) => f.k === 'rack')!;
-  return inRoom(r, b.x, b.z);
-}
+export const bedSpot = () => homeSpot('bed');
+export const rackSpot = () => homeSpot('rack');
 /** sleep: through the night to dawn, or a few hours by day; never with raiders on the way */
 export function sleep(s: Sim) {
   const c = s.clock, W = s.war;

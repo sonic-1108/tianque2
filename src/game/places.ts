@@ -80,6 +80,10 @@ export const PLACE_PARTS: Record<PlaceKind, PlacePart[]> = {
   jianzhong: [
     { x: 0, z: 0, hx: 1.2, hz: 0.8, h: 2.8 },
     { x: 0, z: 15, hx: 0.7, hz: 0.45, h: 2.8 },
+    // the cleft into 剑冢深处: its two slabs and the dark between
+    { x: -1.75, z: -15.6, hx: 1.2, hz: 0.85, h: 6.5 },
+    { x: 1.75, z: -15.6, hx: 1.2, hz: 0.85, h: 6.5 },
+    { x: 0, z: -16.1, hx: 0.75, hz: 0.15, h: 5.2 },
     posts(0, 0, 3, [
       [-6, -7, 0.4],
       ...Array.from({ length: 6 }, (_, c) => {

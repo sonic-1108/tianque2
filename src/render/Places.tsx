@@ -204,6 +204,29 @@ function jianzhong() {
   // the marker at the edge, facing out (its words are a sign, below)
   b.box('rock', 0, 0, 15, 1.4, 0.4, 0.9);
   b.box('stone', 0, 0.4, 15, 0.9, 2.4, 0.3);
+  // the way into 剑冢深处 (realms.ts, door at local 0, -14): a cleft of two great slabs leaning together, dark between,
+  // rusted blades jammed in its lips and two crossed over the top
+  for (const sx of [-1, 1]) {
+    const slab = new THREE.BoxGeometry(2.2, 6.5, 1.6);
+    slab.rotateZ(-sx * 0.16);
+    slab.rotateY(sx * 0.18);
+    b.add('rock', slab, sx * 1.75, 3.0, -15.6);
+    const foot = new THREE.DodecahedronGeometry(1.1, 0);
+    foot.scale(1.3, 0.7, 1);
+    b.add('rock', foot, sx * 2.6, 0.3, -14.9);
+  }
+  b.box('dark', 0, 0, -16.1, 1.5, 5.2, 0.2);
+  for (let k = 0; k < 8; k++) {
+    const sx = k % 2 ? 1 : -1, y = 0.6 + (k >> 1) * 1.1;
+    const g = new THREE.BoxGeometry(0.1, 1.1, 0.03);
+    g.rotateZ(sx * (1.2 + rnd(k, 21) * 0.4));
+    b.add(rnd(k, 22) < 0.5 ? 'bronze' : 'dark', g, sx * 0.85, y, -15.0);
+  }
+  for (const sx of [-1, 1]) {
+    const g = new THREE.BoxGeometry(0.14, 2.6, 0.04);
+    g.rotateZ(sx * 0.7);
+    b.add('bronze', g, 0, 5.6, -15.2);
+  }
   return b;
 }
 

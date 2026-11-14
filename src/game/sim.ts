@@ -197,7 +197,7 @@ export class Sim {
       this.indoor = r.id;
       this.camSnap = p.yaw;
       this.toast(r.name);
-      if (R && !(this.progress.done as any)['realm:' + R.id]) {
+      if (R?.card && !(this.progress.done as any)['realm:' + R.id]) {
         (this.progress.done as any)['realm:' + R.id] = 1;
         this.pushNote({ title: `秘境 · ${R.name}`, text: R.intro });
       }
@@ -1471,7 +1471,8 @@ export class Sim {
     // whom to go for: you, or a companion who's nearer
     let tg = p;
     {
-      let bd = f.aggro && (p.hp <= 0 || this.indoor >= 0) ? Infinity : d;
+      // in a room you're out of their reach; a splat room (秘境) is a place of its own, and whoever is in it can come for you
+      let bd = f.aggro && (p.hp <= 0 || (this.indoor >= 0 && !ROOMS[this.indoor].realm)) ? Infinity : d;
       for (const al of this.allyList) {
         const da = this.dist(f, al);
         if (da < bd - 1.5) {

@@ -9,7 +9,7 @@ import { TEAHOUSE, fit } from './props';
 import { CT_ROT, HALL_DOOR, ctWorld } from './court';
 import { PLACES, placeAt, type Place } from './places';
 import { FOLK, type Folk } from './places';
-import { REALMS, realmById } from './realms';
+import { REALMS, openSpots, realmById, roomSplat } from './realms';
 
 /** furniture, by what it is: its footprint (half sizes) and height. render/Interiors.tsx draws each kind */
 export const FURN = {
@@ -257,8 +257,27 @@ export const ROOMS: Room[] = (() => {
   add('throne', '金銮殿', ctWorld(HALL_DOOR.lx, HALL_DOOR.lz), CT_ROT);
   // the house you can buy, last so no other room's place moves
   add('home', '你的家', HOME.door, HOME.rot);
+  // a house whose inside Atlas has made: the splat in place of the built room, sized from its grid, on a wider
+  // grid of its own (a splat room can be thirty metres across)
+  for (const r of out) {
+    const R = roomSplat(r.theme, r.id, r.name, r.door, r.doorYaw, 5000 + (r.id % 6) * 90, 5000 + Math.floor(r.id / 6) * 90);
+    if (!R) continue;
+    r.ox = R.ox;
+    r.oz = R.oz;
+    const g = R.grid;
+    r.realm = R.id;
+    r.w = g.nx * g.cell * R.scale;
+    r.d = g.nz * g.cell * R.scale;
+    r.h = g.ceil * R.scale;
+  }
   // the 秘境 after every room (their places are their own, far off the map)
   for (const R of REALMS) {
+    if (R.place) {
+      const P = PLACES.find((q) => q.kind === R.place!.kind);
+      if (!P) continue;
+      R.door = placeAt(P, R.place.at[0], R.place.at[1]);
+      R.doorYaw = P.rot;
+    }
     const g = R.grid, w = g.nx * g.cell * R.scale, d = g.nz * g.cell * R.scale;
     out.push({
       id: out.length, name: R.name, theme: 'realm', ox: R.ox + (g.x0 * R.scale + w / 2), oz: R.oz + (g.z0 * R.scale + d / 2), w, d, h: g.ceil * R.scale,
@@ -312,8 +331,13 @@ export const ROOM_FOLK: (Folk & { room: number })[] = (() => {
   const out: (Folk & { room: number })[] = [];
   const at = (r: Room, lx: number, lz: number) => inRoom(r, lx, lz);
   for (const r of ROOMS) {
+    // in a splat room the built layout's places mean nothing: people take open spots in front of the door instead
+    const R = realmById(r.realm), spots = R ? openSpots(R, 8) : [];
+    let k = 0;
     const put = (name: string, model: string, lx: number, lz: number, lines: string[], extra: Partial<Folk> = {}) => {
-      const [x, z] = at(r, lx, lz);
+      const sp = R && spots.length ? spots[k++ % spots.length] : null;
+      const [x, z] = sp && R ? [R.ox + sp[0], R.oz + sp[1]] : at(r, lx, lz);
+      if (sp) extra = { ...extra, walk: undefined };
       // indoors nobody strolls far (a long stroll climbs bench, then table)
       out.push({ name, model, x, z, lines, room: r.id, ...extra, walk: extra.walk ? Math.min(extra.walk, 0.8) : undefined });
     };

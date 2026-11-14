@@ -11,6 +11,7 @@ import { SNOW_Y, groundHeight } from './world';
 import { FOE_KINDS } from './foes';
 
 import { ICE_CAVE, SNOW_CAMP } from './layout';
+import { realmById, realmFloor, realmOpen } from './realms';
 export { SNOW_CAMP };
 /** fires that warm you: the camp's, and two rock shelters up on the snow */
 export const SNOW_FIRES: [number, number][] = [
@@ -27,7 +28,10 @@ export const LOTUS: [number, number][] = [
 export const SUMMIT: [number, number] = [-692, -794];
 /** the old temple's ice cave (its place lives in layout.ts), and where its monk stands */
 export { ICE_CAVE };
-export const MONK_AT: [number, number] = [-822, -843];
+/** the monk sits in the hall of 寒寺遗窟 before the frozen Buddha when the cave's inside exists (realms.ts), else by its mouth */
+const CAVE = realmById('icecave');
+export const MONK_AT: [number, number] = CAVE ? realmOpen(CAVE, 0, -24) : [-822, -843];
+const monkY = () => (CAVE ? realmFloor(CAVE, MONK_AT[0], MONK_AT[1]) : groundHeight(MONK_AT[0], MONK_AT[1]));
 /** the snowfield's bounds, for the wolves and the map */
 export const inSnowfield = (x: number, z: number) => x < -380 && x > -920 && z < -560 && z > -920;
 /** past the snowline (the cold starts a little under the white) */
@@ -55,6 +59,7 @@ export function makeSnow(s: Sim) {
   a.snowMonk = true;
   f.maxHp = f.hp = Math.round(f.maxHp * 3.2);
   f.home = [MONK_AT[0], MONK_AT[1]];
+  f.pos[1] = monkY();
   f.respawn = undefined;
   const st: SnowState = { cold: 0, warmUntil: 0, lotusBack: LOTUS.map(() => 0), monk: f.id, told: false, warm: false };
   if ((s.progress.done as any)?.monkDay === s.clock.day) {
@@ -117,7 +122,7 @@ export function stepSnow(s: Sim, dt: number) {
     if (m.benched && D.monkDay !== s.clock.day) {
       m.benched = false;
       m.hp = m.maxHp;
-      m.pos = [MONK_AT[0], groundHeight(MONK_AT[0], MONK_AT[1]), MONK_AT[1]];
+      m.pos = [MONK_AT[0], monkY(), MONK_AT[1]];
     }
   }
   // the wolves feel your blows: a basic swing in its striking moment, or a move just let go, in front within reach
