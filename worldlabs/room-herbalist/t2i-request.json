@@ -1,0 +1,7 @@
+{
+ "prompt": "Inside a village herbalist's house in ancient China: a tall wooden medicine cabinet with hundreds of small labelled drawers, bundles of drying herbs and roots hanging from the beams, a stone mortar and pestle, a clay stove with a simmering medicine pot, baskets of ginseng and mushrooms, brass scales and paper packets on a counter, jars on shelves, a cot for patients, warm lamplight and daylight through a paper window. Highly detailed, sharp textures, semi-realistic painterly game environment art, wide eye-level view from the middle of the room, no people.",
+ "aspectRatio": "16:9",
+ "returnDepth": true,
+ "numSamples": 4,
+ "seed": 53
+}
