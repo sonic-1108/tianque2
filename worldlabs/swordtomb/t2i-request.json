@@ -1,0 +1,7 @@
+{
+ "prompt": "Standing at the bottom of a narrow, deep canyon that is an ancient sword graveyard: thousands of rusted swords and broken blades planted upright in the ground, jammed into the cracks of towering grey cliff walls on both sides and piled in heaps; in the middle a colossal broken stone sword taller than a house, bound with faded red ropes and paper talismans; red maple trees clinging to the cliffs, red leaves scattered over a flat path of worn stone slabs, weathered stone steles carved with Chinese characters, low drifting mist, a shaft of warm late afternoon sunlight falling into the canyon from above. Highly detailed, sharp textures, semi-realistic painterly game environment art, wide eye-level view from the middle of the path, no people.",
+ "aspectRatio": "16:9",
+ "returnDepth": true,
+ "numSamples": 4,
+ "seed": 41
+}
