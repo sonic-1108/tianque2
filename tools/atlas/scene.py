@@ -175,15 +175,19 @@ def fwd(yaw):
 
 
 class Rig:
-    """Cameras placed relative to the first frame's camera."""
+    """Cameras placed relative to the first frame's camera, at a size atlasGenerate makes (1280x720 by default),
+    with the first frame's field of view and square pixels."""
 
-    def __init__(self, cam0):
+    def __init__(self, cam0, size=(1280, 720)):
         ex = cam0['extrinsics']
         cs = ex.get('coordinateSystem', 'rub')
         if cs != 'rub':
             log(f'warning: first camera is {cs}, treating it as rub')
         self.p0, self.q0 = ex['position'], ex['quaternion']
-        self.K = {k: cam0['intrinsics'][k] for k in ('fx', 'fy', 'cx', 'cy', 'width', 'height')}
+        k0 = cam0['intrinsics']
+        w, h = size
+        f = (k0['fx'] / k0['width'] * w + k0['fy'] / k0['height'] * h) / 2
+        self.K = {'fx': f, 'fy': f, 'cx': w / 2, 'cy': h / 2, 'width': w, 'height': h}
 
     def cam(self, pos, yaw, pitch):
         p = qrot(self.q0, pos)
@@ -206,16 +210,27 @@ def clean_cam(c, cs=True):
 
 def depth_variants(d):
     """The depth object as the API returned it, in the shapes the docs show for inputs."""
-    a = {'logDepthAsset': {'assetId': d['logDepthAsset']['assetId']}, 'zMin': d['zMin'], 'zMax': d['zMax']}
-    b = dict(a)
-    if d.get('confidenceAsset'):
-        b['confidenceAsset'] = {'assetId': d['confidenceAsset']['assetId']}
-    c = {'depthAsset': {'assetId': d['logDepthAsset']['assetId']}}
-    return [a, b, c]
+    ref = lambda k: {'assetId': d[k]['assetId']}
+    if d.get('depthAsset'):
+        a = {'depthAsset': ref('depthAsset')}
+        b = dict(a, confidenceAsset=ref('confidenceAsset')) if d.get('confidenceAsset') else a
+        return [a, b]
+    a = {'logDepthAsset': ref('logDepthAsset'), 'zMin': d['zMin'], 'zMax': d['zMax']}
+    b = dict(a, confidenceAsset=ref('confidenceAsset')) if d.get('confidenceAsset') else a
+    return [a, b, {'depthAsset': ref('logDepthAsset')}]
 
 
-def posed(frames, variant, cs=True):
-    return [{'imageAsset': {'assetId': f['imageAsset']['assetId']}, 'depth': depth_variants(f['depth'])[variant],
+def rescale(cam, w=1280, h=720):
+    k = cam['intrinsics']
+    sx, sy = w / k['width'], h / k['height']
+    return {'extrinsics': cam['extrinsics'], 'intrinsics': {'fx': k['fx'] * sx, 'fy': k['fy'] * sy, 'cx': k['cx'] * sx, 'cy': k['cy'] * sy,
+                                                           'width': w, 'height': h}}
+
+
+def posed(frames, variant, cs=True, size=None):
+    if size:
+        frames = [dict(f, camera=rescale(f['camera'], *size)) for f in frames]
+    return [{'imageAsset': {'assetId': f['imageAsset']['assetId']}, 'depth': (lambda v: v[min(variant, len(v) - 1)])(depth_variants(f['depth'])),
              'camera': clean_cam(f['camera'], cs)} for f in frames]
 
 
@@ -233,8 +248,8 @@ def stage_t2i():
 def gen_round(rig, ctx, views, prompt, tag):
     cams = [rig.cam(v['pos'], v['yaw'], v['pitch']) for v in views]
     bodies = []
-    for variant, cs in ((0, True), (0, False), (1, True), (2, True)):
-        bodies.append({'contextFrames': posed(ctx, variant, cs), 'targetCameras': [clean_cam(c, cs) for c in cams],
+    for variant, cs, size in ((0, True, None), (0, False, None), (1, True, None), (2, True, None), (0, True, (1280, 720))):
+        bodies.append({'contextFrames': posed(ctx, variant, cs, size), 'targetCameras': [clean_cam(c, cs) for c in cams],
                        'prompt': prompt, 'enhancePrompt': False, 'returnDepth': True})
     res = run('atlasGenerate', bodies, tag)
     frames = res['frames']
@@ -254,16 +269,15 @@ def stage_world():
     prompt = SPEC.get('prompt') or (t2i.get('promptsUsed') or [None] * 8)[pick] or t2i.get('promptUsed')
     rig = Rig(f0['camera'])
     log(f'first camera: {json.dumps(f0["camera"])}')
-    allf = [f0]
-    # round 1: the front half, a look down, a step forward
-    r1 = [view(35), view(-35), view(70), view(-70), view(0, -40), view(0, 0, 2.0)]
-    allf += gen_round(rig, [f0], r1, prompt, 'gen1')
+    # round 1: the first view again at the generation size (the original is larger), the front half, a look down, a step in
+    r1 = [view(0, 0, 0.0), view(35), view(-35), view(70), view(-70), view(0, -40), view(0, 0, 2.0)]
+    allf = gen_round(rig, [f0], r1, prompt, 'gen1')
     # round 2: the back, a ring looking down, the vault overhead
     r2 = [view(105), view(-105), view(140), view(-140), view(180)]
     r2 += [view(a, -45) for a in (60, 120, 180, -120, -60)]
     r2 += [view(a, 35) for a in (0, 90, 180, -90)] + [view(0, 70, 0.2), view(180, 70, 0.2)]
     allf += gen_round(rig, allf[:7], r2, prompt, 'gen2')
-    # round 3: four standpoints three metres out, so the place holds up as you walk in it
+    # round 3: four standpoints a few metres out, so the place holds up as you walk in it
     ring = [f for f in allf if f['_view']['pitch'] == 0][:11]
     r3 = []
     R = float(SPEC.get('walk', 3.0))
