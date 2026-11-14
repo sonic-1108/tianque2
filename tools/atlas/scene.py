@@ -7,6 +7,7 @@ The key is only ever sent as a request header; nothing here prints it.
   stage t2i    text to image with metric depth, several samples: out/t2i.json, out/t2i-<k>.png
   stage world  from the chosen sample (prev/t2i.json, SPEC.pick): rings of new views around the capture point
                (atlasGenerate with depth, three rounds), then posedImages2Splats: out/scene.json, out/v-*.png, out/splats.*
+  stage splats posedImages2Splats again from the views of prev/scene.json (when only that step failed)
   stage mesh   splats2Mesh on the splats of prev/scene.json: out/mesh.*
 
 Cameras are RUB (x right, y up, looking along -z), camera to world, quaternions XYZW, metres.
@@ -304,10 +305,14 @@ def stage_world():
                                 'imageAsset': f['imageAsset'].get('assetId'),
                                 'depth': {k: (v.get('assetId') if isinstance(v, dict) else v) for k, v in f['depth'].items()}})
     save('scene.json', scene)
-    # splats from every posed view
+    make_splats(scene, allf, prompt)
+
+
+def make_splats(scene, frames, prompt):
+    """splats from every posed view, downloaded, noted in scene.json"""
     bodies = []
     for variant, cs in ((0, True), (0, False), (1, True), (2, True)):
-        bodies.append({'posedFrames': posed(allf, variant, cs), 'prompt': prompt, 'enhancePrompt': False})
+        bodies.append({'posedFrames': posed(frames, variant, cs), 'prompt': prompt, 'enhancePrompt': False})
     res = run('posedImages2Splats', bodies, 'splats')
     scene['splatsResponse'] = res
     n = 0
@@ -315,6 +320,19 @@ def stage_world():
         n += 1
         scene.setdefault('splatFiles', []).append({'path': path, 'file': fetch(a, 'splats' if n == 1 else f'splats-{n}'), 'assetId': a['assetId']})
     save('scene.json', scene)
+
+
+def stage_splats():
+    """the splats again from a world stage's views (prev/scene.json), when only that last step failed"""
+    with open(os.path.join(PREV, 'scene.json')) as f:
+        scene = json.load(f)
+    frames = []
+    for fr in scene['frames']:
+        d = {k: ({'assetId': v} if isinstance(v, str) else v) for k, v in fr['depth'].items() if v is not None}
+        frames.append({'imageAsset': {'assetId': fr['imageAsset']}, 'depth': d, 'camera': fr['camera']})
+    log(f'{len(frames)} posed views from the last take')
+    scene.pop('splatFiles', None)
+    make_splats(scene, frames, scene['prompt'])
 
 
 def assets(obj, path=''):
@@ -345,4 +363,4 @@ if __name__ == '__main__':
     if not KEY:
         die('WORLDLABS_API_KEY is not set')
     st = SPEC.get('stage', 't2i')
-    {'t2i': stage_t2i, 'world': stage_world, 'mesh': stage_mesh}[st]()
+    {'t2i': stage_t2i, 'world': stage_world, 'splats': stage_splats, 'mesh': stage_mesh}[st]()
