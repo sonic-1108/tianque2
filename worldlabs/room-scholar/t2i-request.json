@@ -1,0 +1,7 @@
+{
+ "prompt": "Inside a poor scholar's study in an ancient Chinese mountain village: a writing desk with brushes, ink stone and paper, shelves crammed with thread bound books and scrolls, calligraphy hanging on the walls, a guqin zither on a stand, a potted orchid, a lattice window with bamboo outside, a narrow bed, stacks of exam essays, soft daylight and a candle. Highly detailed, sharp textures, semi-realistic painterly game environment art, wide eye-level view from the middle of the room, no people.",
+ "aspectRatio": "16:9",
+ "returnDepth": true,
+ "numSamples": 4,
+ "seed": 55
+}
