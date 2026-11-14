@@ -216,5 +216,15 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   `realm` set (no walls / furniture; sim floorAt and pushOutOfRealm use the grid; Scene keeps the camera out of its
   walls); drawn by `render/Realm.tsx` with Spark (`@sparkjsdev/spark` SparkRenderer + SplatMesh, loaded on first
   entry with a progress line, kept after), Post switches to NEUTRAL tone mapping inside so the painted colours stay.
-  寒寺遗窟 (the ice cave on 雪岭, door at its mouth) is the first. A bare splat viewer for checking takes: scratch sv/.
-  Tests: plain node walk (scratch realm.mts). Software rendering draws splats, slowly.
+  寒寺遗窟 (the ice cave on 雪岭, door at its mouth; the mad monk 苦寒 sits in its hall: foes inside a 秘境 can target
+  you, sim think) and 剑冢深处 (a cleft behind 断剑冢's stele, `place` door resolved in interiors.ts) are live.
+  House interiors the same way: data key `room-<theme>` makes that room a splat room (moved to its own grid at
+  x/z 5000+, people take `openSpots`, the home's bed / rack `spots`); 石伯家 is done; the other 12 kinds have their
+  text-to-image picks chosen (worldlabs branch room-<theme>/t2i-*.png; picks: elder 1, hunter 0, herbalist 0,
+  carpenter 3, weaver 1, scholar 0, elders 2, tavern 1, inn 0, shrine 2, throne 0, teahouse 2, home 0; walk 1.2, tavern
+  / inn / teahouse 1.6, shrine 1.0, throne 2.5). hunter / herbalist / carpenter got their views and need only stage
+  `splats`. The Atlas account ran out of credits (402 CREDITS_UNAVAILABLE) on 2026-11-14: the owner has to top up.
+  Atlas also caps open tasks per kind and request rate (429; scene.py waits and retries). `tools/atlas/take.sh <take>
+  <id> <radius>` brings a finished take in (rooms: radius 7). A bare splat viewer for checking takes: scratch sv/.
+  Tests: plain node walk (scratch realm.mts, REALM=<id>). Software rendering draws splats in game, slowly
+  (scratch realmshot.cjs hides the HUD for a clean picture).
