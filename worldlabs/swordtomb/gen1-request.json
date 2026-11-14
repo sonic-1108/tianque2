@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_599ca63f45d1c96c25f2b8457709125f"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_4fd1916d7032b6ad4620300eb6c13c42"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 1925.775390625,
+     "fy": 1925.22216796875,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 904.3475669412052,
+    "fy": 904.3475669412052,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 904.3475669412052,
+    "fy": 904.3475669412052,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 904.3475669412052,
+    "fy": 904.3475669412052,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 904.3475669412052,
+    "fy": 904.3475669412052,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 904.3475669412052,
+    "fy": 904.3475669412052,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 904.3475669412052,
+    "fy": 904.3475669412052,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 904.3475669412052,
+    "fy": 904.3475669412052,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic painterly game environment view of an ancient sword graveyard canyon, centered on a colossal broken stone sword in warm late-afternoon light.\",\"scene\":\"A narrow, exceptionally deep ancient canyon forms a sword graveyard, viewed at eye level from the middle of a flat path made of worn stone slabs. Thousands of rusted swords, snapped blades, and corroded weapon fragments stand upright in the ground, wedge into fissures of towering grey cliffs, and spill into irregular heaps along both sides. A colossal broken stone sword taller than a house dominates the canyon center, tightly bound with faded red ropes and layered paper talismans; red maple trees cling to the cliff faces while low mist drifts around weathered stone steles carved with Chinese characters. A single shaft of warm late-afternoon sunlight descends from the narrow opening overhead, illuminating scattered red leaves and sharp weathered textures.\",\"subjects\":[{\"name\":\"colossal broken stone sword\",\"description\":\"A monumental ancient sword sculpture, broken across its upper blade and planted vertically in the canyon floor.\",\"action_or_state\":\"static, fractured and ritual-bound\",\"appearance\":\"grey weathered stone, taller than a house, chipped blade edges, deep cracks, a heavy squared guard, faded red ropes wrapped around the hilt and lower blade, and multiple aged paper talismans attached beneath the bindings\",\"position_or_relationship\":\"standing in the middle distance at the center of the stone-slab path, framed by the cliff walls\"},{\"name\":\"rusted sword graveyard\",\"description\":\"Thousands of abandoned swords, broken blades, and weapon fragments embedded throughout the canyon.\",\"action_or_state\":\"static, planted upright, wedged into rock cracks, and piled in heaps\",\"appearance\":\"rust-red iron corrosion, blackened steel remnants, bent guards, snapped blade tips, pitted surfaces, tangled grips, and uneven heights\",\"position_or_relationship\":\"lining both sides of the path, filling the canyon floor and climbing into cracks across both cliff walls\"},{\"name\":\"weathered stone steles\",\"description\":\"Several narrow upright memorial slabs carved with Chinese characters.\",\"action_or_state\":\"static, partially mossed and worn by age\",\"appearance\":\"grey stone with softened edges, dark engraved Chinese characters, hairline fractures, lichen stains, and small red leaves caught at their bases\",\"position_or_relationship\":\"set among the sword heaps near the path edges, beneath the colossal stone sword\"},{\"name\":\"red maple trees\",\"description\":\"Hardy maple trees growing from narrow ledges and cracks in the canyon walls.\",\"action_or_state\":\"static, leaves lightly scattered by a faint canyon breeze\",\"appearance\":\"dark twisting trunks, exposed roots gripping stone, dense crimson and vermilion leaves\",\"position_or_relationship\":\"clinging high along both cliff faces, with fallen leaves scattered across the path\"}],\"setting\":\"An ancient, narrow, deep mountain canyon enclosed by sheer towering grey cliff walls. The canyon floor is a level procession path of worn stone slabs, crowded with relic weapons, memorial stones, thin ground mist, and sparse cliff-grown maples; no people are present.\",\"composition\":\"Wide eye-level environmental shot from the center of the path, using the stone slabs and sword-lined edges as leading lines toward the colossal broken stone sword. Vertical cliff walls tightly frame the central monument, while the high canyon opening creates a narrow strip of sky and a focused descending light beam.\",\"style\":\"Semi-realistic painterly game environment art with highly detailed, sharply resolved textures. Visible controlled brushwork enhances the age, corrosion, fractured stone, and atmospheric depth without reducing structural realism.\",\"lighting\":\"A warm late-afternoon shaft of sunlight falls steeply from above onto the central stone sword and sections of the path. Cool ambient shade fills the deep canyon, creating strong contrast between golden illuminated stone, dark grey cliffs, and low translucent mist.\",\"color_palette\":[\"weathered stone grey\",\"rust red\",\"deep charcoal\",\"faded rope red\",\"crimson maple red\",\"warm amber sunlight\",\"misty blue-grey\"],\"materials_and_textures\":\"The cliffs are rough stratified grey rock with cracked seams, damp dark crevices, and clinging lichen. Swords show heavily pitted oxidized iron, fractured steel, and worn wrapped handles; the path and steles are eroded stone with chipped edges and shallow moss growth. The ropes are sun-bleached red fiber, while the paper talismans are wrinkled, stained, and torn at their corners.\",\"mood\":\"solemn, ancient, ritualistic, atmospheric, monumental\",\"supporting_details\":\"Broken sword hilts protrude at varied angles from piles of corroded blades, and isolated weapon silhouettes disappear upward into the cliff fissures. Red maple leaves collect in slab joints and catch against sword guards. Thin mist pools close to the ground and curls around the base of the central stone sword, while tiny dust motes glow within the sunbeam.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"Weathered stone steles and paper talismans display non-specific carved and brush-painted Chinese-character-like markings, treated as aged decorative inscriptions rather than readable text.\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}
