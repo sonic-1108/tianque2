@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_48ab6454e373957bdf377fc7593a5158"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_b4b6c7d9851b6cd42482a454f09917f0"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 1450.1715087890625,
+     "fy": 1449.7548828125,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 681.0031262566062,
+    "fy": 681.0031262566062,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 681.0031262566062,
+    "fy": 681.0031262566062,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 681.0031262566062,
+    "fy": 681.0031262566062,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 681.0031262566062,
+    "fy": 681.0031262566062,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 681.0031262566062,
+    "fy": 681.0031262566062,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 681.0031262566062,
+    "fy": 681.0031262566062,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 681.0031262566062,
+    "fy": 681.0031262566062,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic painterly game-environment view of an empty rustic wine tavern in an ancient Chinese mountain village, glowing beneath warm lantern light.\",\"scene\":\"An empty rustic wine tavern fills a broad eye-level view from the middle of the room in an ancient Chinese mountain village. Square wooden tables and matching benches occupy the plank floor, while a long counter spans the rear wall with large earthen wine jars sealed under red cloth stacked behind it. Red lanterns hang beneath heavy timber beams, a vertical wine banner bearing the character \u9152 hangs near the counter, and a wooden staircase rises to a shadowed upper floor. A ceramic vase of apricot blossom branches provides a delicate pale accent beside the warm, weathered tavern furnishings.\",\"subjects\":[{\"name\":\"wooden tables and benches\",\"description\":\"Several square dining tables paired with simple backless wooden benches.\",\"action_or_state\":\"static, arranged in neat loose rows across the empty room\",\"appearance\":\"dark honey-brown aged wood, thick plank tops, worn edges, visible knots and scratched surfaces\",\"position_or_relationship\":\"occupying the foreground and middle ground, leading toward the long counter\"},{\"name\":\"wine jars\",\"description\":\"A stacked collection of large traditional earthenware wine jars sealed for storage.\",\"action_or_state\":\"static\",\"appearance\":\"round brown glazed clay bodies, broad shoulders, each mouth tightly covered with faded red cloth and tied cord\",\"position_or_relationship\":\"clustered in tiers behind the long rear counter\"},{\"name\":\"wine banner\",\"description\":\"A vertical hanging fabric tavern banner displaying the Chinese character \u9152.\",\"action_or_state\":\"hanging still from a dark wooden crossbar\",\"appearance\":\"weathered cream cloth with a single bold black brush-painted character \u9152 and narrow dark red edging\",\"position_or_relationship\":\"hanging near the counter in the upper middle of the room\"},{\"name\":\"wooden staircase\",\"description\":\"A steep narrow wooden staircase leading to the upper floor.\",\"action_or_state\":\"static\",\"appearance\":\"dark timber steps, simple squared railing, visibly worn treads\",\"position_or_relationship\":\"rising along the right side wall toward the shadowed loft\"},{\"name\":\"apricot blossom vase\",\"description\":\"A tall ceramic vase holding freshly cut apricot blossom branches.\",\"action_or_state\":\"static\",\"appearance\":\"off-white glazed vase, slender brown branches, clusters of pale pink and white petals\",\"position_or_relationship\":\"resting on the long counter near one end\"}],\"setting\":\"A timber-framed village wine tavern with rough plaster walls, exposed ceiling beams, a wide plank floor, and an open upper loft. The interior is vacant and enclosed, with no people present; only the warm lantern-lit room is visible.\",\"composition\":\"Wide eye-level view from the middle of the room, with tables and benches layered across the foreground and a strong central sightline toward the counter and stacked wine jars. The staircase anchors the right side while the banner and lanterns create vertical structure under the beams.\",\"style\":\"Semi-realistic painterly game environment art with sharply resolved wood grain, clay surfaces, cloth fibers, and architectural wear. Detailed fantasy-historical environment design grounded in traditional ancient Chinese village architecture.\",\"lighting\":\"Warm amber lantern light pools beneath the red lanterns and falls across the tabletops, counter, and jar shoulders. Soft shadows deepen beneath benches, along the staircase, and in the upper-floor recesses, while gentle highlights reveal the worn timber textures.\",\"color_palette\":[\"warm amber\",\"dark walnut brown\",\"aged ochre\",\"lantern red\",\"earthen clay brown\",\"weathered cream\",\"pale apricot pink\"],\"materials_and_textures\":\"Rough-hewn wood beams and floor planks show deep grain, dents, cracks, and softened worn edges. The wine jars are glazed earthenware with dusty matte surfaces beneath taut woven red cloth seals; plaster walls are uneven and aged, and the blossoms have delicate translucent petals.\",\"mood\":\"quiet, rustic, warmly lit, historic, welcoming, empty\",\"supporting_details\":\"Small ceramic cups and a low wooden tray sit neatly on the counter. Lantern tassels hang below the red silk shades, and faint dust motes catch the warm light beneath the ceiling beams. The upper loft is defined by dark railing posts and a shallow band of shadow.\",\"text_and_ocr\":{\"verbatim_strings\":[\"\u9152\"],\"visual_description\":\"A single large black brush-calligraphy character \u9152 is centered on a weathered vertical cream fabric wine banner with a restrained dark red border, hanging prominently above and near the long counter.\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}
