@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_bbaf247ca20169dd291f7b2a263bd066"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_c3df31ab5e4b526fc2cb76311b0db808"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 1754.736083984375,
+     "fy": 1754.2320556640625,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 824.0272166308234,
+    "fy": 824.0272166308234,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 824.0272166308234,
+    "fy": 824.0272166308234,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 824.0272166308234,
+    "fy": 824.0272166308234,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 824.0272166308234,
+    "fy": 824.0272166308234,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 824.0272166308234,
+    "fy": 824.0272166308234,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 824.0272166308234,
+    "fy": 824.0272166308234,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 824.0272166308234,
+    "fy": 824.0272166308234,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic painterly game-environment view of an empty golden dragon throne in a grand ancient Chinese imperial hall.\",\"scene\":\"A vast ancient Chinese imperial throne hall stands empty, viewed at eye level from the middle of the room. A golden dragon throne rests atop a high stepped dais beneath an elaborate carved golden screen, while immense red lacquered pillars wrapped in gilded dragons form ceremonial rows along both sides. The polished dark stone floor reflects muted gold and red tones, and drifting dust catches shafts of daylight entering through tall doors.\",\"subjects\":[{\"name\":\"golden dragon throne\",\"description\":\"An ornate imperial throne with dragon-armrests, a high sculpted back, and a raised footrest.\",\"action_or_state\":\"empty and static\",\"appearance\":\"burnished gold, dense dragon relief carving, broad ceremonial proportions, subtly worn edges on raised details\",\"position_or_relationship\":\"centered on the highest tier of the stepped dais at the far end of the hall\"},{\"name\":\"carved golden screen\",\"description\":\"A monumental decorative screen densely carved with layered clouds, dragons, and radiating imperial motifs.\",\"action_or_state\":\"static\",\"appearance\":\"deep gold with shadowed recesses and intricate raised reliefs\",\"position_or_relationship\":\"standing directly behind the golden dragon throne\"},{\"name\":\"red lacquered pillars\",\"description\":\"Massive structural columns arranged in formal parallel rows, each encircled by a sculpted golden dragon.\",\"action_or_state\":\"static\",\"appearance\":\"glossy cinnabar-red lacquer, gilded dragon coils, dark bases, towering scale\",\"position_or_relationship\":\"lining both sides of the central aisle and framing the throne dais\"},{\"name\":\"bronze ceremonial objects\",\"description\":\"Tall bronze cranes and low bronze incense burners used as formal hall ornaments.\",\"action_or_state\":\"static, with thin incense smoke rising from the burners\",\"appearance\":\"aged dark bronze with green-brown patina, engraved feather and cloud details\",\"position_or_relationship\":\"placed symmetrically at the base and sides of the stepped dais\"}],\"setting\":\"A grand enclosed imperial throne hall of ancient China, built around a long central ceremonial aisle leading to the elevated dais. Tall wooden doors at the distant sides admit narrow shafts of daylight, while a richly painted coffered ceiling spans the enormous chamber overhead.\",\"composition\":\"Wide eye-level view from the middle of the room, using a centered central aisle and symmetrical pillar rows to lead directly toward the empty throne. The dark reflective floor occupies the lower foreground, with the throne and golden screen as the dominant focal point.\",\"style\":\"Semi-realistic painterly game environment art with crisp architectural forms, sharply rendered decorative textures, and controlled atmospheric depth. The scene is designed as an explorable historical palace interior with no characters present.\",\"lighting\":\"Cool daylight streams through tall doors in distinct angled shafts, illuminating airborne dust and creating long soft-edged highlights across the dark stone floor. Warm reflected gold light glows around the throne, screen, and dragon carvings, with deep shadows between the pillar rows.\",\"color_palette\":[\"burnished gold\",\"cinnabar red\",\"polished charcoal black\",\"aged bronze\",\"deep umber\",\"muted jade green\",\"pale dusty sunlight\"],\"materials_and_textures\":\"Glossy red lacquer pillars show fine reflections and slight age wear around their bases. The throne and screen have densely carved, burnished gold surfaces with dark recesses; the floor is smooth polished dark stone with faint mirrored reflections. Bronze cranes and incense burners carry oxidized patina, while the ceiling displays layered painted wood coffers.\",\"mood\":\"solemn, ceremonial, monumental, still, reverent\",\"supporting_details\":\"Fine incense smoke rises in narrow curls from the bronze burners. Painted ceiling panels feature subdued cloud scrolls and geometric borders, while small pools of dust collect along the edges of the dais steps. The room remains completely unoccupied, with no people or figures anywhere in the hall.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}
