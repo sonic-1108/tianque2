@@ -191,3 +191,15 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   night wakes you at 21:00 and puts you outside (`raidDueTonight`, `warnRaid`, `Sim.leaveRoom`).
 - Effects: `render/vfx/KitFX.ts` (per-house sweeps / strips / circles, `HOUSE_LOOK`), `vfx/sigils.ts` (18 circles),
   `render/KitAuras.tsx` (zones, buffs, dots), `render/shotLook.ts` (arrows, talismans, notes, qi). `tools/fxaudit.ts`.
+- Camera (owner: closer, and a way to see faces): `cam` default dist 4.2, wheel 1.4 to 14 (close in, the target rises to
+  the head). V 端详 (`look` in render/Scene.tsx): the nearest body in front (or yourself), framed at the eyes (head bone
+  to its HeadTop), FOV narrowed, depth of field in Post (a second composer, mounted only then), HUD hidden (`.looking`).
+- 传送阵 (`src/game/gates.ts`, drawn by `render/Gates.tsx`, panel `gates` in ui/Games.tsx): 17 gates (village, every
+  waystation, a 长亭 on each far road, 永安城外, 天阙古道口, 断剑冢, 雪岭营地); lit when you come within 10 m
+  (`done['gate:'+id]`), F on a lit one to travel (not in a fight, a raid or an escort); 传 on both maps.
+- 雪岭 (`src/game/snow.ts`, drawn by `render/Snow.tsx`): the reachable snowfield in the north-west corner (camp at
+  `SNOW_CAMP` in layout.ts, a leaf module so places.ts can use it). 寒气 above `SNOW_Y - 8` (fires, 姜汤 from 老参客,
+  full: slow and a slow bite that never kills), 天山雪莲 `LOTUS` (F, back after a day; 孙伯's want), downhill sliding
+  (`snowSpeed`), 雪狼 packs (animals.ts kind `wolf`: warn, charge, bite 5%, your swings hurt them; okSpot `corner`
+  for the square map's corner), 冰窟狂僧 · 苦寒 (an elite, once a day), the summit (名号 一览众山小). The hunting band
+  keeps away from the camp. Test: scratch snowtest.mts.
