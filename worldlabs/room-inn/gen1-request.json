@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_7049f636875be5435f8560a7ae3e0f95"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_dd7bfd732f1b0890ec1c54c6ddcf07d1"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 1693.5841064453125,
+     "fy": 1693.09765625,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 795.3101411707261,
+    "fy": 795.3101411707261,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 795.3101411707261,
+    "fy": 795.3101411707261,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 795.3101411707261,
+    "fy": 795.3101411707261,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 795.3101411707261,
+    "fy": 795.3101411707261,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 795.3101411707261,
+    "fy": 795.3101411707261,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 795.3101411707261,
+    "fy": 795.3101411707261,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 795.3101411707261,
+    "fy": 795.3101411707261,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic painterly game-environment view of an empty ancient Chinese roadside post station inn, lit by warm lanterns and hearthfire.\",\"scene\":\"An empty main hall of a roadside post station inn in ancient China is viewed from the middle of the room at eye level. A sturdy innkeeper's counter at one side holds a wooden abacus and open bound ledger, while rough wooden tables and benches fill the center of the hall. A staircase rises toward shadowed guest rooms, saddles and bridles hang from wall pegs, and a notice board displays weathered wanted posters. Hanging lanterns and a stone hearth cast warm lamplight across sacks of fodder stacked beside the back door.\",\"subjects\":[{\"name\":\"innkeeper's counter\",\"description\":\"A heavy dark-wood service counter used for managing the post station inn.\",\"action_or_state\":\"static, neatly arranged for business despite the empty room\",\"appearance\":\"thick worn timber with chipped edges, a brass-rimmed wooden abacus, an open stitched-paper ledger, and a small inkstone with brush\",\"position_or_relationship\":\"occupying the left side of the hall, facing the central tables\"},{\"name\":\"wooden tables and benches\",\"description\":\"Several low rectangular dining tables with long benches for travelers.\",\"action_or_state\":\"static\",\"appearance\":\"rough-hewn dark elm, scarred tabletops, uneven grain, worn corners, and faint soot-darkened surfaces\",\"position_or_relationship\":\"clustered across the center and foreground of the main hall\"},{\"name\":\"staircase\",\"description\":\"A narrow wooden staircase leading to the guest rooms above.\",\"action_or_state\":\"static\",\"appearance\":\"dark timber steps with polished worn treads, thick rail posts, and deep shadows beneath\",\"position_or_relationship\":\"rising along the rear-right wall behind the tables\"},{\"name\":\"tack wall\",\"description\":\"A wall-mounted collection of travel saddles, bridles, and coiled reins.\",\"action_or_state\":\"static\",\"appearance\":\"aged brown leather, iron buckles, braided rope, padded saddle blankets, and wooden pegs\",\"position_or_relationship\":\"mounted along the right wall near the staircase\"},{\"name\":\"hearth and fodder sacks\",\"description\":\"A broad stone hearth beside stacked sacks of animal fodder near the rear exit.\",\"action_or_state\":\"the hearth holds a low active fire; the sacks are static\",\"appearance\":\"blackened fieldstone, glowing logs, ash, burlap sacks tied with twine, scattered straw\",\"position_or_relationship\":\"at the back of the hall beside the partially closed wooden back door\"}],\"setting\":\"The interior is a practical roadside post station inn in ancient China, built from dark timber beams, plastered wall panels, and broad plank flooring. The back door suggests a stable yard beyond it, while the upper landing leads to simple guest rooms.\",\"composition\":\"Wide eye-level view from the middle of the room, with tables and benches forming a layered foreground, the counter anchoring the left side, and the staircase and tack wall balancing the right. The hearth creates a warm focal glow in the rear while exposed ceiling beams and hanging lanterns guide the eye through the hall.\",\"style\":\"Semi-realistic painterly game environment art with crisp, highly detailed surface rendering. Visible controlled brushwork is paired with sharp wood grain, leather wear, stone soot, and atmospheric interior depth.\",\"lighting\":\"Warm amber lamplight spills from hanging paper lanterns and mixes with flickering orange hearthfire. Dim cool daylight leaks around the back door, creating restrained contrast and long soft-edged shadows across the plank floor.\",\"color_palette\":[\"dark walnut brown\",\"warm amber\",\"hearth orange\",\"smoky charcoal\",\"aged tan leather\",\"muted ochre\",\"dusty plaster beige\"],\"materials_and_textures\":\"Heavily grained timber beams and floorboards show scratches, dents, and polished traffic wear. Cracked plaster, soot-stained stone, coarse burlap, dry straw, aged leather, tarnished iron hardware, translucent paper lantern shades, and fibrous handmade paper are all sharply defined.\",\"mood\":\"warm, rustic, quiet, travel-worn, practical\",\"supporting_details\":\"A large wooden notice board near the staircase holds several uneven, curling wanted posters bearing faded ink illustrations without readable lettering. Ceramic wine jars, a bamboo broom, a few stacked bowls, and a small travel trunk sit unobtrusively along the walls. Thin smoke rises into the dark rafters above the hearth, and the floor near the rear door is lightly dusted with straw and dried mud.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"The wanted posters contain only indistinct faded ink marks and non-legible pictorial notices; no readable text is present.\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}

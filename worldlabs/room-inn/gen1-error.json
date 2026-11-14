@@ -1,0 +1,7 @@
+{
+ "code": 402,
+ "body": {
+  "detail": "the account's billing does not currently allow new usage; add credits or update billing to resume",
+  "code": "CREDITS_UNAVAILABLE"
+ }
+}
