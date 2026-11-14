@@ -1,0 +1,106 @@
+# World Labs Atlas (https://docs.atlas.worldlabs.ai): scenes from text and images, video, 3D Gaussian splats, meshes.
+# Needs the repo secret WORLDLABS_API_KEY (the owner's Atlas project key; it never leaves GitHub).
+#   action=check   health (no key), then a read-only list of assets and operations with the key: spends nothing
+#   action=task    POST /tasks:<task> with <body> (JSON), wait for the operation, download every asset in its result
+#                  and keep them on the worldlabs branch under worldlabs/<name>/ (with the request and the result JSON)
+#   action=fetch   download the results of an operation already submitted (<operation> id) the same way
+# Run: gh api -X POST repos/sonic-1108/tianque2/actions/workflows/worldlabs.yml/dispatches -f ref=main \
+#        -f 'inputs[action]=check'
+name: World Labs Atlas
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: check, task or fetch
+        default: check
+      task:
+        description: atlasTextToImage, atlasGenerate, images2PosedRGBD, posedImages2Splats, splats2Mesh, atlasChisel
+        default: ''
+      body:
+        description: the task's JSON request body
+        default: '{}'
+      operation:
+        description: an operation id (for fetch)
+        default: ''
+      name:
+        description: folder name for the results (letters, digits, dashes)
+        default: try
+permissions:
+  contents: write
+concurrency:
+  group: worldlabs-${{ inputs.name }}
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      API: https://api.atlas.worldlabs.ai/api/v2
+      KEY: ${{ secrets.WORLDLABS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Talk to Atlas
+        env:
+          ACTION: ${{ inputs.action }}
+          TASK: ${{ inputs.task }}
+          BODY: ${{ inputs.body }}
+          OP: ${{ inputs.operation }}
+          NAME: ${{ inputs.name }}
+        run: |
+          set -euo pipefail
+          echo "$NAME" | grep -Eq '^[a-z0-9-]+$' || { echo "bad name"; exit 1; }
+          echo "health: $(curl -sS -o /dev/null -w '%{http_code}' "$API/health")"
+          [ -n "$KEY" ] || { echo "WORLDLABS_API_KEY is not set (Settings > Secrets and variables > Actions)"; exit 1; }
+          get() { curl -sS "$API/$1" -H "WLT-Api-Key: $KEY"; }
+          if [ "$ACTION" = check ]; then
+            echo "assets: $(curl -sS -o /tmp/a.json -w '%{http_code}' "$API/assets?pageSize=3" -H "WLT-Api-Key: $KEY")"; jq -c '{n: ((.assets // []) | length)}' /tmp/a.json || cat /tmp/a.json
+            echo "operations: $(curl -sS -o /tmp/o.json -w '%{http_code}' "$API/operations?pageSize=3" -H "WLT-Api-Key: $KEY")"; jq -c '[(.operations // [])[] | {id: .name // .id, done}]' /tmp/o.json || cat /tmp/o.json
+            exit 0
+          fi
+          mkdir -p out
+          if [ "$ACTION" = task ]; then
+            echo "$TASK" | grep -Eq '^[A-Za-z0-9]+$' || { echo "bad task"; exit 1; }
+            echo "$BODY" | jq . > out/request.json
+            res=$(curl -sS -X POST "$API/tasks:$TASK" -H "WLT-Api-Key: $KEY" -H 'Content-Type: application/json' -H "Idempotency-Key: $(uuidgen)" -d @out/request.json)
+            OP=$(echo "$res" | jq -r '.name // .id // empty' | sed 's#^operations/##')
+            [ -n "$OP" ] || { echo "submit failed: $res"; exit 1; }
+            echo "operation $OP"
+          fi
+          [ -n "$OP" ] || { echo "no operation"; exit 1; }
+          # wait: a 404 just after submitting is normal; poll every 15 s up to two hours
+          for i in $(seq 1 480); do
+            o=$(get "operations/$OP" || true)
+            done_=$(echo "$o" | jq -r '.done // false' 2>/dev/null || echo false)
+            [ "$done_" = true ] && break
+            [ $((i % 4)) = 0 ] && echo "  $i $(echo "$o" | jq -c '.metadata.state // .metadata // empty' 2>/dev/null | cut -c1-160)"
+            sleep 15
+          done
+          echo "$o" | jq . > out/result.json
+          [ "$(echo "$o" | jq -r '.done // false')" = true ] || { echo "not done in time; fetch it later with operation=$OP"; exit 1; }
+          if [ "$(echo "$o" | jq -r '.error // empty')" != "" ]; then echo "failed: $(echo "$o" | jq -c .error)"; exit 1; fi
+          # every asset the result names: ask for a read URL and download it
+          for a in $(echo "$o" | jq -r '[.. | objects | .assetId? // empty] | unique | .[]'); do
+            meta=$(get "assets/$a")
+            fname=$(echo "$meta" | jq -r '.filename // .displayName // .name // empty' | sed 's#.*/##')
+            [ -n "$fname" ] || fname="$a"
+            url=$(curl -sS -X POST "$API/assets/$a:createReadUrl" -H "WLT-Api-Key: $KEY" -H 'Content-Type: application/json' -d '{}' | jq -r '.url // .readUrl // .signedUrl // empty')
+            [ -n "$url" ] || { echo "no read url for $a"; continue; }
+            curl -sSL "$url" -o "out/$fname"
+            echo "downloaded $fname ($(stat -c%s "out/$fname") bytes)"
+          done
+          ls -la out
+      - name: Keep it on the worldlabs branch
+        if: inputs.action != 'check'
+        env:
+          NAME: ${{ inputs.name }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mv out /tmp/out
+          if git ls-remote --exit-code origin worldlabs >/dev/null; then git fetch origin worldlabs; git checkout -B worldlabs origin/worldlabs; else git checkout --orphan worldlabs; git rm -rfq .; fi
+          mkdir -p "worldlabs/$NAME" && cp /tmp/out/* "worldlabs/$NAME/"
+          git add worldlabs && git commit -m "Atlas: $NAME"
+          for i in 1 2 3 4 5; do git push origin worldlabs && exit 0; git pull --rebase origin worldlabs; done
+          exit 1
