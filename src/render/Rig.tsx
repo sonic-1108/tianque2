@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { GLTFLoader, SkeletonUtils, MeshoptDecoder } from 'three-stdlib';
 import type { Fighter } from '../game/types';
+import { KIT_FLY } from '../game/kit';
 import type { Sim } from '../game/sim';
 import { heroWeapons, weaponsFor } from './weapons';
 import { buildUmbrella, type Umbrella } from './umbrella';
@@ -417,17 +418,28 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     const ps = pose.current;
     if (ps) {
       const rt = f.run?.t ?? 0;
+      // a kit move that lifts its caster (game/kit.ts KIT_FLY): up over the first third of a second, down at the end
+      const kf = f.run ? KIT_FLY[f.run.id] : undefined;
+      let kUp = 0;
+      if (kf) {
+        const kt = rt - kf.charge, from = kf.from ?? 0.05, to = kf.to ?? kf.dur - 0.2;
+        const ss = (a: number, b: number, x: number) => Math.max(0, Math.min(1, (x - a) / (b - a)));
+        const e = (x: number) => x * x * (3 - 2 * x);
+        kUp = e(ss(from, from + 0.35, kt)) * (1 - e(ss(to, to + 0.3, kt)));
+      }
       if (f.anim === 'kr_spin') body.spin -= dt * 15;
+      else if (kf?.spin && kUp > 0.05) body.spin -= dt * kf.spin * kUp;
       else body.spin += (Math.round(body.spin / (Math.PI * 2)) * Math.PI * 2 - body.spin) * Math.min(1, dt * 14);
       let flip = 0;
       if (f.anim === 'kr_ult_air') flip = -Math.min(1, rt / 0.55) * Math.PI * 2;
+      else if (kf?.flip) flip = -Math.min(1, Math.max(0, rt - kf.charge - (kf.from ?? 0.05)) / 0.6) * Math.PI * 2;
       else if (f.anim === 'aq_flip') flip = Math.min(1, rt / 0.5) * Math.PI * 2;
       let lean = 0;
       if (f.anim === 'kr_charge') lean = 0.32;
       else if (f.anim === 'dx_fold') lean = 0.34;
       else if (f.act === 'hit') lean = -0.12;
       body.lean += (lean - body.lean) * Math.min(1, dt * 10);
-      const lev = f.anim === 'fy_ult' ? 0.45 + Math.sin(performance.now() * 0.003) * 0.05 : 0;
+      const lev = f.anim === 'fy_ult' ? 0.45 + Math.sin(performance.now() * 0.003) * 0.05 : kf ? kf.h * kUp + Math.sin(performance.now() * 0.004) * 0.08 * kUp : 0;
       body.lev += (lev - body.lev) * Math.min(1, dt * 6);
       ps.rotation.set(body.lean + flip - body.jolt * 0.28, body.spin, 0, 'YXZ');
       ps.position.y = PIVOT + body.lev;

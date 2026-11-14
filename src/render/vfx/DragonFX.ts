@@ -25,9 +25,9 @@ const bodyMat = () =>
     toneMapped: false,
     depthWrite: false, // out of the depth buffer, so ambient occlusion never darkens the screen round it
     side: THREE.FrontSide,
-    uniforms: { uT: { value: 0 }, uA: { value: 1 } },
+    uniforms: { uT: { value: 0 }, uA: { value: 1 }, uC1: { value: new THREE.Color(1.0, 0.74, 0.22) }, uC2: { value: new THREE.Color(1.0, 0.42, 0.08) }, uBelly: { value: new THREE.Color(1.0, 0.93, 0.72) }, uSpine: { value: new THREE.Color(0.85, 0.22, 0.05) }, uRim: { value: new THREE.Color(1.0, 0.88, 0.55) } },
     vertexShader: BODY_VS,
-    fragmentShader: /* glsl */ `uniform float uT; uniform float uA; varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+    fragmentShader: /* glsl */ `uniform float uT; uniform float uA; uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uBelly; uniform vec3 uSpine; uniform vec3 uRim; varying vec2 vUv; varying vec3 vN; varying vec3 vV;
       void main(){
         float along = vUv.x;            // 0 head .. 1 tail
         float round = vUv.y;            // 0 spine .. 0.5 belly .. 1 spine
@@ -42,11 +42,11 @@ const bodyMat = () =>
         float plate = smoothstep(0.0, 0.12, fract(along * 34.0)) * (1.0 - smoothstep(0.82, 1.0, fract(along * 34.0)));
         float fres = pow(max(0.0, 1.0 - abs(dot(vN, vV))), 2.2);
         float run = 0.5 + 0.5 * sin(along * 26.0 - uT * 12.0);
-        vec3 gold = mix(vec3(1.0, 0.74, 0.22), vec3(1.0, 0.42, 0.08), along * 0.85);
+        vec3 gold = mix(uC1, uC2, along * 0.85);
         vec3 c = gold * (0.45 + 0.65 * cell);
-        c = mix(c, vec3(1.0, 0.93, 0.72) * (0.65 + 0.35 * plate), belly);
-        c = mix(c, vec3(0.85, 0.22, 0.05), spine * 0.7);
-        c += vec3(1.0, 0.88, 0.55) * fres * 1.2 + gold * run * 0.18;
+        c = mix(c, uBelly * (0.65 + 0.35 * plate), belly);
+        c = mix(c, uSpine, spine * 0.7);
+        c += uRim * fres * 1.2 + gold * run * 0.18;
         // the tail burns away into flame
         float burn = smoothstep(0.8, 1.0, along) * (0.55 + 0.45 * sin(round * 40.0 + uT * 22.0));
         gl_FragColor = vec4(c * 1.2, uA * (1.0 - burn)); }`,
@@ -59,12 +59,12 @@ const haloMat = () =>
     toneMapped: false,
     blending: THREE.AdditiveBlending,
     side: THREE.BackSide,
-    uniforms: { uA: { value: 1 } },
+    uniforms: { uA: { value: 1 }, uHalo: { value: new THREE.Color(1.0, 0.7, 0.25) } },
     vertexShader: BODY_VS,
-    fragmentShader: /* glsl */ `uniform float uA; varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+    fragmentShader: /* glsl */ `uniform float uA; uniform vec3 uHalo; varying vec2 vUv; varying vec3 vN; varying vec3 vV;
       void main(){ float fres = pow(min(1.0, abs(dot(vN, vV))), 1.5);
         float tail = 1.0 - smoothstep(0.7, 1.0, vUv.x);
-        gl_FragColor = vec4(vec3(1.0, 0.7, 0.25) * fres * 0.9, fres * 0.6 * tail * uA); }`,
+        gl_FragColor = vec4(uHalo * fres * 0.9, fres * 0.6 * tail * uA); }`,
   });
 
 /** a tube's static parts: index and uv for `rings` x `sides` */
@@ -92,6 +92,18 @@ function tubeGeometry(rings: number, sides: number) {
 
 const UP = new THREE.Vector3(0, 1, 0);
 
+export interface DragonPalette {
+  c1: string; c2: string; belly: string; spine: string; rim: string; halo: string; fins: string; scale: string; glow: string; light: string; spark: string;
+}
+export const DRAGON_PALETTES: Record<string, DragonPalette> = {
+  gold: { c1: '#ffbd38', c2: '#ff6b14', belly: '#ffeeb8', spine: '#d9380d', rim: '#ffe08c', halo: '#ffb340', fins: '#ff5a12', scale: '#ffc84a', glow: '#ff9a20', light: '#ffc04a', spark: '#ffcf5a' },
+  // 枪王's silver dragon: white steel, blue fire
+  silver: { c1: '#eef3fa', c2: '#9fb4d0', belly: '#ffffff', spine: '#2f63c9', rim: '#cfe4ff', halo: '#9cc8ff', fins: '#4f8fff', scale: '#e6edf7', glow: '#7fa8ff', light: '#bcd8ff', spark: '#cfe4ff' },
+  // 气宗's 青龙: jade blue, sea foam belly
+  azure: { c1: '#3ad6c4', c2: '#1667b8', belly: '#dffcff', spine: '#0a3f7a', rim: '#a5f3fc', halo: '#67e8f9', fins: '#22d3ee', scale: '#5eead4', glow: '#0ea5e9', light: '#7dd3fc', spark: '#a5f3fc' },
+  // 毒宗's 毒蛟: venom green scales, a violet spine
+  venom: { c1: '#84cc16', c2: '#365314', belly: '#ecfccb', spine: '#7e22ce', rim: '#d9f99d', halo: '#a3e635', fins: '#a855f7', scale: '#65a30d', glow: '#4d7c0f', light: '#bef264', spark: '#d9f99d' },
+};
 export class DragonFX {
   active = false;
   private t = 0;
@@ -117,6 +129,26 @@ export class DragonFX {
   private jaw = new THREE.Group();
   private whiskers: THREE.Mesh[] = [];
   private light: THREE.PointLight;
+  private gold!: THREE.MeshStandardMaterial;
+  private flame!: THREE.MeshBasicMaterial;
+  /** what colour its sparks along the body are (the palette's) */
+  sparkColor = '#ffcf5a';
+  /** colour it: gold by default (the emperor's), or another beast's */
+  paint(p: DragonPalette) {
+    const u = this.bMat.uniforms;
+    u.uC1.value.set(p.c1);
+    u.uC2.value.set(p.c2);
+    u.uBelly.value.set(p.belly);
+    u.uSpine.value.set(p.spine);
+    u.uRim.value.set(p.rim);
+    this.hMat.uniforms.uHalo.value.set(p.halo);
+    (this.fins.material as THREE.MeshBasicMaterial).color.set(p.fins).multiplyScalar(1.5);
+    this.gold.color.set(p.scale);
+    this.gold.emissive.set(p.glow);
+    this.flame.color.set(p.fins).multiplyScalar(1.6);
+    this.light.color.set(p.light);
+    this.sparkColor = p.spark;
+  }
   private m = new THREE.Matrix4();
   private q = new THREE.Quaternion();
   private s = new THREE.Vector3();
@@ -147,7 +179,7 @@ export class DragonFX {
     fin.translate(0, 0.7, 0);
     this.fins = new THREE.InstancedMesh(fin, new THREE.MeshBasicMaterial({ color: new THREE.Color('#ff5a12').multiplyScalar(1.5), toneMapped: false, transparent: true, opacity: 0.9 }), FINS);
     // a leg: thigh, shin and three claws, pointing down its local -Y
-    const gold = new THREE.MeshStandardMaterial({ color: '#ffc84a', emissive: '#ff9a20', emissiveIntensity: 0.8, metalness: 0.55, roughness: 0.35 });
+    const gold = (this.gold = new THREE.MeshStandardMaterial({ color: '#ffc84a', emissive: '#ff9a20', emissiveIntensity: 0.8, metalness: 0.55, roughness: 0.35 }));
     const legParts: THREE.BufferGeometry[] = [];
     const thigh = new THREE.CylinderGeometry(0.09, 0.06, 0.42, 7);
     thigh.translate(0, -0.21, 0);
@@ -229,7 +261,7 @@ export class DragonFX {
     this.jaw.position.set(0, -0.16, 0.12);
     this.jaw.rotation.x = 0.45;
     // a flame mane round the back of the skull and a beard under the jaw
-    const flame = new THREE.MeshBasicMaterial({ color: new THREE.Color('#ff7a1a').multiplyScalar(1.6), toneMapped: false, transparent: true, opacity: 0.92 });
+    const flame = (this.flame = new THREE.MeshBasicMaterial({ color: new THREE.Color('#ff7a1a').multiplyScalar(1.6), toneMapped: false, transparent: true, opacity: 0.92 }));
     for (let k = 0; k < 9; k++) {
       const a = (k / 8 - 0.5) * 3.0;
       const mane = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.7, 4), flame);
@@ -414,7 +446,7 @@ export class DragonFX {
     }
     this.light.position.copy(h0);
     this.light.intensity = 32 * fade;
-    if (this.embers && Math.random() < 0.9) this.embers(this.pts[Math.floor(Math.random() * TS)], 2, '#ffcf5a');
+    if (this.embers && Math.random() < 0.9) this.embers(this.pts[Math.floor(Math.random() * TS)], 2, this.sparkColor);
     if (this.clouds && Math.random() < 0.35) this.clouds(this.pts[Math.floor(TS * 0.4 + Math.random() * TS * 0.6)]);
     if (!this.impacted && this.t >= total) {
       this.impacted = true;

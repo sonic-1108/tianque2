@@ -164,7 +164,7 @@ M({ id: 'willow_parry', name: '回风拂柳', house: 'jianke', icon: '🍃', mp:
 M({ id: 'flying_sword', name: '御剑', house: 'jianke', icon: '🗡️', mp: 24, cd: 9, ai: 16, anim: 'skill_point', dur: 0.6,
   desc: '剑诀一引，三柄飞剑先后追向对手，每柄 100。',
   steps: [{ at: 0.25, a: { k: 'shot', n: 3, seq: 0.12, speed: 22, life: 1.2, dmg: 100, shape: 'knife', homing: 6, radius: 0.6, spread: 0.6 } }] });
-M({ id: 'ten_thousand_swords', name: '万剑归宗', house: 'jianke', icon: '⚜️', mp: 50, cd: 24, ai: 8, ult: true, anim: 'skill_raise', dur: 2.4, armor: true,
+M({ id: 'ten_thousand_swords', fly: { h: 1.6, to: 2.1 }, show: [{ at: 0.1, kind: 'swordRain', dur: 2.0, aim: 'ahead', d: 6 }], name: '万剑归宗', house: 'jianke', icon: '⚜️', mp: 50, cd: 24, ai: 8, ult: true, anim: 'skill_raise', dur: 2.4, armor: true,
   desc: '万剑归宗：前方 6 米半径 7 米的天上落下剑雨，2 秒里每 0.15 秒落一阵（每阵 45），最后一柄巨剑插地 300。',
   loop: [0.15, 0.3, 2.0, { k: 'hit', shape: 'circle', at: 'ahead', d: 6, r: 7, dmg: 45, o: { flinch: true }, fx: 'slash' }],
   steps: [{ at: 0.25, a: { k: 'zone', at: 'ahead', d: 6, r: 7, t: 2, every: 0.1, fx: 'slash', color: '#bfe8ff' } }, { at: 2.1, a: { k: 'delay', at: 'ahead', d: 6, r: 4, after: 0.15, dmg: 300, o: { heavy: true, crit: true, launch: 8 }, fx: 'lightning' } }] });
@@ -200,7 +200,7 @@ M({ id: 'hundred_birds', name: '百鸟朝凤', house: 'qiangwang', icon: '🕊�
   desc: '枪出如百鸟：1.2 秒里朝前方 4.5 米连刺十二枪，每枪 26，可以慢慢走。',
   move: { walk: 0.3 },
   loop: [0.1, 0.05, 1.2, { k: 'hit', shape: 'cone', r: 4.5, cos: 0.6, dmg: 26, o: { flinch: true }, fx: 'thrust' }], steps: [] });
-M({ id: 'overlord_spear', name: '霸王枪', house: 'qiangwang', icon: '🏯', mp: 50, cd: 22, ai: 7, ult: true, anim: 'skill_flip', dur: 1.6, armor: true,
+M({ id: 'overlord_spear', fly: { h: 0.4, flip: true, to: 0.8 }, show: [{ at: 0, kind: 'dragonSilver', dur: 0.9, aim: 'ahead', d: 6.8 }], name: '霸王枪', house: 'qiangwang', icon: '🏯', mp: 50, cd: 22, ai: 7, ult: true, anim: 'skill_flip', dur: 1.6, armor: true,
   desc: '纵身而起，长枪自天而降钉进地里：6 米内 380 伤害并击飞，地上裂开三圈冲击波（每圈 60）。',
   move: { leap: [12, 7] },
   steps: [{ at: 9, a: { k: 'hit', shape: 'circle', r: 6, dmg: 380, o: { heavy: true, crit: true, launch: 10, breakArmor: true }, fx: 'slam' } }, { at: 9, a: { k: 'delay', at: 'self', d: 0, r: 8, after: 0.25, dmg: 60, fx: 'ring', n: 3 } }] });
@@ -239,7 +239,7 @@ M({ id: 'whirl_kick', name: '旋风腿', house: 'quanshi', icon: '🦶', mp: 20,
   desc: '腾空旋身连踢，飞出 4 米：路上的人挨两腿（每腿 90），第二腿踢上天。',
   move: { leap: [6, 8] },
   steps: [{ at: 0.2, a: { k: 'hit', shape: 'circle', r: 2.4, dmg: 90, o: { knock: 3 }, fx: 'wind' } }, { at: 9, a: { k: 'hit', shape: 'circle', r: 2.6, dmg: 90, o: { launch: 9 }, fx: 'burst' } }] });
-M({ id: 'hundred_crack', name: '天罡百裂拳', house: 'quanshi', icon: '🌟', mp: 50, cd: 22, ai: 6, ult: true, anim: 'attack_2', dur: 2.2, armor: true,
+M({ id: 'hundred_crack', show: [{ at: 0.1, kind: 'fistFlurry', dur: 1.65, aim: 'self' }, { at: 1.4, kind: 'giantFist', dur: 0.45, aim: 'ahead', d: 1.8 }], name: '天罡百裂拳', house: 'quanshi', icon: '🌟', mp: 50, cd: 22, ai: 6, ult: true, anim: 'attack_2', dur: 2.2, armor: true,
   desc: '冲到 6 米内的对手面前，1.6 秒里打出二十拳（每拳 18），最后一拳 260 打上天。',
   steps: [{ at: 0.02, a: { k: 'rush', r: 6 } }, { at: 1.85, a: { k: 'hit', shape: 'cone', r: 2.6, cos: 0.3, dmg: 260, o: { heavy: true, crit: true, launch: 12, breakArmor: true }, fx: 'burst' } }],
   loop: [0.08, 0.15, 1.75, { k: 'hit', shape: 'cone', r: 2.4, cos: 0.3, dmg: 18, o: { flinch: true }, fx: 'burst' }] });
@@ -272,7 +272,7 @@ M({ id: 'paper_double', name: '纸人替身', house: 'fushi', icon: '🎎', mp: 
 M({ id: 'bagua_array', name: '八卦阵', house: 'fushi', icon: '☯️', mp: 26, cd: 15, ai: 7, anim: 'skill_spell', dur: 0.7,
   desc: '前方 5 米铺开八卦阵（半径 5 米，6 秒）：踏进阵的人迷了路，晕头转向 2 秒，在阵里一直减速。',
   steps: [{ at: 0.3, a: { k: 'zone', at: 'ahead', d: 5, r: 5, t: 6, dazeOnce: 2, slow: 0.5, every: 0.6, fx: 'gold', color: '#facc15' } }] });
-M({ id: 'five_thunders', name: '五雷正法', house: 'fushi', icon: '🌩️', mp: 50, cd: 22, ai: 10, ult: true, anim: 'skill_raise', dur: 1.6, armor: true,
+M({ id: 'five_thunders', fly: { h: 1.2, to: 1.3 }, show: [{ at: 0, kind: 'baguaThunder', dur: 1.3, aim: 'self' }], name: '五雷正法', house: 'fushi', icon: '🌩️', mp: 50, cd: 22, ai: 10, ult: true, anim: 'skill_raise', dur: 1.6, armor: true,
   desc: '五雷正法：12 米内最近的五个敌人各挨一道天雷（300，麻 1.2 秒），身上有符印的人更重。',
   steps: [{ at: 0.5, a: { k: 'strikes', n: 5, r: 12, dmg: 300, o: { stun: 1.2, heavy: true, crit: true }, fx: 'lightning' } }] });
 M({ id: 'chain_lightning', name: '引雷', house: 'fushi', icon: '🔗', mp: 22, cd: 8, ai: 12, anim: 'skill_point', dur: 0.5,
@@ -305,7 +305,7 @@ M({ id: 'mountain_water', name: '高山流水', house: 'qinshi', icon: '🏞️'
   desc: '抚琴 2 秒，琴音一浪接一浪推向前方 8 米（每 0.3 秒一浪，30 伤害，减速），可以慢慢走。',
   move: { walk: 0.25 },
   loop: [0.3, 0.1, 2, { k: 'hit', shape: 'cone', r: 8, cos: 0.55, dmg: 30, o: { slow: 1, flinch: true }, fx: 'sound' }], steps: [] });
-M({ id: 'guangling', name: '广陵散', house: 'qinshi', icon: '🪕', mp: 50, cd: 24, ai: 8, ult: true, anim: 'skill_spell', dur: 2.6, armor: true,
+M({ id: 'guangling', fly: { h: 1.3, to: 2.3 }, show: [{ at: 0.2, kind: 'soundDomes', dur: 2.2, color: '#c4b5fd' }], name: '广陵散', house: 'qinshi', icon: '🪕', mp: 50, cd: 24, ai: 8, ult: true, anim: 'skill_spell', dur: 2.6, armor: true,
   desc: '广陵散绝响：10 米内连响六声（每声 100，封招），最后一声裂弦 300，把人掀飞。',
   loop: [0.32, 0.2, 1.9, { k: 'hit', shape: 'circle', r: 10, dmg: 100, o: { silence: 0.6, flinch: true }, fx: 'sound' }],
   steps: [{ at: 2.3, a: { k: 'hit', shape: 'circle', r: 10, dmg: 300, o: { heavy: true, crit: true, launch: 9 }, fx: 'burst' } }] });
@@ -338,7 +338,7 @@ M({ id: 'bone_strike', name: '兽骨杖击', house: 'yushou', icon: '🦴', mp: 
 M({ id: 'wolf_pack', name: '群狼', house: 'yushou', icon: '🐾', mp: 30, cd: 18, ai: 10, anim: 'skill_raise', dur: 0.7,
   desc: '狼群应声而来：一次唤出三头狼（12 秒）。',
   steps: [{ at: 0.35, a: { k: 'pet', kind: 'wolf', n: 3, life: 12, dmg: 40, every: 1, range: 14 } }] });
-M({ id: 'stampede', name: '百兽奔腾', house: 'yushou', icon: '🦬', mp: 50, cd: 24, ai: 10, ult: true, anim: 'skill_stomp', dur: 1.8, armor: true,
+M({ id: 'stampede', show: [{ at: 0.15, kind: 'stampede', dur: 1.4 }], name: '百兽奔腾', house: 'yushou', icon: '🦬', mp: 50, cd: 24, ai: 10, ult: true, anim: 'skill_stomp', dur: 1.8, armor: true,
   desc: '百兽奔腾：兽群虚影从身后冲向前方 14 米（宽 5 米），1.5 秒里踩六波，每波 80 并撞飞。',
   loop: [0.25, 0.2, 1.5, { k: 'hit', shape: 'line', r: 14, w: 2.6, dmg: 80, o: { knock: 9, launch: 3 }, fx: 'earth' }],
   steps: [{ at: 0.2, a: { k: 'zone', r: 2.6, t: 1.4, line: 14, every: 0.08, fx: 'earth', color: '#a16207' } }] });
@@ -372,9 +372,9 @@ M({ id: 'gu_swarm', name: '蛊虫', house: 'duzong', icon: '🪲', mp: 16, cd: 6
 M({ id: 'venom_burst', name: '万毒噬心', house: 'duzong', icon: '☠️', mp: 26, cd: 12, ai: 12, anim: 'skill_spell', dur: 0.6,
   desc: '催动 12 米内所有中了你毒的人体内的毒，一口气全发出来：剩下的毒伤一倍半，立刻打完。',
   steps: [{ at: 0.3, a: { k: 'detonate', r: 12, mult: 1.5 } }] });
-M({ id: 'five_venoms', name: '五毒天罗', house: 'duzong', icon: '🕷️', mp: 50, cd: 24, ai: 9, ult: true, anim: 'skill_spell', dur: 1.2, armor: true,
+M({ id: 'five_venoms', fly: { h: 1.0, to: 1.2 }, show: [{ at: 0, kind: 'dragonVenom', dur: 0.95, aim: 'ahead', d: 3 }], name: '五毒天罗', house: 'duzong', icon: '🕷️', mp: 50, cd: 24, ai: 9, ult: true, anim: 'skill_spell', dur: 1.5, armor: true,
   desc: '五毒天罗：脚下 9 米铺开一张毒网 7 秒，进网先封招 1 秒，在网里每 0.5 秒 40、减速，中毒每秒 30。',
-  steps: [{ at: 0.5, a: { k: 'zone', r: 9, t: 7, silenceOnce: 1, slow: 0.5, every: 0.5, dmg: 40, dot: [30, 5, 'poison'], fx: 'poison', color: '#4d7c0f' } }] });
+  steps: [{ at: 0.95, a: { k: 'zone', r: 9, t: 7, silenceOnce: 1, slow: 0.5, every: 0.5, dmg: 40, dot: [30, 5, 'poison'], fx: 'poison', color: '#4d7c0f' } }] });
 M({ id: 'butterfly_step', name: '蝶影', house: 'duzong', icon: '🦋', mp: 12, cd: 7, ai: 3, anim: 'skill_flip', dur: 0.55,
   desc: '像蝴蝶一样向后翻出 6 米，原地留下一团毒粉（半径 2.5 米，3 秒，中毒每秒 18）。',
   move: { back: [11, 0.3] },
@@ -406,7 +406,7 @@ M({ id: 'retreat_shot', name: '后撤射', house: 'gongshou', icon: '↩️', mp
 M({ id: 'full_draw', name: '蓄力满弓', house: 'gongshou', icon: '🌕', mp: 24, cd: 10, ai: 20, anim: 'throw', dur: 0.35, charge: 1.1, armor: true,
   desc: '站定拉满弓 1.1 秒，一箭破空：360 伤害，穿透，把人钉飞。',
   steps: [{ at: 0.05, a: { k: 'shot', speed: 60, life: 0.6, dmg: 360, shape: 'dart', pierce: true, radius: 0.6, knock: 14, color: '#fde68a' } }] });
-M({ id: 'sunset_arrow', name: '落日箭', house: 'gongshou', icon: '🌇', mp: 50, cd: 24, ai: 14, ult: true, anim: 'skill_raise', dur: 1.4, armor: true,
+M({ id: 'sunset_arrow', fly: { h: 2.4, from: 0, to: 0.75 }, show: [{ at: 0.3, kind: 'meteorArrow', dur: 1.0, aim: 'foe', d: 12 }], name: '落日箭', house: 'gongshou', icon: '🌇', mp: 50, cd: 24, ai: 14, ult: true, anim: 'skill_raise', dur: 1.4, armor: true,
   desc: '朝天一箭，1 秒后化作火流星砸在 12 米外：半径 6 米 450 伤害并击飞，地上烧 4 秒（每秒 25）。',
   steps: [{ at: 0.3, a: { k: 'delay', at: 'target', d: 12, r: 6, after: 1, dmg: 450, o: { heavy: true, crit: true, launch: 10 }, fx: 'fire', burn: [25, 4] } }] });
 M({ id: 'scatter_shot', name: '散射', house: 'gongshou', icon: '🎇', mp: 18, cd: 7, ai: 10, anim: 'throw', dur: 0.45,
@@ -440,7 +440,7 @@ M({ id: 'turn_slash', name: '回身斩', house: 'shuangdao', icon: '🔄', mp: 1
 M({ id: 'bleed_edge', name: '血刃', house: 'shuangdao', icon: '🩸', mp: 18, cd: 16, ai: 4, anim: 'skill_raise', dur: 0.4,
   desc: '刀刃抹血 8 秒：每一下（普攻也算）都让人流血（每秒 18，4 秒）。',
   steps: [{ at: 0.15, a: { k: 'self', bleedHits: 8, fx: 'blood' } }] });
-M({ id: 'asura_prison', name: '修罗刀狱', house: 'shuangdao', icon: '👹', mp: 50, cd: 24, ai: 5, ult: true, anim: 'skill_spin', dur: 2.6, armor: true,
+M({ id: 'asura_prison', fly: { h: 1.4, spin: 16, from: 0.1, to: 2.3 }, show: [{ at: 0.15, kind: 'bladeStorm', dur: 2.2, color: '#f43f5e' }], name: '修罗刀狱', house: 'shuangdao', icon: '👹', mp: 50, cd: 24, ai: 5, ult: true, anim: 'skill_spin', dur: 2.6, armor: true,
   desc: '修罗刀狱：刀光在身边 6 米织成一座刀牢 2.4 秒，把人往里卷，每 0.12 秒一刀（26），最后双刀落下 300。',
   move: { walk: 0.3 },
   loop: [0.12, 0.2, 2.2, { k: 'hit', shape: 'circle', r: 6, dmg: 26, o: { flinch: true }, fx: 'slash' }],
@@ -476,9 +476,9 @@ M({ id: 'levitate', name: '凌空', house: 'qizong', icon: '🕊️', mp: 14, cd
 M({ id: 'qi_beam', name: '气贯长虹', house: 'qizong', icon: '🌈', mp: 28, cd: 10, ai: 12, anim: 'skill_palm', dur: 1.6, armor: true,
   desc: '双掌推出一道 14 米长的气柱 1.5 秒：线上的人每 0.15 秒 25。',
   loop: [0.15, 0.1, 1.5, { k: 'hit', shape: 'line', r: 14, w: 1, dmg: 25, o: { flinch: true }, fx: 'thrust' }], steps: [] });
-M({ id: 'heaven_earth', name: '天地无极', house: 'qizong', icon: '🌐', mp: 50, cd: 24, ai: 12, ult: true, anim: 'skill_raise', dur: 1.6, armor: true,
-  desc: '聚天地之气成一颗巨大的气团，慢慢推出去，撞上人或飞到 16 米炸开：半径 8 米 500 伤害。',
-  steps: [{ at: 0.9, a: { k: 'shot', speed: 12, life: 1.35, dmg: 300, shape: 'glyph', radius: 1.4, splash: [8, 500], knock: 10, color: '#bae6fd' } }] });
+M({ id: 'heaven_earth', fly: { h: 1.8, to: 1.6 }, show: [{ at: 0.05, kind: 'dragonAzure', dur: 2.0, aim: 'foe', d: 14 }], name: '天地无极', house: 'qizong', icon: '🌐', mp: 50, cd: 24, ai: 12, ult: true, anim: 'skill_raise', dur: 2.1, armor: true,
+  desc: '聚天地之气化作一条青龙，盘身而起，俯冲向 14 米内的对手：落点半径 8 米 500 伤害并击飞。',
+  steps: [{ at: 0.9, a: { k: 'delay', at: 'target', d: 14, r: 8, after: 1.15, dmg: 500, o: { heavy: true, crit: true, launch: 9, knock: 10 }, fx: 'qi' } }] });
 M({ id: 'qi_barrier', name: '护体真气', house: 'qizong', icon: '🛡️', mp: 20, cd: 16, ai: 4, anim: 'skill_raise', dur: 0.4,
   desc: '真气护体：一层能吃下 25% 最大生命的气盾，6 秒。',
   steps: [{ at: 0.15, a: { k: 'self', ward: 0.25, fx: 'qi' } }] });
@@ -508,7 +508,7 @@ M({ id: 'land_mine', name: '地雷', house: 'jiguan', icon: '💣', mp: 14, cd: 
 M({ id: 'turret', name: '连弩塔', house: 'jiguan', icon: '🗼', mp: 26, cd: 16, ai: 12, anim: 'skill_point', dur: 0.6,
   desc: '架起一座连弩塔（18 秒）：16 米内见人就射，每 0.6 秒一矢（45）。',
   steps: [{ at: 0.3, a: { k: 'pet', kind: 'turret', n: 1, life: 18, dmg: 45, every: 0.6, range: 16 } }] });
-M({ id: 'kite_bombing', name: '木鸢轰炸', house: 'jiguan', icon: '🪁', mp: 50, cd: 24, ai: 12, ult: true, anim: 'skill_raise', dur: 1.8, armor: true,
+M({ id: 'kite_bombing', show: [{ at: 0.25, kind: 'kites', dur: 1.5 }], name: '木鸢轰炸', house: 'jiguan', icon: '🪁', mp: 50, cd: 24, ai: 12, ult: true, anim: 'skill_raise', dur: 1.8, armor: true,
   desc: '放出墨家木鸢从头顶飞过前方 20 米，沿路丢下八颗炸弹，每颗半径 3 米 140。',
   steps: [{ at: 0.3, a: { k: 'zone', r: 1.5, t: 1.4, line: 20, every: 0.12, fx: 'fire', color: '#fb923c' } }, ...[0, 1, 2, 3, 4, 5, 6, 7].map((k) => ({ at: 0.4 + k * 0.15, a: { k: 'delay' as const, at: 'ahead' as const, d: 3 + k * 2.4, r: 3, after: 0.3, dmg: 140, o: { heavy: true, launch: 5 }, fx: 'fire' as const } }))] });
 M({ id: 'grapple_line', name: '钩索', house: 'jiguan', icon: '🪝', mp: 10, cd: 8, ai: 10, anim: 'skill_point', dur: 0.4,

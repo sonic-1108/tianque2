@@ -1,5 +1,6 @@
 import { MonkFX } from './MonkFX';
 import { KitFX } from './KitFX';
+import { ShowFX } from './ShowFX';
 import { EmperorFX } from './EmperorFX';
 import * as THREE from 'three';
 import { SLOT_IDS } from './constants';
@@ -598,6 +599,8 @@ export class VFXSystem {
   root = new THREE.Group();
   /** the kit's sweeps, strips and circles (KitFX.ts) */
   kit = new KitFX();
+  /** the new houses' great moments (ShowFX.ts) */
+  show: ShowFX;
   private meteors: MeteorFx[] = [];
   private projPools: Record<string, THREE.Object3D[]> = {};
   private marks: MarkFx[] = [];
@@ -653,6 +656,8 @@ export class VFXSystem {
   constructor() {
     this.root.name = 'VFXSystem';
     this.root.add(this.kit.root);
+    this.show = new ShowFX(this);
+    this.root.add(this.show.root);
     for (const t of this.tracers) this.root.add(t.m);
     this.monk = new MonkFX(this.root);
     this.emperor = new EmperorFX(this.root);
@@ -1306,6 +1311,7 @@ export class VFXSystem {
   update(dt: number) {
     this.time += dt;
     this.kit.update(dt);
+    this.show.update(dt, this.time);
     for (const t of this.tracers)
       if (t.life > 0) {
         t.life -= dt;

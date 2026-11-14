@@ -205,7 +205,30 @@ export interface MoveSpec {
   /** charged: held this long rooted before the steps start (满弓, 拔剑式) */
   charge?: number;
   color?: string;
+  /** spectacles drawn with it (render/vfx/ShowFX.ts): at seconds in, which, aimed ahead d m or at the nearest foe */
+  show?: ShowSpec[];
+  /** the caster rises off the ground while it lasts (drawn only, render/Rig.tsx): height, turns a second, a somersault */
+  fly?: Fly;
 }
+export interface ShowSpec {
+  at: number;
+  kind: string;
+  /** how long it plays out: for dragons, rise + dive; for falls, the fall */
+  dur: number;
+  /** its mark: 'ahead' d m, the nearest 'foe' within d m (else ahead), or 'self' */
+  aim?: 'ahead' | 'foe' | 'self';
+  d?: number;
+  color?: string;
+}
+export interface Fly {
+  h: number;
+  spin?: number;
+  flip?: boolean;
+  from?: number;
+  to?: number;
+}
+/** every kit move that lifts its caster (Rig reads it by move id) */
+export const KIT_FLY: Record<string, Fly & { dur: number; charge: number }> = {};
 
 // ---------------------------------------------------------------- the kit's own state on a fighter
 export type PetKind = 'wolf' | 'hawk' | 'puppet' | 'turret' | 'deer';
@@ -898,6 +921,7 @@ function stepTo(s: Sim, f: Fighter, x: number, z: number) {
 
 // ---------------------------------------------------------------- turning a spec into a move
 export function defineMove(m: MoveSpec) {
+  if (m.fly) KIT_FLY[m.id] = { ...m.fly, dur: m.dur, charge: m.charge ?? 0 };
   const d: SkillDef = {
     id: m.id,
     name: m.name,
@@ -976,6 +1000,20 @@ export function defineMove(m: MoveSpec) {
         s.vfx('sparkBurst', P(f.pos[0], f.pos[1] + 0.6 + Math.random() * 1.0, f.pos[2]), 3, color, 1.2, 0.07);
         if (f.grounded) s.vfx('dustPuff', P(f.pos[0], gh(f.pos[0], f.pos[2]), f.pos[2]), 2, 0.3, 1.2, 0.45);
       }
+      if (m.show)
+        for (let i = 0; i < m.show.length; i++) {
+          const S = m.show[i], key = 'sh' + i;
+          if (t < S.at || (r.data as any)[key]) continue;
+          (r.data as any)[key] = 1;
+          const [fx, fz] = fwd(s, f);
+          let x = f.pos[0] + fx * (S.d ?? 8), z = f.pos[2] + fz * (S.d ?? 8);
+          if (S.aim === 'self') (x = f.pos[0]), (z = f.pos[2]);
+          if (S.aim === 'foe') {
+            const o = target(s, f, (S.d ?? 12) + 8); // the same reach the delayed strikes use
+            if (o) (x = o.pos[0]), (z = o.pos[2]);
+          }
+          s.vfx('kitShow', S.kind, P(f.pos[0], f.pos[1], f.pos[2]), P(x, gh(x, z), z), Math.atan2(-fx, -fz), S.dur, S.color ?? color, f.id);
+        }
       while (r.data.k < m.steps.length && m.steps[r.data.k].at <= t) {
         run(s, f, m, m.steps[r.data.k].a);
         r.data.k++;

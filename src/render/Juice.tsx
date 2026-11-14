@@ -294,6 +294,15 @@ export function Juice({ sim }: { sim: Sim }) {
         });
         return;
       }
+      case 'kitShow': {
+        // a = [kind, origin, target, yaw, dur, color, caster id]
+        const id = a[6];
+        vfx.show.play(a[0], vec(a[1]).clone(), vec(a[2]).clone(), a[3], a[4], a[5], () => {
+          const f = sim.fighters[id];
+          return f && f.hp > 0 ? new THREE.Vector3(f.pos[0], f.pos[1], f.pos[2]) : null;
+        });
+        return;
+      }
       case 'emp.dragon': {
         const target = vec(a[2]).clone();
         const k = vfx.emperor.summonDragon(vec(a[1]).clone(), target, a[3], a[4], () => {
