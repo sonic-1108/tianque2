@@ -1,0 +1,7 @@
+{
+ "prompt": "Inside an empty rustic wine tavern in an ancient Chinese mountain village: square wooden tables and benches, big wine jars sealed with red cloth stacked behind a long counter, a hanging wine banner with the character \u9152, red lanterns under the beams, a wooden staircase to an upper floor, apricot blossom branches in a vase, warm lantern light. Highly detailed, sharp textures, semi-realistic painterly game environment art, wide eye-level view from the middle of the room, no people.",
+ "aspectRatio": "16:9",
+ "returnDepth": true,
+ "numSamples": 4,
+ "seed": 57
+}
