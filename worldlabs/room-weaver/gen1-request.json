@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_873306238cf8d79c2f9d0dcdea5e45ac"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_a638153daabab02ac2157e7112a95ea4"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 1697.5570068359375,
+     "fy": 1697.0693359375,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 797.1758036893957,
+    "fy": 797.1758036893957,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 797.1758036893957,
+    "fy": 797.1758036893957,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 797.1758036893957,
+    "fy": 797.1758036893957,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 797.1758036893957,
+    "fy": 797.1758036893957,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 797.1758036893957,
+    "fy": 797.1758036893957,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 797.1758036893957,
+    "fy": 797.1758036893957,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 797.1758036893957,
+    "fy": 797.1758036893957,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic painterly game-environment view of an ancient Chinese weaver's house, centered on a wooden loom weaving blue silk under mixed daylight and lamp light.\",\"scene\":\"A richly detailed, unoccupied interior of a weaver's house in an ancient Chinese mountain village, viewed at eye level from the middle of the room. A large wooden loom dominates the central workspace, holding a half-woven bolt of deep blue silk; a hand-spun wheel, baskets of pale silk cocoons, and organized spools of colored thread surround it. Dyed cloth bolts hang from bamboo poles overhead, while an embroidery frame stands beside a lattice window and a neatly made bed with a patterned quilt rests along the rear wall. Soft mountain daylight filters through the wooden lattice, blending with the amber glow of a small oil lamp.\",\"subjects\":[{\"name\":\"wooden loom\",\"description\":\"A large traditional floor loom made of dark aged timber, fitted with taut warp threads and a partially completed silk textile.\",\"action_or_state\":\"static, holding a half-woven bolt of blue silk across its weaving bed\",\"appearance\":\"heavy pegged wooden frame, polished wear on the handles, fine cream warp threads, deep indigo-blue woven silk with a subtle repeating cloud pattern\",\"position_or_relationship\":\"centered as the dominant object in the middle of the room\"},{\"name\":\"spinning wheel\",\"description\":\"A compact wooden spinning wheel with a foot treadle and a small spindle assembly.\",\"action_or_state\":\"static\",\"appearance\":\"warm brown wood, slender circular wheel, lightly worn rim, a strand of pale silk fiber draped near the spindle\",\"position_or_relationship\":\"placed to the left of the loom beside baskets of cocoons\"},{\"name\":\"silk supplies\",\"description\":\"Woven bamboo baskets filled with silk cocoons and neatly grouped wooden spools of thread.\",\"action_or_state\":\"static\",\"appearance\":\"ivory cocoons, thread spools in cinnabar red, saffron yellow, jade green, muted violet, and indigo blue\",\"position_or_relationship\":\"clustered on the floor around the loom and spinning wheel\"},{\"name\":\"hanging dyed cloth\",\"description\":\"Several long bolts of dyed fabric suspended from bamboo poles running across the room.\",\"action_or_state\":\"hanging still with slightly uneven folded edges\",\"appearance\":\"indigo, rust red, faded ochre, moss green, and unbleached cream cloth with visible hand-dyed tonal variation\",\"position_or_relationship\":\"overhead and across the upper half of the room, framing the loom\"},{\"name\":\"embroidery frame\",\"description\":\"A low wooden embroidery frame holding stretched pale fabric with an incomplete floral motif.\",\"action_or_state\":\"static\",\"appearance\":\"simple honey-brown timber frame, cream silk ground, fine red and blue embroidery stitches, small needle and thread lying beside it\",\"position_or_relationship\":\"beside the lattice window on the right side of the room\"},{\"name\":\"bed\",\"description\":\"A neatly arranged low wooden bed with a folded patterned quilt and firm sleeping pillows.\",\"action_or_state\":\"static\",\"appearance\":\"dark wooden frame, cream linen pillows, quilt patterned with indigo geometric diamonds and muted red borders\",\"position_or_relationship\":\"against the rear wall behind and to the right of the loom\"}],\"setting\":\"The room is a compact timber-and-plaster weaver's home in an ancient Chinese mountain village. Exposed roof beams, woven reed wall panels, clay-plastered sections, and a plank floor give the workspace a handmade, lived-in character; the lattice window reveals a soft suggestion of misty green mountain slopes outside.\",\"composition\":\"Wide eye-level view from the middle of the room, with the loom centered as the visual anchor. The spinning wheel and silk baskets form a layered foreground, hanging cloth creates a patterned upper frame, and the window, embroidery frame, and bed balance the background on the right.\",\"style\":\"Semi-realistic painterly game environment art with sharply rendered surfaces, hand-painted brushwork, and grounded historical interior design. Detailed environmental storytelling is conveyed through tools, textiles, and crafted furnishings, with no people present.\",\"lighting\":\"Cool, soft daylight enters through the lattice window and grazes the silk, wood grain, and bamboo surfaces. A warm oil lamp near the loom casts gentle amber light across the central workspace, creating soft overlapping shadows and a warm-cool balance.\",\"color_palette\":[\"deep indigo blue\",\"warm amber\",\"aged walnut brown\",\"bamboo tan\",\"ivory cream\",\"cinnabar red\",\"muted jade green\",\"soft mountain gray\"],\"materials_and_textures\":\"Aged timber beams show fine grain, worn edges, and hand-carved joinery. The silk is lustrous and finely ribbed, dyed cloth has slightly irregular saturated color, bamboo baskets are tightly woven, and the clay plaster walls are matte and softly cracked. The quilted bedcover has raised stitched seams and a dense woven texture.\",\"mood\":\"quiet, industrious, warm, handcrafted, orderly, historical\",\"supporting_details\":\"A small bronze oil lamp sits on a low worktable beside thread snips and a wooden shuttle. A few loose silk strands catch the light near the loom, while folded cloth rests on a narrow bench beneath the window. Dust motes glow faintly in the mixed light, and the room remains completely unoccupied.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}
