@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_ac55234971f5b7ec75b0f61df4d2cbce"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_f76424ae81256dcccf754a5554056af5"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 1486.1484375,
+     "fy": 1485.721435546875,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 697.8979467504165,
+    "fy": 697.8979467504165,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 697.8979467504165,
+    "fy": 697.8979467504165,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 697.8979467504165,
+    "fy": 697.8979467504165,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 697.8979467504165,
+    "fy": 697.8979467504165,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 697.8979467504165,
+    "fy": 697.8979467504165,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 697.8979467504165,
+    "fy": 697.8979467504165,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 697.8979467504165,
+    "fy": 697.8979467504165,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide eye-level painterly game-environment view of a poor scholar's study in an ancient Chinese mountain village, lit by soft daylight and a single candle.\",\"scene\":\"A highly detailed semi-realistic painterly game environment depicts the empty study of a poor scholar inside an ancient Chinese mountain village. A worn wooden writing desk holds calligraphy brushes, an ink stone, fresh paper, and uneven stacks of examination essays; behind it, shelves are tightly crammed with thread-bound books and rolled scrolls. Calligraphy hangs on the plaster walls, a guqin rests on a simple stand, and a potted orchid sits beside a lattice window framing bamboo outside. A narrow bed occupies the quieter side of the room, while soft daylight and candlelight reveal sharp textures across the humble furnishings.\",\"subjects\":[{\"name\":\"writing desk\",\"description\":\"A low, weathered wooden scholar's desk set with writing implements and examination papers.\",\"action_or_state\":\"static, actively arranged for study\",\"appearance\":\"dark worn wood with chipped edges, several bamboo-handled brushes in a ceramic rest, a black ink stone, pale handmade paper, and irregular stacks of handwritten exam essays\",\"position_or_relationship\":\"center foreground, facing the book-filled wall and serving as the focal point of the room\"},{\"name\":\"book shelves\",\"description\":\"Tall rough-hewn wooden shelves densely packed with scholarly materials.\",\"action_or_state\":\"static\",\"appearance\":\"uneven dark timber shelving crammed with faded thread-bound books, rolled paper scrolls, wrapped manuscript bundles, and loose parchment edges\",\"position_or_relationship\":\"covering the back wall directly beyond the writing desk\"},{\"name\":\"guqin\",\"description\":\"A long traditional seven-string zither displayed on a plain wooden stand.\",\"action_or_state\":\"static\",\"appearance\":\"slender dark lacquered body, subtly worn finish, pale silk strings, and small brass-colored feet on the stand\",\"position_or_relationship\":\"against the left wall beneath hanging calligraphy\"},{\"name\":\"lattice window\",\"description\":\"A rectangular wooden lattice window open toward a stand of bamboo outside.\",\"action_or_state\":\"static, admitting daylight and a faint breeze\",\"appearance\":\"aged honey-brown lattice frame, translucent rice-paper panels pushed aside, layered green bamboo leaves visible beyond\",\"position_or_relationship\":\"on the right wall above the potted orchid and beside the narrow bed\"},{\"name\":\"narrow bed\",\"description\":\"A simple scholar's narrow wooden bed with sparse bedding.\",\"action_or_state\":\"static\",\"appearance\":\"plain low timber frame, thin folded indigo quilt, flattened beige pillow, and a woven reed sleeping mat\",\"position_or_relationship\":\"along the right side of the room beneath the window\"}],\"setting\":\"A modest single-room study in an ancient Chinese mountain village, built with dark timber beams, aged plaster walls, and wide plank flooring. The room is orderly but crowded with study materials, its humble furnishings shaped by long use and limited means.\",\"composition\":\"Wide eye-level view from the middle of the room, with the writing desk centered in the foreground and the packed shelves forming the visual anchor beyond it. The guqin balances the left side while the bright lattice window, orchid, and narrow bed create depth along the right wall.\",\"style\":\"Semi-realistic painterly game environment art with crisp hand-painted surface detail and believable historical interior design. Fine brushwork defines wood grain, paper fibers, frayed book bindings, plaster cracks, and layered bamboo foliage.\",\"lighting\":\"Soft cool daylight enters through the lattice window from the right, casting a geometric pattern across the floor and desk. A small candle on the desk adds a localized warm amber glow, gentle flame highlights, and soft shadows among the brushes and papers.\",\"color_palette\":[\"aged walnut brown\",\"warm parchment beige\",\"muted plaster gray\",\"bamboo green\",\"faded indigo\",\"candle amber\",\"deep ink black\"],\"materials_and_textures\":\"Rough timber beams and floorboards show raised grain, scratches, and darkened joints. Thread-bound paper books have frayed edges and faded cloth covers; scrolls, handmade paper, reed matting, wax, ceramic, and worn lacquer add tactile variation throughout the room.\",\"mood\":\"quiet, studious, humble, contemplative, lived-in\",\"supporting_details\":\"Several hanging calligraphy sheets are mounted unevenly on the plaster walls, their ink strokes visibly expressive but not readable as specific text. A small brass candleholder pools melted wax beside the ink stone, and a few loose pages curl at the corners near the desk. The bamboo outside the window overlaps the mountain-village light with slender leaves and segmented stalks.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"Decorative Chinese calligraphy is present on hanging wall sheets and examination essays, rendered as expressive non-legible ink brush marks without readable words.\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}
