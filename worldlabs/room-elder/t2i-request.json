@@ -1,0 +1,7 @@
+{
+ "prompt": "Inside the modest timber house of an old village elder in an ancient Chinese mountain village: a low writing desk under a large faded hand-painted map of a palace on a cliff pinned to the plaster wall, an old empty wooden cradle kept beside the bed, a camphor chest, a bed half hidden behind a folding paper screen, an iron kettle on a clay stove, dried gourds and a straw raincoat on wall hooks, a carved lattice window letting in soft daylight, warm glowing oil lamps, worn reed mats on a packed earth floor. Highly detailed, sharp textures, semi-realistic painterly game environment art, wide eye-level view from the middle of the room, no people.",
+ "aspectRatio": "16:9",
+ "returnDepth": true,
+ "numSamples": 4,
+ "seed": 50
+}
