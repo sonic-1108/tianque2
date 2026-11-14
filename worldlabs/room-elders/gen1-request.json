@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_d90b1511f7b194ea38aec33027cb63d5"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_38b099b87bde29d901e776a51446b986"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 1645.7757568359375,
+     "fy": 1645.302978515625,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 772.8592401392319,
+    "fy": 772.8592401392319,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 772.8592401392319,
+    "fy": 772.8592401392319,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 772.8592401392319,
+    "fy": 772.8592401392319,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 772.8592401392319,
+    "fy": 772.8592401392319,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 772.8592401392319,
+    "fy": 772.8592401392319,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 772.8592401392319,
+    "fy": 772.8592401392319,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 772.8592401392319,
+    "fy": 772.8592401392319,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic painterly game-environment view of an elderly couple's Chinese mountain farmhouse kitchen, glowing with firelight and set for two without people.\",\"scene\":\"A wide eye-level view from the middle of an old farmhouse room in an ancient Chinese mountain village, rendered as detailed semi-realistic painterly game environment art. A large clay cooking stove anchors the left side, holding a black iron wok and stacked bamboo steamers above a warm orange fire. Along the walls sit earthenware pickle jars and tied grain sacks, while a low wooden table in the center is prepared for two with ceramic bowls and chopsticks. Strings of red chillies and garlic hang from dark rafters, a small hen coop stands beside the weathered wooden door, and a heated brick bed piled with quilts occupies the rear wall.\",\"subjects\":[{\"name\":\"clay cooking stove\",\"description\":\"A large traditional clay cooking stove with an arched firebox, blackened iron wok, and stacked bamboo steamers.\",\"action_or_state\":\"active fire glowing within the firebox, faint steam rising from the steamers\",\"appearance\":\"ochre clay body, soot-darkened rim, worn brick base, round black wok, honey-brown woven bamboo steamers\",\"position_or_relationship\":\"occupying the left foreground against the wall\"},{\"name\":\"low dining table\",\"description\":\"A squat worn wooden table set for two diners.\",\"action_or_state\":\"static, prepared for a meal\",\"appearance\":\"dark scratched wood, two simple ceramic bowls, two pairs of wooden chopsticks, a small shared dish of preserved vegetables\",\"position_or_relationship\":\"centered in the room between the stove and the heated brick bed\"},{\"name\":\"heated brick bed\",\"description\":\"A traditional raised heated brick bed with folded bedding.\",\"action_or_state\":\"static\",\"appearance\":\"aged gray-red bricks, thick faded indigo quilts, patched cotton cushions, a rolled blanket at one end\",\"position_or_relationship\":\"running along the rear wall behind the dining table\"},{\"name\":\"storage jars and grain sacks\",\"description\":\"A grouped household food store of earthenware pickle jars and cloth grain sacks.\",\"action_or_state\":\"static\",\"appearance\":\"round brown glazed jars with cloth-tied lids, bulging coarse burlap sacks, faded twine ties\",\"position_or_relationship\":\"lined along the right wall beneath hanging chillies and garlic\"},{\"name\":\"hen coop\",\"description\":\"A small slatted wooden hen coop beside the entrance.\",\"action_or_state\":\"static, its dark interior partly visible through the slats\",\"appearance\":\"rough pale wood, woven straw nesting material, a simple hinged lattice door\",\"position_or_relationship\":\"beside the weathered wooden door at the right edge of the room\"}],\"setting\":\"The interior is a modest, timeworn farmhouse in an ancient Chinese mountain village. Smoke-darkened timber beams cross the low ceiling, uneven plaster walls meet a packed-earth floor, and a heavy plank door suggests the cold mountain air outside.\",\"composition\":\"A wide eye-level environmental shot from the middle of the room, with the dining table as the central focal anchor. The stove fills the left foreground, the brick bed creates a horizontal rear layer, and storage jars, hanging produce, and the coop balance the right side.\",\"style\":\"Semi-realistic painterly game environment art with crisp, highly detailed surface rendering and deliberate hand-painted brush texture. The scene is designed as an inhabitable historical interior environment with readable object silhouettes and natural visual depth.\",\"lighting\":\"Warm firelight spills from the stove across the earthen floor and lower furniture, creating amber highlights on clay, wood, and ceramic surfaces. Cool muted daylight leaks through narrow gaps around the door, leaving soft blue-gray shadows in the corners.\",\"color_palette\":[\"firelit amber\",\"aged ochre clay\",\"dark walnut brown\",\"soot black\",\"faded indigo\",\"brick red\",\"chilli red\",\"cool gray-blue\"],\"materials_and_textures\":\"Cracked clay, soot-stained brick, rough timber grain, packed dusty earth, woven bamboo, glazed ceramic, coarse burlap, and quilted faded cotton are sharply visible. The room shows years of use through chipped edges, smoke patina, frayed fabric seams, and polished wear on furniture corners.\",\"mood\":\"rustic, intimate, practical, timeworn, quietly warm\",\"supporting_details\":\"A bundle of dried corn hangs near the rafters, and small ash marks scatter near the stove hearth. Red chillies and braided garlic cast thin shadows across the plaster wall. A lidded water crock and a low wooden stool sit close to the table, with no people or animals visible in the room.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}
