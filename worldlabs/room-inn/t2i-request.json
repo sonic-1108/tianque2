@@ -1,0 +1,7 @@
+{
+ "prompt": "Inside the main hall of a roadside post station inn in ancient China: the innkeeper's counter with an abacus and ledger, wooden tables and benches, a staircase up to the guest rooms, saddles and bridles on wall pegs, a notice board with wanted posters, hanging lanterns, a hearth, sacks of fodder by the back door, warm lamplight. Highly detailed, sharp textures, semi-realistic painterly game environment art, wide eye-level view from the middle of the room, no people.",
+ "aspectRatio": "16:9",
+ "returnDepth": true,
+ "numSamples": 4,
+ "seed": 58
+}
