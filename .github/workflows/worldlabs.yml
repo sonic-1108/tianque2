@@ -116,5 +116,5 @@ jobs:
           if git ls-remote --exit-code origin worldlabs >/dev/null; then git fetch origin worldlabs; git checkout -B worldlabs origin/worldlabs; else git checkout --orphan worldlabs; git rm -rfq .; fi
           mkdir -p "worldlabs/$NAME" && cp /tmp/out/* "worldlabs/$NAME/"
           git add worldlabs && git commit -m "Atlas: $NAME"
-          for i in 1 2 3 4 5; do git push origin worldlabs && exit 0; git pull --rebase origin worldlabs; done
+          for i in $(seq 1 15); do git push origin worldlabs && exit 0; sleep $((RANDOM % 9 + 2)); git pull --rebase origin worldlabs; done
           exit 1
