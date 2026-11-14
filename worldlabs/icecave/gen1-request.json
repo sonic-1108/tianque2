@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_d95b95056a985c54ccd2e2f9060697b5"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_4a4d6dbb40344c00fa503c5149ab3068"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 1632.81591796875,
+     "fy": 1632.3468017578125,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 766.7732623605167,
+    "fy": 766.7732623605167,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 766.7732623605167,
+    "fy": 766.7732623605167,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 766.7732623605167,
+    "fy": 766.7732623605167,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 766.7732623605167,
+    "fy": 766.7732623605167,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 766.7732623605167,
+    "fy": 766.7732623605167,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 766.7732623605167,
+    "fy": 766.7732623605167,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 766.7732623605167,
+    "fy": 766.7732623605167,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic painterly game-environment view of an ancient Chinese mountain temple swallowed by a translucent blue frozen cave, facing an ice-bound seated Buddha.\",\"scene\":\"A vast frozen cave encloses the ruins of an ancient Chinese mountain temple, viewed at eye level from the middle of its snow-dusted stone floor. At the far end, a colossal seated stone Buddha is half encased in clear blue glacier ice beneath a vaulted ceiling crowded with thick icicles. Broken red lacquered pillars, a collapsed roof of curved glazed tiles, carved timber brackets, stone lanterns, a bronze incense cauldron, frost-stiffened prayer banners, and scattered sutra scrolls fill the abandoned sanctuary. A narrow shaft of pale daylight cuts through a crack overhead while a faint blue inner glow and cold ground mist spread through the ice-filled chamber.\",\"subjects\":[{\"name\":\"seated stone Buddha\",\"description\":\"A colossal ancient stone Buddha statue at the temple's far end, with monumental carved robes and a calm, weathered face.\",\"action_or_state\":\"static, half encased in thick translucent glacier ice\",\"appearance\":\"dark gray stone with chipped edges, frost crusting the shoulders and lap, lower body and one side fused into luminous blue ice\",\"position_or_relationship\":\"centered at the far end of the cave beyond the ruined temple structure\"},{\"name\":\"ruined temple structure\",\"description\":\"The collapsed remains of an ancient Chinese mountain temple interior.\",\"action_or_state\":\"static, heavily damaged and frozen\",\"appearance\":\"broken red lacquered timber pillars, curved glazed roof tiles, splintered carved wooden brackets, and sagging frost-covered prayer banners\",\"position_or_relationship\":\"spanning both sides of the stone-paved floor and framing the Buddha\"},{\"name\":\"bronze incense cauldron\",\"description\":\"A large traditional bronze incense cauldron with squat lion feet and ornate relief patterns.\",\"action_or_state\":\"static, partly buried in powdery snow\",\"appearance\":\"dark aged bronze with green patina, icy rim, and a dusting of white frost\",\"position_or_relationship\":\"slightly left of center in the middle ground before the Buddha\"},{\"name\":\"stone lanterns\",\"description\":\"Two weathered ceremonial stone lanterns from the temple grounds.\",\"action_or_state\":\"static, cracked and snow-covered\",\"appearance\":\"pale gray carved stone with broken capstones and frost lodged in the carved openings\",\"position_or_relationship\":\"one on each side of the central aisle in the middle ground\"},{\"name\":\"sutra scrolls\",\"description\":\"Loose rolled and unrolled sacred scrolls scattered across the temple floor.\",\"action_or_state\":\"static, partially snow-covered\",\"appearance\":\"aged tan paper, dark ink marks, frayed edges, and frost-stiffened fabric ties\",\"position_or_relationship\":\"spread across the foreground stone paving near fallen timber fragments\"}],\"setting\":\"An immense glacier cave has engulfed an ancient Chinese mountain temple, replacing its walls and vaulted ceiling with translucent blue ice. The flat interior floor remains paved in broad stone slabs, lightly dusted with windblown snow beneath collapsed roof debris.\",\"composition\":\"Wide eye-level view from the center of the floor, using the stone-paved central aisle and fallen pillars as leading lines toward the massive Buddha. The statue anchors the far background, while lanterns, cauldron, scrolls, and icy architectural ruins create layered depth across the foreground and middle ground.\",\"style\":\"Semi-realistic painterly game environment art with sharply resolved environmental textures and monumental fantasy-archaeological scale. Detailed brushwork defines layered ice, weathered stone carving, fractured timber, and snowy debris without any characters.\",\"lighting\":\"A cold shaft of pale daylight falls vertically through a narrow ceiling crack and pools across the center of the stone floor. Diffuse blue illumination glows from within the glacier walls and around the Buddha's ice casing, with deep blue-gray shadows in the ruined side aisles.\",\"color_palette\":[\"translucent glacier blue\",\"pale icy cyan\",\"snow white\",\"blue-gray stone\",\"weathered red lacquer\",\"aged bronze green\",\"muted dark brown\",\"cold charcoal\"],\"materials_and_textures\":\"Translucent glacier ice reveals trapped bubbles, deep blue strata, wet glossy edges, and thick clustered icicles. The temple ruins combine peeling red lacquer, splintered dark wood, cracked glazed ceramic tiles, worn carved stone, oxidized bronze, brittle fabric banners, and powdery snow on rough paving.\",\"mood\":\"silent, monumental, ancient, cold, abandoned, reverent\",\"supporting_details\":\"Low white mist pools along the floor and curls around fallen beams. Tattered prayer banners hang diagonally between broken pillars, their fabric rigid with frost. A few roof tiles lie in uneven heaps beside the central aisle, while icicles descend around the ceiling crack and from the Buddha's frozen silhouette.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}
