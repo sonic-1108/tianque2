@@ -203,3 +203,18 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   (`snowSpeed`), 雪狼 packs (animals.ts kind `wolf`: warn, charge, bite 5%, your swings hurt them; okSpot `corner`
   for the square map's corner), 冰窟狂僧 · 苦寒 (an elite, once a day), the summit (名号 一览众山小). The hunting band
   keeps away from the camp. Test: scratch snowtest.mts.
+- 秘境 (owner: real 3D, very detailed, distinctive; Atlas credits are plentiful): places made by World Labs Atlas as 3D
+  Gaussian splats and walked like rooms. Pipeline `tools/atlas/scene.py`, run by `.github/workflows/worldlabs.yml`
+  action `scene` (repo secret WORLDLABS_API_KEY, never printed): stage `t2i` (text to image with depth, 4 samples; look
+  at them, pick one), stage `world` (`pick`, optional `stands` for a corridor: three rounds of atlasGenerate views round
+  the capture point, then posedImages2Splats, about 20 min) . Takes land on the `worldlabs` branch (worldlabs/<name>/:
+  t2i-*.png, v-*.jpg views, splats.spz, every request and result JSON). Then `python3 tools/atlas/floor.py splats.spz
+  <id> --radius 16` writes `src/game/realmData.ts` (flip, levelling turn, floor heights, wall distance field, vault)
+  and copy the spz to `public/splats/<id>.spz` (`tools/atlas/slim.py` drops faint splats / SH if one is too big).
+  Game side: `src/game/realms.ts` (REALMS: door in the world, capture point off map at x/z 4400, scaled so the capture
+  eye is 1.6 m since Atlas depth came out half size, spawn, exit ring), each realm is a room of interiors.ts with
+  `realm` set (no walls / furniture; sim floorAt and pushOutOfRealm use the grid; Scene keeps the camera out of its
+  walls); drawn by `render/Realm.tsx` with Spark (`@sparkjsdev/spark` SparkRenderer + SplatMesh, loaded on first
+  entry with a progress line, kept after), Post switches to NEUTRAL tone mapping inside so the painted colours stay.
+  寒寺遗窟 (the ice cave on 雪岭, door at its mouth) is the first. A bare splat viewer for checking takes: scratch sv/.
+  Tests: plain node walk (scratch realm.mts). Software rendering draws splats, slowly.

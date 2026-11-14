@@ -17,17 +17,23 @@ import { JH_TOUCH, allyDown, allyPower, wear, startEscort, endEscort, allyThink,
 
 /** what a body stands on: the ground, or the lake's surface (wading / swimming) */
 /** what a body stands on: the ground (or the river's bed), or, given its feet's height, a roof, a terrace or a step it's on */
-const floorAt = (x: number, z: number, y?: number) =>
-  roomAt(x, z)
-    ? Math.max(ROOM_Y, y === undefined ? -Infinity : buildingFloor(x, z, y)) // in a room: its floor, or the bench you're on
-    : Math.max(groundHeight(x, z), ICE.on ? WATER_Y : WATER_Y - 1.1, y === undefined ? -Infinity : buildingFloor(x, z, y));
+const floorAt = (x: number, z: number, y?: number) => {
+  const room = roomAt(x, z);
+  if (room) {
+    const R = roomRealm(room);
+    if (R) return realmFloor(R, x, z); // a 秘境: the floor its splats show
+    return Math.max(ROOM_Y, y === undefined ? -Infinity : buildingFloor(x, z, y)); // in a room: its floor, or the bench you're on
+  }
+  return Math.max(groundHeight(x, z), ICE.on ? WATER_Y : WATER_Y - 1.1, y === undefined ? -Infinity : buildingFloor(x, z, y));
+};
 import { BAR_KEYS, BAR_R, Progress, STORY_V, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
 import { WANDERER, heroOf } from './heroes';
 import { SKILLS } from './skills';
 import './moves2';
 import { kitAfter, kitGuard, kitHidden, kitSpeed, kitStep, kitSwing } from './kit';
 import { NPCS, QUESTS, fromStory, type NpcRole } from './quests';
-import { ALL_FOLK, ROOMS, ROOM_Y, roomAt, roomSpawn, roomExit } from './interiors';
+import { ALL_FOLK, ROOMS, ROOM_Y, roomAt, roomSpawn, roomExit, roomRealm } from './interiors';
+import { pushOutOfRealm, realmFloor } from './realms';
 
 /** an ultimate goes off only after R is held this long (the owner's rule); letting go or a hit throws it away */
 export const ULT_CHARGE = 0.8;
@@ -185,11 +191,16 @@ export class Sim {
         return;
       }
       const [x, z] = roomSpawn(r);
-      p.pos = [x, ROOM_Y, z];
-      p.yaw = 0; // facing into the room (-z)
+      const R = roomRealm(r);
+      p.pos = [x, R ? realmFloor(R, x, z) : ROOM_Y, z];
+      p.yaw = R ? R.spawnYaw : 0; // facing into the room (-z)
       this.indoor = r.id;
-      this.camSnap = 0;
+      this.camSnap = p.yaw;
       this.toast(r.name);
+      if (R && !(this.progress.done as any)['realm:' + R.id]) {
+        (this.progress.done as any)['realm:' + R.id] = 1;
+        this.pushNote({ title: `秘境 · ${R.name}`, text: R.intro });
+      }
     } else if (this.door === -2 && this.indoor >= 0) {
       this.leaveRoom();
       return;
@@ -1573,6 +1584,8 @@ export class Sim {
     if (f.team === 'player' || f.act !== 'dead') {
       pushOutOfTrees(f.pos);
       pushOutOfBuildings(f.pos);
+      const R = roomRealm(roomAt(f.pos[0], f.pos[2]));
+      if (R) pushOutOfRealm(R, f.pos);
     }
     if (!roomAt(f.pos[0], f.pos[2])) clampWorld(f.pos);
     // too steep to walk up: slide along the slope if one way is easier, otherwise stop (mountains are walls)

@@ -8,6 +8,7 @@ import { useRef, useState } from 'react';
 import { Builder, Built, type Mat } from './build';
 import { ROOMS, ROOM_Y, type Furn, type Room, type RoomTheme } from '../game/interiors';
 import type { Sim } from '../game/sim';
+import { RealmScene } from './Realm';
 
 const rnd = (a: number, b = 0) => {
   const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
@@ -442,7 +443,8 @@ export function Interiors({ sim }: { sim: Sim }) {
     }
   });
   const r = room >= 0 ? ROOMS[room] : null;
-  const parts = useMemo(() => (r ? buildRoom(r) : null), [r]);
+  const parts = useMemo(() => (r && !r.realm ? buildRoom(r) : null), [r]);
+  if (r?.realm) return <RealmScene room={r} sim={sim} />;
   if (!r || !parts) return null;
   const lamps: [number, number][] = [
     [-r.w / 4, 0],

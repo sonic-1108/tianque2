@@ -10,7 +10,7 @@ import { DAY_S } from './clock';
 import { SNOW_Y, groundHeight } from './world';
 import { FOE_KINDS } from './foes';
 
-import { SNOW_CAMP } from './layout';
+import { ICE_CAVE, SNOW_CAMP } from './layout';
 export { SNOW_CAMP };
 /** fires that warm you: the camp's, and two rock shelters up on the snow */
 export const SNOW_FIRES: [number, number][] = [
@@ -25,8 +25,8 @@ export const LOTUS: [number, number][] = [
 ];
 /** the highest ground you can walk to */
 export const SUMMIT: [number, number] = [-692, -794];
-/** the old temple's ice cave, and where its monk stands */
-export const ICE_CAVE = { x: -830, z: -850, rot: 0.6 };
+/** the old temple's ice cave (its place lives in layout.ts), and where its monk stands */
+export { ICE_CAVE };
 export const MONK_AT: [number, number] = [-822, -843];
 /** the snowfield's bounds, for the wolves and the map */
 export const inSnowfield = (x: number, z: number) => x < -380 && x > -920 && z < -560 && z > -920;

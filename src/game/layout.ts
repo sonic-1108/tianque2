@@ -63,3 +63,5 @@ export const onGudao = (x: number, z: number, pd: number) =>
 
 /** 雪岭's camp (snow.ts): a level bowl under the snow in the north-west, its fire and tents; kept here, a leaf module, so places.ts can use it */
 export const SNOW_CAMP = { x: -716, z: -729 };
+/** the old temple's ice cave on the snowfield (snow.ts; its inside is the 秘境 寒寺遗窟, realms.ts); its mouth faces rot */
+export const ICE_CAVE = { x: -830, z: -850, rot: 0.6 };

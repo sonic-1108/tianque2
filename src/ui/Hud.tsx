@@ -328,7 +328,7 @@ export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
       )}
       {sim.near < 0 && sim.dialog < 0 && sim.door >= 0 && <div className="talk-hint">F 进入 {ROOMS[sim.door].name}</div>}
       {sim.jh.arena && <div className="room-name">擂台 · 第 {sim.jh.arena.round} 阵</div>}
-      {sim.near < 0 && sim.dialog < 0 && sim.door === -2 && <div className="talk-hint">F 出门</div>}
+      {sim.near < 0 && sim.dialog < 0 && sim.door === -2 && <div className="talk-hint">{sim.indoor >= 0 && ROOMS[sim.indoor].realm ? 'F 离开秘境' : 'F 出门'}</div>}
       {sim.indoor >= 0 && <div className="room-name">{ROOMS[sim.indoor].name}</div>}
       <div className="door-fade" style={{ opacity: Math.max(0, Math.min(1, sim.fadeT / 0.3)) }} />
       <div className="help">WASD 移动 · 鼠标转视角 · 左键攻击 · Shift/右键 闪避 · 空格 跳 · 1-0 技能 · 按住 R 大招 · K 技能树 · M 地图 · J 江湖志 · 滚轮 远近 · V 端详</div>

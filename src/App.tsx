@@ -14,7 +14,7 @@ import { Dialog, ChapterCard, NoteCard, chapterDue } from './ui/Dialog';
 import { BigMap } from './ui/BigMap';
 import { Chronicle } from './ui/Chronicle';
 import { Games } from './ui/Games';
-import { ROOMS } from './game/interiors';
+import { ROOMS, roomExit } from './game/interiors';
 import { use } from './game/play';
 import { attachInput, ui } from './input';
 
@@ -31,6 +31,7 @@ export function App() {
   (globalThis as any).__T2_SKILLS = SKILLS;
   (globalThis as any).__T2_GROUND = groundHeight;
   (globalThis as any).__T2_ROOMS = ROOMS;
+  (globalThis as any).__T2_ROOM_EXIT = roomExit;
   (globalThis as any).__T2_TQ = { c: TQ_POS, gate: tqWorld(0, 30), far: roadPoint(TQ_ROAD, 560), road: roadPoint(TQ_ROAD, 735) };
   const [bigMap, setBigMap] = useState(false);
   const [chron, setChron] = useState(false);

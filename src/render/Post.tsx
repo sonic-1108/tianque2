@@ -1,7 +1,10 @@
 // The finish: bloom on bright things (snow in the sun, fire, gold), filmic tone mapping, a soft vignette.
 // A scrub pass first, so one bad pixel can't be blurred over the whole screen by the bloom (the old game's black screens).
 import * as THREE from 'three';
-import { useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useFrame } from '@react-three/fiber';
+import type { Sim } from '../game/sim';
+import { ROOMS } from '../game/interiors';
 import { EffectComposer, Bloom, Vignette, ToneMapping } from '@react-three/postprocessing';
 import { Pass, ToneMappingMode } from 'postprocessing';
 
@@ -27,14 +30,24 @@ class SanitizePass extends Pass {
   }
 }
 
-export function Post() {
+export function Post({ sim }: { sim: Sim }) {
   // (端详 once had a depth of field here; it focused behind the face it was meant to keep sharp, so it's gone)
   const sanitize = useMemo(() => new SanitizePass(), []);
+  // in a 秘境 the splats already carry their painted light: a neutral curve keeps their colours as Atlas made them
+  const [realm, setRealm] = useState(false);
+  const was = useRef(false);
+  useFrame(() => {
+    const now = sim.indoor >= 0 && !!ROOMS[sim.indoor]?.realm;
+    if (now !== was.current) {
+      was.current = now;
+      setRealm(now);
+    }
+  });
   return (
     <EffectComposer multisampling={2}>
       <primitive object={sanitize} />
       <Bloom mipmapBlur intensity={0.55} luminanceThreshold={0.85} luminanceSmoothing={0.25} />
-      <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+      <ToneMapping mode={realm ? ToneMappingMode.NEUTRAL : ToneMappingMode.ACES_FILMIC} />
       <Vignette offset={0.38} darkness={0.32} />
     </EffectComposer>
   );

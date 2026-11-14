@@ -9,6 +9,7 @@ import { TEAHOUSE, fit } from './props';
 import { CT_ROT, HALL_DOOR, ctWorld } from './court';
 import { PLACES, placeAt, type Place } from './places';
 import { FOLK, type Folk } from './places';
+import { REALMS, realmById } from './realms';
 
 /** furniture, by what it is: its footprint (half sizes) and height. render/Interiors.tsx draws each kind */
 export const FURN = {
@@ -53,7 +54,7 @@ export interface Furn {
   z: number;
   ry?: number;
 }
-export type RoomTheme = 'elder' | 'hunter' | 'weaver' | 'herbalist' | 'carpenter' | 'scholar' | 'elders' | 'tavern' | 'inn' | 'shrine' | 'teahouse' | 'throne' | 'home';
+export type RoomTheme = 'elder' | 'hunter' | 'weaver' | 'herbalist' | 'carpenter' | 'scholar' | 'elders' | 'tavern' | 'inn' | 'shrine' | 'teahouse' | 'throne' | 'home' | 'realm';
 export interface Room {
   id: number;
   name: string;
@@ -71,6 +72,8 @@ export interface Room {
   /** the floor's look and the walls' */
   floor: 'plank' | 'stone';
   wall: 'wall' | 'plank';
+  /** a 秘境 (realms.ts): no walls or furniture, a splat to see and a grid to stand on */
+  realm?: string;
 }
 
 export const ROOM_Y = 0;
@@ -78,6 +81,8 @@ const BASE_X = 3300, BASE_Z = 3300;
 
 // what is in each kind of room (room-local, +z is the door's wall)
 const LAYOUT: Record<RoomTheme, { w: number; d: number; furn: Furn[]; floor?: 'plank' | 'stone'; wall?: 'wall' | 'plank' }> = {
+  // a 秘境: sized from its grid when it's added
+  realm: { w: 1, d: 1, furn: [] },
   // 石伯: a desk under the old map of 天阙, a cradle kept all these years, a chest, a bed behind a screen
   elder: {
     w: 9, d: 8,
@@ -203,7 +208,7 @@ const LAYOUT: Record<RoomTheme, { w: number; d: number; furn: Furn[]; floor?: 'p
 const HOUSE_THEMES: RoomTheme[] = ['hunter', 'weaver', 'herbalist', 'carpenter', 'scholar', 'elders'];
 const HOUSE_NAMES: Record<RoomTheme, string> = {
   elder: '石伯家', hunter: '猎户韩家', weaver: '织娘柳家', herbalist: '药农孙家', carpenter: '木匠鲁家', scholar: '书生顾家', elders: '王家老两口',
-  tavern: '杏花酒肆', inn: '驿站', shrine: '土地庙', teahouse: '清风茶楼', throne: '金銮殿', home: '你的家',
+  tavern: '杏花酒肆', inn: '驿站', shrine: '土地庙', teahouse: '清风茶楼', throne: '金銮殿', home: '你的家', realm: '秘境',
 };
 function villageHouses() {
   const out: { x: number; z: number; rot: number }[] = [];
@@ -252,6 +257,14 @@ export const ROOMS: Room[] = (() => {
   add('throne', '金銮殿', ctWorld(HALL_DOOR.lx, HALL_DOOR.lz), CT_ROT);
   // the house you can buy, last so no other room's place moves
   add('home', '你的家', HOME.door, HOME.rot);
+  // the 秘境 after every room (their places are their own, far off the map)
+  for (const R of REALMS) {
+    const g = R.grid, w = g.nx * g.cell * R.scale, d = g.nz * g.cell * R.scale;
+    out.push({
+      id: out.length, name: R.name, theme: 'realm', ox: R.ox + (g.x0 * R.scale + w / 2), oz: R.oz + (g.z0 * R.scale + d / 2), w, d, h: g.ceil * R.scale,
+      door: R.door, doorYaw: R.doorYaw, furn: [], floor: 'stone', wall: 'wall', realm: R.id,
+    });
+  }
   return out;
 })();
 
@@ -264,13 +277,22 @@ export function roomAt(x: number, z: number): Room | null {
 /** a room-local point in the world */
 export const inRoom = (r: Room, lx: number, lz: number): [number, number] => [r.ox + lx, r.oz + lz];
 /** where you stand when you come in (just inside the door) and where the way out is */
-export const roomSpawn = (r: Room): [number, number] => inRoom(r, 0, r.d / 2 - 1.4);
-export const roomExit = (r: Room): [number, number] => inRoom(r, 0, r.d / 2 - 0.6);
+export const roomSpawn = (r: Room): [number, number] => {
+  const R = realmById(r.realm);
+  return R ? [R.ox + R.spawn[0], R.oz + R.spawn[1]] : inRoom(r, 0, r.d / 2 - 1.4);
+};
+export const roomExit = (r: Room): [number, number] => {
+  const R = realmById(r.realm);
+  return R ? [R.ox + R.exit[0], R.oz + R.exit[1]] : inRoom(r, 0, r.d / 2 - 0.6);
+};
+/** the 秘境 a room is, if it is one */
+export const roomRealm = (r: Room | null | undefined) => (r ? realmById(r.realm) : undefined);
 
 /** the solid parts of every room, for world.ts: four walls (2 m thick, outside the room) and the furniture */
 export function roomSolids() {
   const out: { x: number; z: number; rot: number; hx: number; hz: number; h: number }[] = [];
   for (const r of ROOMS) {
+    if (r.realm) continue; // a 秘境's walls are its grid's (realms.ts pushOutOfRealm)
     const H = r.h + 0.4;
     out.push({ x: r.ox, z: r.oz - r.d / 2 - 1, rot: 0, hx: r.w / 2 + 2, hz: 1, h: H });
     out.push({ x: r.ox, z: r.oz + r.d / 2 + 1, rot: 0, hx: r.w / 2 + 2, hz: 1, h: H });
