@@ -1,7 +1,10 @@
 // The finish: bloom on bright things (snow in the sun, fire, gold), filmic tone mapping, a soft vignette.
 // A scrub pass first, so one bad pixel can't be blurred over the whole screen by the bloom (the old game's black screens).
 import * as THREE from 'three';
-import { EffectComposer, Bloom, Vignette, ToneMapping } from '@react-three/postprocessing';
+import { useMemo, useState } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { EffectComposer, Bloom, Vignette, ToneMapping, DepthOfField } from '@react-three/postprocessing';
+import { look } from './Scene';
 import { Pass, ToneMappingMode } from 'postprocessing';
 
 class SanitizePass extends Pass {
@@ -25,10 +28,26 @@ class SanitizePass extends Pass {
     renderer.render(this.scene, this.camera);
   }
 }
-const sanitize = new SanitizePass();
 
 export function Post() {
-  return (
+  // 端详: a shallow depth of field on the face looked at (mounted only then, so play pays nothing for it)
+  const [dof, setDof] = useState(false);
+  useFrame(() => {
+    const want = look.blend > 0.3;
+    if (want !== dof) setDof(want);
+  });
+  // a fresh scrub pass for each composer (one going away disposes its passes)
+  const sanitize = useMemo(() => new SanitizePass(), [dof]);
+  // (two composers rather than an optional child: the composer wants every child to be an effect)
+  return dof ? (
+    <EffectComposer multisampling={2}>
+      <primitive object={sanitize} />
+      <DepthOfField target={look.head} focalLength={0.02} bokehScale={3.2} height={540} />
+      <Bloom mipmapBlur intensity={0.55} luminanceThreshold={0.85} luminanceSmoothing={0.25} />
+      <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+      <Vignette offset={0.3} darkness={0.45} />
+    </EffectComposer>
+  ) : (
     <EffectComposer multisampling={2}>
       <primitive object={sanitize} />
       <Bloom mipmapBlur intensity={0.55} luminanceThreshold={0.85} luminanceSmoothing={0.25} />

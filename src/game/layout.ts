@@ -60,3 +60,6 @@ export const GD_PAV: [number, number] = (() => {
 /** on the paved climb or its terrace (keeps rocks, grass and trees off it) */
 export const onGudao = (x: number, z: number, pd: number) =>
   Math.hypot(x - GD_PAV[0], z - GD_PAV[1]) < 13 || (pd < 7.5 && Math.hypot(x - TQ_POS[0], z - TQ_POS[1]) < TQ_R - GD_ARCH_R + 12);
+
+/** 雪岭's camp (snow.ts): a level bowl under the snow in the north-west, its fire and tents; kept here, a leaf module, so places.ts can use it */
+export const SNOW_CAMP = { x: -716, z: -729 };

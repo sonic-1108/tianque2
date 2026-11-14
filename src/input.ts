@@ -58,6 +58,9 @@ export function attachInput(canvas: HTMLElement) {
   };
 }
 
+/** a key being held right now */
+export const heldKey = (code: string) => held.has(code);
+
 /** a key pressed since the last call (and forget it) */
 export function took(code: string) {
   const had = pressed.has(code);

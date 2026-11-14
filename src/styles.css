@@ -196,3 +196,25 @@ button:not(:disabled):hover { border-color: var(--gold); }
 .ally span { width: 64px; }
 .ally .ally-hp { flex: 1; height: 6px; }
 .ally .ally-hp i { background: #5ee08a; }
+/* 端详 (V): the name of whoever you're looking at, and how to come back */
+.look-tag { position: absolute; left: 50%; top: 64px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 16px; background: rgba(20, 16, 12, 0.55); border: 1px solid rgba(214, 180, 120, 0.35); border-radius: 3px; color: #f3ead6; text-shadow: 0 1px 2px #000; pointer-events: none; }
+.look-tag b { font-size: 15px; letter-spacing: 2px; font-weight: 600; }
+.look-tag span { font-size: 11px; color: rgba(243, 234, 214, 0.65); }
+/* 传送阵: the list of gates, lit ones clickable */
+.gate-list { max-height: 56vh; overflow-y: auto; }
+.gate-item { display: flex; align-items: baseline; gap: 6px; width: 100%; text-align: left; font: inherit; color: inherit; background: rgba(40, 32, 22, 0.55); border: 1px solid rgba(214, 180, 120, 0.25); cursor: pointer; }
+.gate-item:hover:not(:disabled) { background: rgba(70, 100, 130, 0.45); border-color: rgba(159, 220, 255, 0.6); }
+.gate-item:disabled { cursor: default; }
+.gate-item.here { border-color: rgba(159, 220, 255, 0.5); }
+.gate-item .bi-reward { margin-left: auto; }
+.game-note.warn { color: #fca5a5; }
+/* 雪岭: the cold, as a bar and frost creeping in at the edges */
+.cold-bar { position: absolute; left: 50%; bottom: 132px; transform: translateX(-50%); width: 220px; text-align: center; font-size: 11px; color: #dbeafe; text-shadow: 0 1px 2px #000; pointer-events: none; }
+.cold-bar .track { height: 6px; margin-top: 2px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(191, 219, 254, 0.4); border-radius: 3px; overflow: hidden; }
+.cold-bar .fill { height: 100%; background: linear-gradient(90deg, #93c5fd, #e0f2fe); }
+.cold-bar.bite .fill { background: linear-gradient(90deg, #60a5fa, #f0f9ff); animation: coldpulse 0.9s ease-in-out infinite; }
+@keyframes coldpulse { 50% { opacity: 0.55; } }
+.frost { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(200, 225, 255, 0.55) 100%); mix-blend-mode: screen; transition: opacity 0.6s; }
+/* 端详: a clean picture, only the tag and the minimap stay */
+.hud.looking > *:not(.look-tag):not(.frost) { opacity: 0; transition: opacity 0.4s; pointer-events: none; }
+.hud > * { transition: opacity 0.4s; }

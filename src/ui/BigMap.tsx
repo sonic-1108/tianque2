@@ -1,5 +1,7 @@
 // The whole map (M): the land, the seven roads, 青石村, every den with its level (grey once cleared), the
 // waystations and story places, 天阙, where the quest wants you and where you are. Click or M / Esc to close.
+import { GATES, lit } from '../game/gates';
+import { ICE_CAVE, SNOW_CAMP, SUMMIT } from '../game/snow';
 import { ROOMS } from '../game/interiors';
 import { ARENA_AT, GLADES, firefliesOut } from '../game/jianghu';
 import { HOME } from '../game/village';
@@ -113,6 +115,20 @@ export function BigMap({ sim, onClose }: { sim: Sim; onClose: () => void }) {
         [...ARENA_AT(), '擂', '擂台'] as [number, number, string, string],
       ];
       if (firefliesOut(sim)) for (const [gx, gz] of GLADES) marks.push([gx, gz, '萤', '萤火虫']);
+      // 雪岭: its camp, the summit, the ice cave
+      marks.push([SNOW_CAMP.x, SNOW_CAMP.z + 14, '营', '雪岭营地'], [SUMMIT[0], SUMMIT[1], '顶', '雪岭之巅'], [ICE_CAVE.x, ICE_CAVE.z, '窟', '寒寺遗窟']);
+      // 传送阵: lit ones bright, the rest grey
+      for (const gt of GATES) {
+        const x = X(gt.x), y = Z(gt.z), on = lit(sim, gt);
+        g.beginPath();
+        g.arc(x, y, 8 * u, 0, Math.PI * 2);
+        g.fillStyle = on ? '#bfe8ff' : '#8a8a8a';
+        g.fill();
+        g.strokeStyle = on ? '#0c4a6e' : '#444';
+        g.lineWidth = 1.5 * u;
+        g.stroke();
+        label('传', x, y + 4.5 * u, 11, on ? '#0c4a6e' : '#333');
+      }
       for (const [mx, mz, m, name] of marks) {
         const x = X(mx), y = Z(mz);
         g.fillStyle = '#d9f2d0';

@@ -12,6 +12,8 @@ import type * as THREE from 'three';
 export const TQ_DARK = { value: 0 };
 
 export function applyCharacterShading(m: THREE.MeshStandardMaterial, isPlayer: boolean, monkGold: boolean, cut?: { value: number }, suit = false, hemp = false) {
+  // close up (端详) the face and cloth stay sharp at a slant
+  for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = 8;
   const rim = isPlayer ? 'vec3(1.0, 0.82, 0.55) * 0.22' : 'vec3(0.45, 0.68, 1.0) * 0.28';
   m.onBeforeCompile = (sh) => {
     sh.uniforms.tqDark = TQ_DARK;

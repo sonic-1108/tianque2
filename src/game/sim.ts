@@ -1,5 +1,7 @@
 // The whole game world, stepped once per frame: the player, the bandits in their dens, projectiles, zones on
 // the ground and the little effects the renderer draws. Pure logic: no React, no three.js.
+import { makeSnow, snowSpeed, stepSnow, type SnowState } from './snow';
+import { stepGates } from './gates';
 import { ROAD_N, roadPoint } from './layout';
 import { makeAnimals, stepAnimals, type Animal } from './animals';
 import { CT_POS } from './court';
@@ -156,6 +158,10 @@ export class Sim {
   spar: { wave: number; t: number; ids: number[] } | null = null;
   riding = -1;
   herbs: Herb[] = makeHerbs();
+  /** 雪岭: the cold, the lotus, the ice cave's monk (snow.ts) */
+  snow!: SnowState;
+  wolfSeen = false;
+  gateT = 0;
   touch: Touch | null = null;
   bubbles: { x: number; y: number; z: number; text: string; t: number }[] = [];
   private sparPool: Fighter[] = [];
@@ -299,6 +305,7 @@ export class Sim {
     }
     makePools(this);
     makeJianghu(this);
+    this.snow = makeSnow(this);
     makeArenaPool(this);
     // an escort under way when the game was closed starts again from its start
     const q0 = this.quest();
@@ -630,11 +637,19 @@ export class Sim {
   /** a boar's tusks: a heavy shove and a bruise (never the last of your life) */
   private gore(a: Animal) {
     const p = this.player;
-    if (p.st.invuln > 0 || p.act === 'dodge' || p.hp <= 1 || this.time - this.goreAt < 2) return;
+    const wolf = a.kind === 'wolf';
+    if (p.st.invuln > 0 || p.act === 'dodge' || p.hp <= 1 || this.time - this.goreAt < (wolf ? 0.9 : 2)) return;
     this.goreAt = this.time;
-    const att = { id: -7, team: 'sect', name: '野猪', pos: [a.x, a.y, a.z], hp: 1, maxHp: 1, st: { rage: 0, crit: 0, buffAtk: 0, weak: 0 } } as unknown as Fighter;
-    const dmg = Math.min(p.hp - 1, Math.round(p.maxHp * 0.09));
-    this.hit(att, p, dmg, { noScale: true, knock: 10, heavy: true, dur: 0.5 });
+    const att = { id: -7, team: 'sect', name: wolf ? '雪狼' : '野猪', pos: [a.x, a.y, a.z], hp: 1, maxHp: 1, st: { rage: 0, crit: 0, buffAtk: 0, weak: 0 } } as unknown as Fighter;
+    const dmg = Math.min(p.hp - 1, Math.round(p.maxHp * (wolf ? 0.05 : 0.09)));
+    this.hit(att, p, dmg, wolf ? { noScale: true, knock: 3, dur: 0.25 } : { noScale: true, knock: 10, heavy: true, dur: 0.5 });
+    if (wolf) {
+      if (!this.wolfSeen) {
+        this.toast('雪狼！它们成群扑上来：一头一头打，别被围住。');
+        this.wolfSeen = true;
+      }
+      return;
+    }
     this.shake(0.5, a.x, a.z);
     if (!this.boarSeen) {
       this.toast('野猪发了疯，一头撞了上来！');
@@ -1009,7 +1024,7 @@ export class Sim {
       for (const k of ['speed', 'dmg', 'regen'] as const) if (B[k] > 0) B[k] = Math.max(0, B[k] - dt);
       if (B.regen > 0 && pl.hp > 0) pl.hp = Math.min(pl.maxHp, pl.hp + pl.maxHp * 0.012 * dt);
       const ride = this.riding >= 0 ? 2.3 * (policyNow(this)?.ride ?? 1) : 1;
-      (pl as any).spdMul = (B.speed > 0 ? 1.25 : 1) * ride * (1 + gearOf(this.progress).spd) * kitSpeed(pl);
+      (pl as any).spdMul = (B.speed > 0 ? 1.25 : 1) * ride * (1 + gearOf(this.progress).spd) * kitSpeed(pl) * (this.riding >= 0 ? 1 : snowSpeed(this, pl));
       if (this.riding >= 0) {
         const a = this.animals[this.riding];
         const sp = Math.hypot(pl.vel[0], pl.vel[2]);
@@ -1048,6 +1063,11 @@ export class Sim {
     {
       const pl = this.player;
       stepAnimals(this.animals, dt, { px: pl.pos[0], pz: pl.pos[2], here: pl.hp > 0 && this.indoor < 0, loud: pl.act === 'attack' || !!pl.run, gore: (a) => this.gore(a) });
+    }
+    stepSnow(this, dt);
+    if ((this.gateT -= dt) <= 0) {
+      this.gateT = 0.4;
+      stepGates(this);
     }
     for (const x of this.fx) x.t -= dt;
     this.fx = this.fx.filter((x) => x.t > 0);

@@ -47,6 +47,8 @@ export const ITEMS: Record<string, Item> = {
   tofu: { id: 'tofu', name: '豆花', price: 4, kind: 'food', desc: '嫩，回三成气血' },
   feast: { id: 'feast', name: '一桌酒席', price: 30, kind: 'food', desc: '回满气血，三分钟里慢慢回血' },
   herb: { id: 'herb', name: '血参', price: 24, kind: 'catch', desc: '野外长的红参，御医收' },
+  lotus: { id: 'lotus', name: '天山雪莲', price: 70, kind: 'catch', desc: '雪岭高处才有，能续断骨；孙伯、御医和雪岭营地都收' },
+  ginger: { id: 'ginger', name: '姜汤', price: 6, kind: 'food', desc: '雪岭营地的，一碗下肚好一阵不怕冷，回两成气血' },
   hen: { id: 'hen', name: '芦花鸡', price: 0, kind: 'catch', desc: '王婆婆跑丢的那只' },
 };
 
@@ -58,6 +60,7 @@ export const SHOPS: Record<string, string[]> = {
   '云游道人 · 卖药': ['plaster'],
   '卖刀的 · 屠铁塔': ['whet'],
   '灯笼匠 · 胡老爹': ['lantern'],
+  '雪岭 · 老参客': ['ginger', 'plaster'],
   '鸟贩 · 八哥张': ['thrush'],
   '书摊 · 老夫子': ['book'],
   '胭脂铺 · 柳嫂': ['rouge'],
@@ -79,6 +82,7 @@ export const BUYERS: Record<string, ItemKind[]> = {
   '面摊 · 胖大海': ['fish'],
   '御医 · 钱济生': ['catch'],
   '猎户 · 韩老三': ['game', 'mat'],
+  '雪岭 · 老参客': ['catch', 'mat', 'game'],
   '酒楼 · 何掌柜': ['game', 'fish'],
 };
 
@@ -96,6 +100,7 @@ export interface Want {
   title?: string;
 }
 export const WANTS: Want[] = [
+  { folk: '药农 · 孙伯', item: 'lotus', coins: 150, xp: 220, where: '村里孙家', ask: '雪线上有一种白花，叫天山雪莲，能续断骨。我这把老骨头爬不上去了……你从雪岭营地的传送阵上去，高处的雪地里找找，夜里它会发一点光。', thanks: '是它！花瓣上的冰都还没化。这一朵够救三个摔断腿的樵夫了。好孩子，这些铜板你拿着。' },
   { folk: '小丫头 · 糖糖', item: 'tanghulu', coins: 10, xp: 30, where: '青石集', ask: '我想吃糖葫芦，可是娘不给钱……', thanks: '甜！比我娘做的还甜！我长大了也要当大侠！' },
   { folk: '王婆婆', item: 'hen', coins: 40, xp: 60, where: '村里王家', ask: '我那只芦花鸡又跑了，满村子乱窜。你腿脚快，帮我逮回来？（村里的鸡跑得快，悄悄靠近再按 F）', thanks: '哎呀我的芦花鸡！就数它下蛋最勤。好孩子，婆婆给你攒的铜板，拿着。' },
   { folk: '樵夫 · 老周', item: 'noodle', coins: 15, xp: 30, where: '村里（白天上山）', ask: '砍了一天柴，就想吃胖大海那碗热汤面……', thanks: '就是这个味儿！吃饱了，明天多砍一担。' },

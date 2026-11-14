@@ -111,6 +111,7 @@ function paint(p: Pat) {
     }
   g.putImageData(img, 0, 0);
   const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 8;
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.colorSpace = THREE.NoColorSpace;
   tex.anisotropy = 4;

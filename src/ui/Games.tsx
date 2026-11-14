@@ -1,5 +1,6 @@
 // The little games and panels of 玩法 (game/play.ts): the notice board, the bag, fishing, lantern riddles, the
 // imperial exam, the cases at the drum, the morning court, dice and pot throwing. Space or F plays; Esc leaves.
+import { GATES, lit, travel } from '../game/gates';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Sim } from '../game/sim';
 import { CASES, EXAM, RIDDLES, WANTS, type Quiz } from '../game/economy';
@@ -105,8 +106,50 @@ export function Games({ sim, onClose }: { sim: Sim; onClose: () => void }) {
       return <Dice sim={sim} onClose={close} />;
     case 'touhu':
       return <Touhu sim={sim} onClose={close} />;
+    case 'gates':
+      return <GateList sim={sim} from={g.from} onClose={close} />;
   }
   return null;
+}
+
+// ---------------------------------------------------------------- 传送阵
+function GateList({ sim, from, onClose }: { sim: Sim; from: string; onClose: () => void }) {
+  const here = GATES.find((g) => g.id === from);
+  const [msg, setMsg] = useState('');
+  if (here && !lit(sim, here)) {
+    return (
+      <Frame title={`传送阵 · ${here.name}`} onClose={onClose}>
+        <p className="game-note">阵纹黯淡。走近些，它就会亮起来。</p>
+      </Frame>
+    );
+  }
+  const n = GATES.filter((g) => lit(sim, g)).length;
+  return (
+    <Frame title={`传送阵 · ${here?.name ?? ''}`} onClose={onClose}>
+      <p className="game-note">已点亮 {n} / {GATES.length} 座。走到一座传送阵附近，它就会亮起来。选一座亮着的，一阵白光就到。</p>
+      <div className="board-list gate-list">
+        {GATES.map((g) => {
+          const on = lit(sim, g), me = g.id === from;
+          return (
+            <button
+              key={g.id}
+              className={'board-item gate-item' + (on ? '' : ' done') + (me ? ' here' : '')}
+              disabled={!on || me}
+              onClick={() => {
+                const err = travel(sim, g.id);
+                if (err) setMsg(err);
+                else onClose();
+              }}
+            >
+              <b>{g.name}</b> <span className="bi-where">· {g.area}</span>
+              <span className="bi-reward">{me ? '你在这里' : on ? '前往' : '未点亮'}</span>
+            </button>
+          );
+        })}
+      </div>
+      {msg && <p className="game-note warn">{msg}</p>}
+    </Frame>
+  );
 }
 
 // ---------------------------------------------------------------- 告示栏

@@ -21,6 +21,8 @@ import { CT_POS, CT_ROT, CT_Y, WALL_X } from '../game/court';
 import { Climate } from './Climate';
 import { PlayThings } from './Play';
 import { NightLights } from './NightLights';
+import { Gates } from './Gates';
+import { Snow } from './Snow';
 import { NightMarket } from './NightMarket';
 import { Festive } from './Festive';
 import { War } from './War';
@@ -352,6 +354,8 @@ export function World({ sim }: { sim: Sim }) {
         <Festive sim={sim} />
         <NightLights sim={sim} />
         <NightMarket sim={sim} />
+        <Gates sim={sim} />
+        <Snow sim={sim} />
         <War sim={sim} />
         <Tianque />
         <Gudao />

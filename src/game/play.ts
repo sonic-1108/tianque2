@@ -12,6 +12,8 @@ import { BOARDS, DRUM, ctWorld, CT_POS } from './court';
 import { FOE_KINDS } from './foes';
 import { POLICY_DREAD, shiftDread, warPrice } from './conflict';
 import { fullHp } from './jianghu';
+import { LOTUS, lotusNear, pickLotus } from './snow';
+import { GATES, GATE_R, gateAt, lit } from './gates';
 
 export { ITEMS, SHOPS, BUYERS, WANTS };
 
@@ -70,8 +72,13 @@ export function buy(s: Sim, id: string): boolean {
   if (it.kind === 'food') {
     const k = id === 'noodle' ? 0.6 : id === 'mooncake' || id === 'feast' ? 1 : id === 'tofu' ? 0.3 : 0.2;
     if (id === 'feast') s.buffs.regen = 180;
+    if (id === 'ginger') {
+      s.snow.warmUntil = s.worldT + 240;
+      s.snow.cold = Math.max(0, s.snow.cold - 40);
+    }
     p.hp = Math.min(p.maxHp, p.hp + p.maxHp * k);
-    s.toast(id === 'tea' ? `喝了一壶${it.name}。说书先生正讲到：${TEA_TALES[Math.floor(Math.random() * TEA_TALES.length)]}` : `吃了${it.name}，浑身暖和。`);
+    if (id === 'ginger') s.toast('一碗滚烫的姜汤下肚，从喉咙暖到脚底：好一阵子不怕冷。');
+    else s.toast(id === 'tea' ? `喝了一壶${it.name}。说书先生正讲到：${TEA_TALES[Math.floor(Math.random() * TEA_TALES.length)]}` : `吃了${it.name}，浑身暖和。`);
   } else if (it.kind === 'service') {
     s.buffs.dmg = 180;
     s.toast('屠铁塔把你的兵器磨得雪亮：三分钟内伤害提高一成半');
@@ -178,7 +185,7 @@ export function makeHerbs(): Herb[] {
 }
 export { BOARDS, DRUM };
 
-export type Touch = { kind: 'hen' | 'herb' | 'horse' | 'board' | 'drum' | 'dismount' | 'deed' | 'bed' | 'rack' | 'firefly' | 'hunt'; id: number; label: string };
+export type Touch = { kind: 'hen' | 'herb' | 'horse' | 'board' | 'drum' | 'dismount' | 'deed' | 'bed' | 'rack' | 'firefly' | 'hunt' | 'lotus' | 'gate'; id: number; label: string };
 /** what's within reach to do something with (when nobody is there to talk to and no door) */
 export function touchable(s: Sim): Touch | null {
   const p = s.player.pos;
@@ -200,6 +207,11 @@ export function touchable(s: Sim): Touch | null {
   s.herbs.forEach((h, i) => h.back <= s.worldT && offer({ kind: 'herb', id: i, label: '采血参' }, Math.hypot(h.x - p[0], h.z - p[2]), 1.8));
   BOARDS.forEach(([x, z], i) => offer({ kind: 'board', id: i, label: '看告示' }, Math.hypot(x - p[0], z - p[2]), 2.6));
   offer({ kind: 'drum', id: 0, label: '擂鼓' }, Math.hypot(DRUM[0] - p[0], DRUM[1] - p[2]), 3.2);
+  // 雪岭's lotus, and the gate you stand on
+  const lo = lotusNear(s);
+  if (lo >= 0) offer({ kind: 'lotus', id: lo, label: '采雪莲' }, Math.hypot(LOTUS[lo][0] - p[0], LOTUS[lo][1] - p[2]), 2.2);
+  const g = gateAt(s);
+  if (g) offer({ kind: 'gate', id: GATES.indexOf(g), label: lit(s, g) ? '传送阵' : '传送阵（未亮）' }, Math.hypot(g.x - p[0], g.z - p[2]) * 0.5, GATE_R + 0.6);
   return best;
 }
 export function doTouch(s: Sim, t: Touch) {
@@ -242,6 +254,13 @@ export function doTouch(s: Sim, t: Touch) {
     }
     case 'board':
       s.game = { kind: 'board', court: t.id === 1 };
+      return;
+    case 'lotus':
+      pickLotus(s, t.id);
+      save(P);
+      return;
+    case 'gate':
+      s.game = { kind: 'gates', from: GATES[t.id].id };
       return;
     case 'drum':
       s.shake(0.35, DRUM[0], DRUM[1]);

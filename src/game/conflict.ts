@@ -14,6 +14,7 @@ import { earn, giveXp } from './play';
 import { addVillagePts } from './jianghu';
 import { ROOMS } from './interiors';
 import { nearCourt } from './court';
+import { SNOW_CAMP } from './layout';
 const nearCourtPlain = (x: number, z: number) => nearCourt(x, z, 140);
 
 export const DREAD_START = 30;
@@ -368,7 +369,7 @@ const HUNTS = {
 /** out on the land (not in the village, the court, a room, a raid or a bout) nobody's safe for long */
 function exposed(s: Sim) {
   const p = s.player.pos;
-  return s.player.hp > 0 && s.indoor < 0 && !s.spar && !s.war.raid && Math.hypot(p[0], p[2]) > WALL_R + 6 && !nearCourtPlain(p[0], p[2]) && s.dialog < 0 && !s.game;
+  return s.player.hp > 0 && s.indoor < 0 && !s.spar && !s.war.raid && Math.hypot(p[0], p[2]) > WALL_R + 6 && !nearCourtPlain(p[0], p[2]) && Math.hypot(p[0] - SNOW_CAMP.x, p[2] - SNOW_CAMP.z) > 45 && s.dialog < 0 && !s.game;
 }
 function stepHunt(s: Sim, dt: number) {
   const W = s.war, p = s.player;

@@ -496,6 +496,7 @@ function bladeTexture() {
     g.fill();
   }
   const t = new THREE.CanvasTexture(c);
+  t.anisotropy = 8;
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }

@@ -2,6 +2,7 @@
 // on every road, an inn with two houses round a yard. Their ground is levelled (world.ts rawHeight), their walls
 // block (BUILDINGS), and the folk who live there (FOLK) stand about or stroll, talk, and the innkeepers patch you up.
 // Pure data: no imports from world.ts (it imports this).
+import { SNOW_CAMP } from './layout';
 import { DENS, DEN_R } from './foes';
 import { ROADS, ROAD_N, roadFrame, roadPoint, TQ_POS, TQ_ROAD } from './layout';
 import { mapWater } from './mapsample';
@@ -350,6 +351,11 @@ export const FOLK: Folk[] = (() => {
     const cx = f.x + co * f.uz, cz = f.z - co * f.ux;
     out.push({ name, model, x: f.x + off * f.uz, z: f.z - off * f.ux, walk: cart === 'fire' || cart === 'juggle' ? 1.2 : 0.5, lines, cry, life: 'night', act, cart, cartAt: [cx, cz, Math.atan2(f.x - cx, f.z - cz)] });
   }
+  // 雪岭营地 (snow.ts): an old ginseng digger who keeps the fire and sells ginger soup, and the mountain's warden
+  out.push({ name: '雪岭 · 老参客', model: 'npc-oldman.glb', x: SNOW_CAMP.x + 1.5, z: SNOW_CAMP.z - 1.5, walk: 1.2, cry: ['姜汤～热姜汤～', '雪莲收咯！'],
+    lines: ['上了雪线，寒气往骨头里钻。冷得受不了就回火边来，或者喝碗姜汤。', '天山雪莲长在高处的雪窝里，夜里会发一点光。采来我收，七十文一朵。', '我挖了一辈子参，就为了攒够钱，给闺女在永安城置一间铺子。', '冰窟里那个和尚？以前是山上寒寺的知客僧，寺塌那年疯了。'] });
+  out.push({ name: '雪岭 · 守山人', model: 'npc-butcher.glb', x: SNOW_CAMP.x - 3, z: SNOW_CAMP.z - 4, walk: 2,
+    lines: ['北坡有三群雪狼，一群四五头。它们会绕着你转，看准了一头一头打。', '往下坡跑，踩着雪能滑出老远，比马还快。', '最高那座雪峰，站上去能看见天阙。我守了二十年山，只上去过一回。', '西北角的冰窟，以前是寒寺的经洞。那疯和尚每天都坐在里头，打倒了他，第二天又坐回去了。'] });
   // the evening crowd: out only at night, strolling the street
   const CROWD: [string, string, string[], string[]?][] = [
     ['提灯的姑娘', 'npc-lady.glb', ['我娘只许我逛到二更天。', '这盏荷花灯是灯婆婆送我的。', '集上晚上比白天热闹多了。'], ['好漂亮的灯！']],

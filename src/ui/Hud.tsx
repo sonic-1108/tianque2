@@ -1,5 +1,7 @@
 // On-screen: health and inner strength, level and experience, the six-slot bar with cooldowns, the target, messages,
 // a minimap. Reads the sim ten times a second.
+import { look } from '../render/Scene';
+import { GATES, lit } from '../game/gates';
 import { CT_POS } from '../game/court';
 import { RIVALS, VLEVELS } from '../game/jianghu';
 import { ERA, SEASONS, weatherName } from '../game/clock';
@@ -87,6 +89,17 @@ function Minimap({ sim }: { sim: Sim }) {
         g.strokeRect(X(pl.x) - 5, Z(pl.z) - 5, 10, 10);
         g.fillStyle = '#5a2a10';
         g.fillText(MARK[pl.kind]!, X(pl.x) - 4.5, Z(pl.z) + 3.5);
+      }
+      // 传送阵 (lit ones)
+      for (const gt of GATES) {
+        if (!lit(sim, gt)) continue;
+        g.beginPath();
+        g.arc(X(gt.x), Z(gt.z), 4.5, 0, Math.PI * 2);
+        g.fillStyle = '#bfe8ff';
+        g.fill();
+        g.strokeStyle = '#0c4a6e';
+        g.lineWidth = 1;
+        g.stroke();
       }
       // the court
       g.fillStyle = '#c8322a';
@@ -235,7 +248,7 @@ export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
   const showT = t && t.hp > 0 && sim.dist(p, t) < 30;
   const free = spFree(P);
   return (
-    <div className="hud">
+    <div className={'hud' + (look.on ? ' looking' : '')}>
       <div className="me">
         <div className="me-name">
           {p.name} <span className="lvl">Lv {P.level}</span> <span className="cls">{h ? `${h.title}` : '散人'}</span>
@@ -318,7 +331,24 @@ export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
       {sim.near < 0 && sim.dialog < 0 && sim.door === -2 && <div className="talk-hint">F 出门</div>}
       {sim.indoor >= 0 && <div className="room-name">{ROOMS[sim.indoor].name}</div>}
       <div className="door-fade" style={{ opacity: Math.max(0, Math.min(1, sim.fadeT / 0.3)) }} />
-      <div className="help">WASD 移动 · 鼠标转视角 · 左键攻击 · Shift/右键 闪避 · 空格 跳 · 1-5 技能 · 按住 R 大招 · K 技能树 · M 地图 · J 江湖志 · 滚轮 远近</div>
+      <div className="help">WASD 移动 · 鼠标转视角 · 左键攻击 · Shift/右键 闪避 · 空格 跳 · 1-0 技能 · 按住 R 大招 · K 技能树 · M 地图 · J 江湖志 · 滚轮 远近 · V 端详</div>
+      {sim.snow.cold > 1 && (
+        <>
+          <div className="frost" style={{ opacity: Math.min(1, sim.snow.cold / 100) }} />
+          <div className={'cold-bar' + (sim.snow.cold >= 100 ? ' bite' : '')}>
+            {sim.snow.cold >= 100 ? '冻僵了！快去烤火' : sim.snow.warm ? '烤火 · 寒气在退' : sim.worldT < sim.snow.warmUntil ? '寒气 · 姜汤护身' : '寒气'}
+            <div className="track">
+              <div className="fill" style={{ width: `${sim.snow.cold}%` }} />
+            </div>
+          </div>
+        </>
+      )}
+      {look.on && (
+        <div className="look-tag">
+          <b>端详{look.id === p.id ? ' · 自己' : look.name ? ' · ' + look.name : ''}</b>
+          <span>鼠标转动 · 滚轮远近 · V 或走动返回</span>
+        </div>
+      )}
       <Minimap sim={sim} />
     </div>
   );

@@ -9,7 +9,7 @@ import { WORLD_R, nearTq } from './layout';
 import { ctWorld } from './court';
 import { PLACES, placeAt } from './places';
 
-export type AnimalKind = 'deer' | 'rabbit' | 'fox' | 'boar' | 'ox' | 'dog' | 'hen' | 'crane' | 'horse';
+export type AnimalKind = 'deer' | 'rabbit' | 'fox' | 'boar' | 'ox' | 'dog' | 'hen' | 'crane' | 'horse' | 'wolf';
 export interface AnimalSpec {
   file: string;
   name: string;
@@ -33,6 +33,8 @@ export const ANIMALS: Record<AnimalKind, AnimalSpec> = {
   dog: { file: 'dog.glb', name: '大黄', h: 0.7, walk: 1.3, run: 5.5, fear: 0, roam: 14, stride: 1.1 },
   hen: { file: 'chicken.glb', name: '母鸡', h: 0.42, walk: 0.5, run: 3.5, fear: 3, roam: 9, stride: 0.45 },
   crane: { file: 'crane.glb', name: '仙鹤', h: 1.4, walk: 0.6, run: 2.6, fear: 7, roam: 16, stride: 0.6 },
+  // 雪岭's wolves (snow.ts): they hunt in packs, your blows hurt them
+  wolf: { file: 's-wolf.glb', name: '雪狼', h: 0.95, walk: 1.2, run: 8.8, fear: 0, roam: 26, stride: 1.1 },
   horse: { file: 'horse.glb', name: '驿马', h: 1.65, walk: 0.8, run: 3, fear: 0, roam: 5, stride: 1.0 },
 };
 
@@ -62,9 +64,10 @@ const rnd = (a: number, b = 0) => {
 };
 
 /** somewhere a beast may stand: dry, open, not in a den, a building, the village (unless it lives there) or on 天阙 */
-export function okSpot(x: number, z: number, village = false) {
+export function okSpot(x: number, z: number, village = false, corner = false) {
   const r = Math.hypot(x, z);
-  if (r > WORLD_R - 60) return false;
+  // (the map is square: 雪岭's wolves live out in its north-west corner, past the round edge the others keep to)
+  if (corner ? Math.max(Math.abs(x), Math.abs(z)) > WORLD_R - 40 : r > WORLD_R - 60) return false;
   if (!village && r < WALL_R + 8) return false;
   if (village && r > WALL_R - 3) return false;
   if (nearTq(x, z, 95)) return false;
@@ -86,7 +89,7 @@ export function makeAnimals(): Animal[] {
   };
   /** a spot in the ring [r0, r1] that passes okSpot */
   /** keeps its kind this far apart (each herd, each fox, each boar has its own ground) */
-  const SPREAD: Record<AnimalKind, number> = { deer: 70, rabbit: 18, fox: 60, boar: 70, ox: 10, dog: 6, hen: 1.5, crane: 3, horse: 3 };
+  const SPREAD: Record<AnimalKind, number> = { deer: 70, rabbit: 18, fox: 60, boar: 70, ox: 10, dog: 6, hen: 1.5, crane: 3, horse: 3, wolf: 3 };
   const find = (r0: number, r1: number, kind: AnimalKind, village = false): [number, number] | null => {
     for (let k = 0; k < 80; k++, seed++) {
       const a = rnd(seed, 1) * Math.PI * 2, r = r0 + rnd(seed, 2) * (r1 - r0);
@@ -141,6 +144,16 @@ export function makeAnimals(): Animal[] {
     const [x, z] = placeAt(p, -9.2, 5.5);
     if (okSpot(x, z)) add('horse', x, z);
   }
+  // 雪岭: three packs of snow wolves on the high snow (none near the camp)
+  ([[-620, -830], [-812, -760], [-760, -880]] as const).forEach(([cx, cz], h) => {
+    for (let k = 0; k < 4; k++) {
+      const x = cx + (rnd(h * 7 + k, 31) - 0.5) * 8, z = cz + (rnd(h * 7 + k, 33) - 0.5) * 8;
+      if (okSpot(x, z, false, true)) {
+        add('wolf', x, z, 100 + h, [cx, cz]);
+        (out[out.length - 1] as any).hp = 100;
+      }
+    }
+  });
   return out;
 }
 
@@ -162,7 +175,7 @@ function setGoal(a: Animal, s: AnimalSpec) {
   for (let k = 0; k < 8; k++) {
     const t = Math.random() * Math.PI * 2, r = s.roam * (0.3 + Math.random() * 0.7);
     const x = a.home[0] + Math.cos(t) * r, z = a.home[1] + Math.sin(t) * r;
-    if (okSpot(x, z, a.kind === 'dog' || a.kind === 'ox' || a.kind === 'hen')) {
+    if (okSpot(x, z, a.kind === 'dog' || a.kind === 'ox' || a.kind === 'hen', a.kind === 'wolf')) {
       a.goal = [x, z];
       return true;
     }
@@ -214,6 +227,12 @@ export function stepAnimals(list: Animal[], dt: number, w: AnimalWorld) {
           speak(a, '哼哧！', 1.2);
           break;
         }
+        if (a.kind === 'wolf' && w.here && dp < 24 && a.cool <= 0) {
+          a.state = 'warn';
+          a.t = 0.7 + rnd(a.id, 41) * 0.5;
+          speak(a, '嗷呜——', 1.4);
+          break;
+        }
         if (a.kind === 'ox' && Math.random() < dt * 0.04) speak(a, '哞～', 2);
         if (a.kind === 'hen' && Math.random() < dt * 0.03) speak(a, '咯咯哒！', 1.4);
         if (a.kind === 'horse' && Math.random() < dt * 0.02) speak(a, '咴儿～', 1.6);
@@ -237,6 +256,11 @@ export function stepAnimals(list: Animal[], dt: number, w: AnimalWorld) {
           a.t = 0.9;
           speak(a, '哼哧！', 1.2);
         }
+        if (a.kind === 'wolf' && w.here && dp < 24 && a.cool <= 0) {
+          a.state = 'warn';
+          a.t = 0.6;
+          speak(a, '嗷呜——', 1.4);
+        }
         break;
       }
       case 'flee':
@@ -259,15 +283,16 @@ export function stepAnimals(list: Animal[], dt: number, w: AnimalWorld) {
       case 'charge':
         want = s.run * 1.6;
         if (dp > 1.4) face = Math.atan2(dxp, dzp);
-        if (w.here && dp < 1.5) {
+        if (w.here && dp < (a.kind === 'wolf' ? 1.7 : 1.5)) {
           w.gore(a);
           a.state = 'flee';
-          a.t = 2.5;
-          a.cool = 9;
-        } else if (a.t <= 0 || dp > 22) {
+          // a wolf only falls back a few steps before it comes again
+          a.t = a.kind === 'wolf' ? 0.8 : 2.5;
+          a.cool = a.kind === 'wolf' ? 1.6 + rnd(a.id, 43) : 9;
+        } else if (a.t <= 0 || dp > (a.kind === 'wolf' ? 34 : 22)) {
           a.state = 'graze';
           a.t = 2;
-          a.cool = 6;
+          a.cool = a.kind === 'wolf' ? 1.5 : 6;
         }
         break;
       case 'follow': {
