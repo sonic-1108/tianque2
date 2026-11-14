@@ -1,0 +1,7 @@
+{
+ "prompt": "Inside a two storey teahouse in an ancient Chinese market town: tea tables with teapots and cups, a small raised storyteller's stage with a table, a folding fan and a wooden clapper, a balcony gallery above, hanging lanterns, calligraphy scrolls, a counter with tea canisters and a copper kettle on a stove, lattice windows, warm lamplight. Highly detailed, sharp textures, semi-realistic painterly game environment art, wide eye-level view from the middle of the room, no people.",
+ "aspectRatio": "16:9",
+ "returnDepth": true,
+ "numSamples": 4,
+ "seed": 60
+}
