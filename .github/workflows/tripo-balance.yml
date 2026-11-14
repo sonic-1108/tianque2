@@ -1,0 +1,15 @@
+# How many Tripo credits are left on the owner's account (prints the balance only; the key never leaves GitHub).
+# Run: gh workflow run tripo-balance.yml
+name: Tripo balance
+on: workflow_dispatch
+jobs:
+  balance:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          KEY: ${{ secrets.TRIPO_API_KEY }}
+        run: |
+          for u in https://openapi.tripo3d.ai/v3/user/balance https://api.tripo3d.ai/v2/openapi/user/balance; do
+            echo "$u"
+            curl -sS "$u" -H "Authorization: Bearer $KEY" | jq -c '{code, data}' || true
+          done
