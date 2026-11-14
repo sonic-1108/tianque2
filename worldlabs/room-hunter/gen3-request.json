@@ -1,0 +1,767 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_a240fc213629e0776357fb28eef2854b"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_859a718e8653217c5d302d44d73b828a"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_90a639f2f0c6be4ec110b4e7c5a83bf5"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_84634105f5ad9cbbd11b92b025144f15"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -0.2007517527228661,
+      0.0,
+      -0.28670321550114714
+     ],
+     "quaternion": [
+      0.0,
+      0.3007057995042731,
+      0.0,
+      0.9537169507482269
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_0071c36c61174a8bace8e09c4537b793"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_7fcc84f60d01c47e0db997ed5f6b151d"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.2007517527228661,
+      0.0,
+      -0.28670321550114714
+     ],
+     "quaternion": [
+      0.0,
+      -0.3007057995042731,
+      0.0,
+      0.9537169507482269
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_a0cfa1e06183663c3ca3a92f0199c001"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_a0ef388ac52086edebbca56f874da949"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -0.3288924172750679,
+      0.0,
+      -0.11970705016398409
+     ],
+     "quaternion": [
+      0.0,
+      0.573576436351046,
+      0.0,
+      0.8191520442889918
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_331dcc108f3a7bd50aaa648b06c0ea11"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_0bd7e33be4a21a5bbd6f61be795ff67a"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.3288924172750679,
+      0.0,
+      -0.11970705016398409
+     ],
+     "quaternion": [
+      0.0,
+      -0.573576436351046,
+      0.0,
+      0.8191520442889918
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_7fcc540a628d0adbe2836783d275f3a5"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_0313b6eb67daa79d23de1fbcdb5cc444"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      -2.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_d94f0f336960b7074e2fa75476e5b18b"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_5f011d54aed66f3f278d9ed799157922"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -0.3380740392011739,
+      0.0,
+      0.09058666578588229
+     ],
+     "quaternion": [
+      0.0,
+      0.7933533402912352,
+      0.0,
+      0.6087614290087207
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_1de66f7c0e5e459c0e2061d4b6a3f2ac"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_947baba404dab038ca6645d2aba02e2b"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.3380740392011739,
+      0.0,
+      0.09058666578588229
+     ],
+     "quaternion": [
+      0.0,
+      -0.7933533402912352,
+      0.0,
+      0.6087614290087207
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_fdfab5bb65061e5ee486865f8c9dcf33"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_e9013b71f632b231261bd72a3362ba09"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -0.2249756633902888,
+      0.0,
+      0.26811555509164225
+     ],
+     "quaternion": [
+      0.0,
+      0.9396926207859083,
+      0.0,
+      0.3420201433256688
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_89a275aec530d35e946495b4144a1f0a"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_b2cdf6d083194a0e1871bc18c4bd6367"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.2249756633902888,
+      0.0,
+      0.26811555509164225
+     ],
+     "quaternion": [
+      0.0,
+      -0.9396926207859083,
+      0.0,
+      0.3420201433256688
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_a7647eabf46ecffdec5ceb6f7922061f"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_2c94377cd0407868d497e34349bad90a"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -4.286263797015736e-17,
+      0.0,
+      0.35
+     ],
+     "quaternion": [
+      0.0,
+      1.0,
+      0.0,
+      6.123233995736766e-17
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -1.2
+    ],
+    "quaternion": [
+     -0.10452846326765347,
+     0.0,
+     0.0,
+     0.9945218953682733
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -1.2
+    ],
+    "quaternion": [
+     -0.08562470437208512,
+     0.570434324618422,
+     0.0599550634583119,
+     0.8146646436810838
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -1.2
+    ],
+    "quaternion": [
+     -0.08562470437208512,
+     -0.570434324618422,
+     -0.0599550634583119,
+     0.8146646436810838
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -1.2
+    ],
+    "quaternion": [
+     -6.400522398026175e-18,
+     0.9945218953682733,
+     0.10452846326765347,
+     6.089690279223575e-17
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "quaternion": [
+     -0.07391278520356671,
+     0.7032331762534041,
+     0.0739127852035667,
+     0.7032331762534042
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "quaternion": [
+     -0.0181511771607527,
+     0.9794128730990714,
+     0.10294044103643694,
+     0.1726969147805623
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "quaternion": [
+     -0.10294044103643694,
+     0.1726969147805622,
+     0.01815117716075269,
+     0.9794128730990714
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "quaternion": [
+     0.0739127852035667,
+     0.7032331762534042,
+     0.07391278520356671,
+     -0.7032331762534041
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "quaternion": [
+     -0.07391278520356671,
+     -0.7032331762534041,
+     -0.0739127852035667,
+     0.7032331762534042
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "quaternion": [
+     -0.10294044103643694,
+     -0.1726969147805622,
+     -0.01815117716075269,
+     0.9794128730990714
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "quaternion": [
+     -0.0181511771607527,
+     -0.9794128730990714,
+     -0.10294044103643694,
+     0.1726969147805623
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "quaternion": [
+     -0.07391278520356671,
+     0.7032331762534041,
+     0.0739127852035667,
+     0.7032331762534042
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -1.4695761589768238e-16,
+     0.0,
+     1.2
+    ],
+    "quaternion": [
+     -6.400522398026175e-18,
+     0.9945218953682733,
+     0.10452846326765347,
+     6.089690279223575e-17
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -1.4695761589768238e-16,
+     0.0,
+     1.2
+    ],
+    "quaternion": [
+     0.059955063458311905,
+     0.8146646436810837,
+     0.08562470437208512,
+     -0.5704343246184221
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -1.4695761589768238e-16,
+     0.0,
+     1.2
+    ],
+    "quaternion": [
+     -0.059955063458311905,
+     0.8146646436810838,
+     0.08562470437208512,
+     0.5704343246184221
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -1.4695761589768238e-16,
+     0.0,
+     1.2
+    ],
+    "quaternion": [
+     0.10452846326765347,
+     1.217938055844715e-16,
+     1.280104479605235e-17,
+     -0.9945218953682733
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic game-environment view of an empty hunter\u2019s log cabin in an ancient Chinese mountain village, lit by hearth fire and a small window.\",\"scene\":\"An empty hunter\u2019s log cabin stands inside an ancient Chinese mountain village, viewed at eye level from the middle of the single-room interior. Rough plank walls display deer antlers, tanned pelts, hunting bows, quivers, and spears arranged on handmade racks. A stone hearth holds a crackling fire beneath a hanging iron pot, while strings of dried meat and herbs cross the dark ceiling beams; a fur-covered bed, piled traps and snares, and a heavy wooden table with a skinning knife complete the lived-in hunting shelter.\",\"subjects\":[{\"name\":\"stone hearth\",\"description\":\"A broad, low stone hearth built from irregular smoke-darkened river stones, with an iron cooking pot suspended above it.\",\"action_or_state\":\"A wood fire crackles inside the hearth, casting moving orange light and a faint curl of smoke upward.\",\"appearance\":\"Blackened stone, glowing split logs, red embers, soot-stained iron chain, and a round weathered iron pot.\",\"position_or_relationship\":\"Set against the back wall slightly right of center, forming the warm visual focal point.\"},{\"name\":\"weapon rack\",\"description\":\"A handmade wall rack holding traditional hunting equipment.\",\"action_or_state\":\"Static, neatly arranged for use.\",\"appearance\":\"Bentwood hunting bows, leather-backed quivers filled with feathered arrows, and long wooden spears with dark metal tips.\",\"position_or_relationship\":\"Mounted across the left plank wall beneath mounted deer antlers and beside hanging pelts.\"},{\"name\":\"wooden table\",\"description\":\"A heavy rectangular worktable used for preparing game.\",\"action_or_state\":\"Static, with a skinning knife left on its scarred surface.\",\"appearance\":\"Thick dark timber planks, deep knife marks, worn corners, iron pegs, and a single broad-bladed knife with a wrapped wooden handle.\",\"position_or_relationship\":\"Occupies the foreground left, angled toward the hearth.\"},{\"name\":\"fur-covered bed\",\"description\":\"A low timber-framed bed covered in layered animal furs and a coarse woven blanket.\",\"action_or_state\":\"Static and unused.\",\"appearance\":\"Pale cream and brown pelts, a dark wool blanket, rough-hewn bedposts, and a flattened straw mattress beneath the furs.\",\"position_or_relationship\":\"Placed along the right wall under the small window.\"},{\"name\":\"traps and snares\",\"description\":\"A loose pile of hunting traps, rope snares, and woven carrying baskets.\",\"action_or_state\":\"Static, stored for later use.\",\"appearance\":\"Weathered wood, twisted rawhide cord, rusted metal teeth, and dusty woven reed fibers.\",\"position_or_relationship\":\"Stacked in the shadowed front-right corner beside the bed.\"}],\"setting\":\"A compact, single-room log cabin in an ancient Chinese mountain village, built from rough dark planks and thick hand-hewn beams. The floor is uneven packed earth covered by scattered straw, boot-worn rugs, and ash near the hearth; a small shuttered window reveals pale mountain daylight.\",\"composition\":\"Wide eye-level interior view from the center of the room, with the worktable anchoring the foreground, the glowing hearth at the back, and the bed framing the right side. Wall-mounted weapons and hanging provisions create layered vertical detail, while the small window provides a cool secondary light source.\",\"style\":\"Semi-realistic painterly game environment art with sharply resolved natural materials, practical historical rustic construction, and hand-painted surface detail. No people or characters are present.\",\"lighting\":\"Warm, flickering orange firelight spills from the stone hearth across the floorboards, pelts, and weapon racks. Cool muted daylight enters through the small right-side window, creating contrasting blue-gray shadows and crisp highlights on iron, wood, and leather.\",\"color_palette\":[\"ember orange\",\"smoke-dark brown\",\"aged pine wood\",\"tanned leather brown\",\"ash gray\",\"muted olive green\",\"cool mountain blue\",\"cream fur\"],\"materials_and_textures\":\"Splintered plank walls carry visible grain, nail holes, soot streaks, and age-darkened seams. Tanned hides are stiff and uneven, furs are dense and matted, iron is blackened and lightly rusted, and the stone hearth is rough, chipped, and ash-dusted. Dried herbs, braided cord, straw, and rawhide add fibrous texture throughout the room.\",\"mood\":\"rustic, practical, secluded, fire-warmed, atmospheric\",\"supporting_details\":\"Mounted deer antlers rise above several stretched pelts on the rear and left walls. Strings of dried venison strips, garlic bulbs, and bundled mountain herbs hang beneath the beams. A clay water jar, a wooden stool, split firewood, and scattered ash sit near the hearth, while cold mountain brightness shows through the small window.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}

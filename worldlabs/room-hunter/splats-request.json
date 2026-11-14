@@ -1,0 +1,1332 @@
+{
+ "posedFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_a240fc213629e0776357fb28eef2854b"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_859a718e8653217c5d302d44d73b828a"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_90a639f2f0c6be4ec110b4e7c5a83bf5"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_84634105f5ad9cbbd11b92b025144f15"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -0.2007517527228661,
+      0.0,
+      -0.28670321550114714
+     ],
+     "quaternion": [
+      0.0,
+      0.3007057995042731,
+      0.0,
+      0.9537169507482269
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_0071c36c61174a8bace8e09c4537b793"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_7fcc84f60d01c47e0db997ed5f6b151d"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.2007517527228661,
+      0.0,
+      -0.28670321550114714
+     ],
+     "quaternion": [
+      0.0,
+      -0.3007057995042731,
+      0.0,
+      0.9537169507482269
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_a0cfa1e06183663c3ca3a92f0199c001"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_a0ef388ac52086edebbca56f874da949"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -0.3288924172750679,
+      0.0,
+      -0.11970705016398409
+     ],
+     "quaternion": [
+      0.0,
+      0.573576436351046,
+      0.0,
+      0.8191520442889918
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_331dcc108f3a7bd50aaa648b06c0ea11"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_0bd7e33be4a21a5bbd6f61be795ff67a"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.3288924172750679,
+      0.0,
+      -0.11970705016398409
+     ],
+     "quaternion": [
+      0.0,
+      -0.573576436351046,
+      0.0,
+      0.8191520442889918
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_9e3c0409e45c418784cbc5e592e7d335"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_7f6817a43a8e3ffa79eddee4925c9285"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      -0.35
+     ],
+     "quaternion": [
+      -0.3420201433256687,
+      0.0,
+      0.0,
+      0.9396926207859084
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_7fcc540a628d0adbe2836783d275f3a5"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_0313b6eb67daa79d23de1fbcdb5cc444"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      -2.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_d94f0f336960b7074e2fa75476e5b18b"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_5f011d54aed66f3f278d9ed799157922"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -0.3380740392011739,
+      0.0,
+      0.09058666578588229
+     ],
+     "quaternion": [
+      0.0,
+      0.7933533402912352,
+      0.0,
+      0.6087614290087207
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_1de66f7c0e5e459c0e2061d4b6a3f2ac"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_947baba404dab038ca6645d2aba02e2b"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.3380740392011739,
+      0.0,
+      0.09058666578588229
+     ],
+     "quaternion": [
+      0.0,
+      -0.7933533402912352,
+      0.0,
+      0.6087614290087207
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_fdfab5bb65061e5ee486865f8c9dcf33"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_e9013b71f632b231261bd72a3362ba09"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -0.2249756633902888,
+      0.0,
+      0.26811555509164225
+     ],
+     "quaternion": [
+      0.0,
+      0.9396926207859083,
+      0.0,
+      0.3420201433256688
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_89a275aec530d35e946495b4144a1f0a"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_b2cdf6d083194a0e1871bc18c4bd6367"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.2249756633902888,
+      0.0,
+      0.26811555509164225
+     ],
+     "quaternion": [
+      0.0,
+      -0.9396926207859083,
+      0.0,
+      0.3420201433256688
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_a7647eabf46ecffdec5ceb6f7922061f"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_2c94377cd0407868d497e34349bad90a"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -4.286263797015736e-17,
+      0.0,
+      0.35
+     ],
+     "quaternion": [
+      0.0,
+      1.0,
+      0.0,
+      6.123233995736766e-17
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_38a908cf50b60f5ff382c6452ed621bb"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_92dd9dea70c53bc3df356e6315bd8425"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -0.3031088913245535,
+      0.0,
+      -0.17500000000000002
+     ],
+     "quaternion": [
+      -0.3314135740355918,
+      0.4619397662556433,
+      0.19134171618254486,
+      0.8001031451912656
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_9510342a0515dab92c2e3ff8a254434d"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_1cf7d8212d255827ec4e7ce5605dc59e"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -0.30310889132455354,
+      0.0,
+      0.1749999999999999
+     ],
+     "quaternion": [
+      -0.19134171618254495,
+      0.8001031451912655,
+      0.3314135740355918,
+      0.4619397662556435
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_f9229c55007e4306e325706acf7788a9"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_fbca8f08fda0535bfc4b8531fd786caa"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -4.286263797015736e-17,
+      0.0,
+      0.35
+     ],
+     "quaternion": [
+      -2.3432602026631493e-17,
+      0.9238795325112867,
+      0.3826834323650898,
+      5.657130561438501e-17
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_f58d8524eb5cf94dc1834753d77dab5f"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_32a0c02bf00a0a0dff4120eb5937b733"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.30310889132455354,
+      0.0,
+      0.1749999999999999
+     ],
+     "quaternion": [
+      -0.19134171618254495,
+      -0.8001031451912655,
+      -0.3314135740355918,
+      0.4619397662556435
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_c27776a510a9430f2ea8744e319da04a"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_8f0dc4857285ea61935cf5546da38d9c"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.3031088913245535,
+      0.0,
+      -0.17500000000000002
+     ],
+     "quaternion": [
+      -0.3314135740355918,
+      -0.4619397662556433,
+      -0.19134171618254486,
+      0.8001031451912656
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_6a1d1dad1f01db301582570a1b843476"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_79c4d71ab98b0e2b096eb0e3e3c84d85"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      -0.35
+     ],
+     "quaternion": [
+      0.3007057995042731,
+      0.0,
+      0.0,
+      0.9537169507482269
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_7a194ae6026cdf2fa8747720a0083222"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_f56913c84009c2509102f45adf226f50"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -0.35,
+      0.0,
+      -2.143131898507868e-17
+     ],
+     "quaternion": [
+      0.2126311099715939,
+      0.6743797232066278,
+      -0.21263110997159387,
+      0.6743797232066279
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_eef232866ae9bedbba9220c92d79df8b"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_b3ae4fdd0ef5fccf9fe8b56d84364070"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -4.286263797015736e-17,
+      0.0,
+      0.35
+     ],
+     "quaternion": [
+      1.841291974239769e-17,
+      0.9537169507482269,
+      -0.3007057995042731,
+      5.83983205513195e-17
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_c34cb3d85bb48a8268990c127ea2a24c"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_751fd10807488a9b76926b0c74ce105c"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.35,
+      0.0,
+      -2.143131898507868e-17
+     ],
+     "quaternion": [
+      0.2126311099715939,
+      -0.6743797232066278,
+      0.21263110997159387,
+      0.6743797232066279
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_0bd5e9633a9ed2ecd5ab500cb3adda01"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_71dfc851633ca8826328c1ebada0a88f"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      -0.2
+     ],
+     "quaternion": [
+      0.573576436351046,
+      0.0,
+      0.0,
+      0.8191520442889918
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_968fc37db8d7c43d94fefa8c24766bb7"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_e7e6be2c5cf58d98b0ff686dce8b79b3"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -2.4492935982947065e-17,
+      0.0,
+      0.2
+     ],
+     "quaternion": [
+      3.5121427342182706e-17,
+      0.8191520442889918,
+      -0.573576436351046,
+      5.015859645267624e-17
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_694c55ec778884c40641915a93437eb0"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_ea5c1e4c120f961e6b77731c37271772"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      -1.2
+     ],
+     "quaternion": [
+      -0.10452846326765347,
+      0.0,
+      0.0,
+      0.9945218953682733
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_df9fea86ae4112145fcc7111d4d9966c"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_46d93a350cd2a14c19c8f24e8168971d"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      -1.2
+     ],
+     "quaternion": [
+      -0.08562470437208512,
+      0.570434324618422,
+      0.0599550634583119,
+      0.8146646436810838
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_b27940c8a2eed46d91fe7e0f8ad82e54"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_0b1798e1136b059585fd1c705dbea1aa"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      -1.2
+     ],
+     "quaternion": [
+      -0.08562470437208512,
+      -0.570434324618422,
+      -0.0599550634583119,
+      0.8146646436810838
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_203d4f97d1a0238fb165bb075d63df1d"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_f6ee5f35367bcfbcba468e8ef67766d6"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      -1.2
+     ],
+     "quaternion": [
+      -6.400522398026175e-18,
+      0.9945218953682733,
+      0.10452846326765347,
+      6.089690279223575e-17
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_42eaa566f2c31f75059415f8c97ea5c1"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_f6ae98ed7a88439343c436ed58985d38"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.07391278520356671,
+      0.7032331762534041,
+      0.0739127852035667,
+      0.7032331762534042
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_ac32fa6a81c11aec326faf697f4a052b"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_f836c5aeb7f08f6c3939cf8b2c5c6352"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.0181511771607527,
+      0.9794128730990714,
+      0.10294044103643694,
+      0.1726969147805623
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_2114aea2df0d431b6e7b2bb15ac3c80f"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_4cca893432613980259332ea926577c2"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.10294044103643694,
+      0.1726969147805622,
+      0.01815117716075269,
+      0.9794128730990714
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_072d21eb8521e8aef612d6b0e37490e2"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_549f24ffa16924872076ffb8b612d1a7"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      0.0739127852035667,
+      0.7032331762534042,
+      0.07391278520356671,
+      -0.7032331762534041
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_674de4abe74da4267fda55227233b807"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_2f319e415e374cd73eca826af55e813a"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.07391278520356671,
+      -0.7032331762534041,
+      -0.0739127852035667,
+      0.7032331762534042
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_9a9b381d88e577b76fae7cac67c78132"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_ba6205317eaa453e629217f3b6aaac4e"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.10294044103643694,
+      -0.1726969147805622,
+      -0.01815117716075269,
+      0.9794128730990714
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_def869bf2fbfc01fddbbd022f23e03b4"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_c33910863758ac2ac722b43d52ddc40a"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.0181511771607527,
+      -0.9794128730990714,
+      -0.10294044103643694,
+      0.1726969147805623
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_8293527b250bd70d6ba97d7461e5ab43"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_367d3c5d2359ebe304dbd2d5fdc4be07"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.07391278520356671,
+      0.7032331762534041,
+      0.0739127852035667,
+      0.7032331762534042
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_5258e8a98a232471530fe64ff87b3491"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_2ffe5dc0d61b9883a3b205e6715c3b23"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -1.4695761589768238e-16,
+      0.0,
+      1.2
+     ],
+     "quaternion": [
+      -6.400522398026175e-18,
+      0.9945218953682733,
+      0.10452846326765347,
+      6.089690279223575e-17
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_5f9ce5f899e926faa1f250b91d2d3bd2"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_af82536c00fde8e2dd3ca58a31bc28ba"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -1.4695761589768238e-16,
+      0.0,
+      1.2
+     ],
+     "quaternion": [
+      0.059955063458311905,
+      0.8146646436810837,
+      0.08562470437208512,
+      -0.5704343246184221
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_94119ce47ed9141129a64d506dd5aa58"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_e6af630fac80ad669809056c0ef36c06"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -1.4695761589768238e-16,
+      0.0,
+      1.2
+     ],
+     "quaternion": [
+      -0.059955063458311905,
+      0.8146646436810838,
+      0.08562470437208512,
+      0.5704343246184221
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_d04e259dfc1fb9630fdc31050db3363a"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_6afac2cbe1986710106d2920602d6794"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -1.4695761589768238e-16,
+      0.0,
+      1.2
+     ],
+     "quaternion": [
+      0.10452846326765347,
+      1.217938055844715e-16,
+      1.280104479605235e-17,
+      -0.9945218953682733
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 765.969601575066,
+     "fy": 765.969601575066,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic game-environment view of an empty hunter\u2019s log cabin in an ancient Chinese mountain village, lit by hearth fire and a small window.\",\"scene\":\"An empty hunter\u2019s log cabin stands inside an ancient Chinese mountain village, viewed at eye level from the middle of the single-room interior. Rough plank walls display deer antlers, tanned pelts, hunting bows, quivers, and spears arranged on handmade racks. A stone hearth holds a crackling fire beneath a hanging iron pot, while strings of dried meat and herbs cross the dark ceiling beams; a fur-covered bed, piled traps and snares, and a heavy wooden table with a skinning knife complete the lived-in hunting shelter.\",\"subjects\":[{\"name\":\"stone hearth\",\"description\":\"A broad, low stone hearth built from irregular smoke-darkened river stones, with an iron cooking pot suspended above it.\",\"action_or_state\":\"A wood fire crackles inside the hearth, casting moving orange light and a faint curl of smoke upward.\",\"appearance\":\"Blackened stone, glowing split logs, red embers, soot-stained iron chain, and a round weathered iron pot.\",\"position_or_relationship\":\"Set against the back wall slightly right of center, forming the warm visual focal point.\"},{\"name\":\"weapon rack\",\"description\":\"A handmade wall rack holding traditional hunting equipment.\",\"action_or_state\":\"Static, neatly arranged for use.\",\"appearance\":\"Bentwood hunting bows, leather-backed quivers filled with feathered arrows, and long wooden spears with dark metal tips.\",\"position_or_relationship\":\"Mounted across the left plank wall beneath mounted deer antlers and beside hanging pelts.\"},{\"name\":\"wooden table\",\"description\":\"A heavy rectangular worktable used for preparing game.\",\"action_or_state\":\"Static, with a skinning knife left on its scarred surface.\",\"appearance\":\"Thick dark timber planks, deep knife marks, worn corners, iron pegs, and a single broad-bladed knife with a wrapped wooden handle.\",\"position_or_relationship\":\"Occupies the foreground left, angled toward the hearth.\"},{\"name\":\"fur-covered bed\",\"description\":\"A low timber-framed bed covered in layered animal furs and a coarse woven blanket.\",\"action_or_state\":\"Static and unused.\",\"appearance\":\"Pale cream and brown pelts, a dark wool blanket, rough-hewn bedposts, and a flattened straw mattress beneath the furs.\",\"position_or_relationship\":\"Placed along the right wall under the small window.\"},{\"name\":\"traps and snares\",\"description\":\"A loose pile of hunting traps, rope snares, and woven carrying baskets.\",\"action_or_state\":\"Static, stored for later use.\",\"appearance\":\"Weathered wood, twisted rawhide cord, rusted metal teeth, and dusty woven reed fibers.\",\"position_or_relationship\":\"Stacked in the shadowed front-right corner beside the bed.\"}],\"setting\":\"A compact, single-room log cabin in an ancient Chinese mountain village, built from rough dark planks and thick hand-hewn beams. The floor is uneven packed earth covered by scattered straw, boot-worn rugs, and ash near the hearth; a small shuttered window reveals pale mountain daylight.\",\"composition\":\"Wide eye-level interior view from the center of the room, with the worktable anchoring the foreground, the glowing hearth at the back, and the bed framing the right side. Wall-mounted weapons and hanging provisions create layered vertical detail, while the small window provides a cool secondary light source.\",\"style\":\"Semi-realistic painterly game environment art with sharply resolved natural materials, practical historical rustic construction, and hand-painted surface detail. No people or characters are present.\",\"lighting\":\"Warm, flickering orange firelight spills from the stone hearth across the floorboards, pelts, and weapon racks. Cool muted daylight enters through the small right-side window, creating contrasting blue-gray shadows and crisp highlights on iron, wood, and leather.\",\"color_palette\":[\"ember orange\",\"smoke-dark brown\",\"aged pine wood\",\"tanned leather brown\",\"ash gray\",\"muted olive green\",\"cool mountain blue\",\"cream fur\"],\"materials_and_textures\":\"Splintered plank walls carry visible grain, nail holes, soot streaks, and age-darkened seams. Tanned hides are stiff and uneven, furs are dense and matted, iron is blackened and lightly rusted, and the stone hearth is rough, chipped, and ash-dusted. Dried herbs, braided cord, straw, and rawhide add fibrous texture throughout the room.\",\"mood\":\"rustic, practical, secluded, fire-warmed, atmospheric\",\"supporting_details\":\"Mounted deer antlers rise above several stretched pelts on the rear and left walls. Strings of dried venison strips, garlic bulbs, and bundled mountain herbs hang beneath the beams. A clay water jar, a wooden stool, split firewood, and scattered ash sit near the hearth, while cold mountain brightness shows through the small window.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false
+}

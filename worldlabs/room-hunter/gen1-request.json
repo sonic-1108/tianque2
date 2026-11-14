@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_fe7623a1a6cf0b56956919dcc78f347c"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_4f4e125e79b515632825b678fbfbf7f8"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 1631.1044921875,
+     "fy": 1630.635986328125,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 765.969601575066,
+    "fy": 765.969601575066,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic game-environment view of an empty hunter\u2019s log cabin in an ancient Chinese mountain village, lit by hearth fire and a small window.\",\"scene\":\"An empty hunter\u2019s log cabin stands inside an ancient Chinese mountain village, viewed at eye level from the middle of the single-room interior. Rough plank walls display deer antlers, tanned pelts, hunting bows, quivers, and spears arranged on handmade racks. A stone hearth holds a crackling fire beneath a hanging iron pot, while strings of dried meat and herbs cross the dark ceiling beams; a fur-covered bed, piled traps and snares, and a heavy wooden table with a skinning knife complete the lived-in hunting shelter.\",\"subjects\":[{\"name\":\"stone hearth\",\"description\":\"A broad, low stone hearth built from irregular smoke-darkened river stones, with an iron cooking pot suspended above it.\",\"action_or_state\":\"A wood fire crackles inside the hearth, casting moving orange light and a faint curl of smoke upward.\",\"appearance\":\"Blackened stone, glowing split logs, red embers, soot-stained iron chain, and a round weathered iron pot.\",\"position_or_relationship\":\"Set against the back wall slightly right of center, forming the warm visual focal point.\"},{\"name\":\"weapon rack\",\"description\":\"A handmade wall rack holding traditional hunting equipment.\",\"action_or_state\":\"Static, neatly arranged for use.\",\"appearance\":\"Bentwood hunting bows, leather-backed quivers filled with feathered arrows, and long wooden spears with dark metal tips.\",\"position_or_relationship\":\"Mounted across the left plank wall beneath mounted deer antlers and beside hanging pelts.\"},{\"name\":\"wooden table\",\"description\":\"A heavy rectangular worktable used for preparing game.\",\"action_or_state\":\"Static, with a skinning knife left on its scarred surface.\",\"appearance\":\"Thick dark timber planks, deep knife marks, worn corners, iron pegs, and a single broad-bladed knife with a wrapped wooden handle.\",\"position_or_relationship\":\"Occupies the foreground left, angled toward the hearth.\"},{\"name\":\"fur-covered bed\",\"description\":\"A low timber-framed bed covered in layered animal furs and a coarse woven blanket.\",\"action_or_state\":\"Static and unused.\",\"appearance\":\"Pale cream and brown pelts, a dark wool blanket, rough-hewn bedposts, and a flattened straw mattress beneath the furs.\",\"position_or_relationship\":\"Placed along the right wall under the small window.\"},{\"name\":\"traps and snares\",\"description\":\"A loose pile of hunting traps, rope snares, and woven carrying baskets.\",\"action_or_state\":\"Static, stored for later use.\",\"appearance\":\"Weathered wood, twisted rawhide cord, rusted metal teeth, and dusty woven reed fibers.\",\"position_or_relationship\":\"Stacked in the shadowed front-right corner beside the bed.\"}],\"setting\":\"A compact, single-room log cabin in an ancient Chinese mountain village, built from rough dark planks and thick hand-hewn beams. The floor is uneven packed earth covered by scattered straw, boot-worn rugs, and ash near the hearth; a small shuttered window reveals pale mountain daylight.\",\"composition\":\"Wide eye-level interior view from the center of the room, with the worktable anchoring the foreground, the glowing hearth at the back, and the bed framing the right side. Wall-mounted weapons and hanging provisions create layered vertical detail, while the small window provides a cool secondary light source.\",\"style\":\"Semi-realistic painterly game environment art with sharply resolved natural materials, practical historical rustic construction, and hand-painted surface detail. No people or characters are present.\",\"lighting\":\"Warm, flickering orange firelight spills from the stone hearth across the floorboards, pelts, and weapon racks. Cool muted daylight enters through the small right-side window, creating contrasting blue-gray shadows and crisp highlights on iron, wood, and leather.\",\"color_palette\":[\"ember orange\",\"smoke-dark brown\",\"aged pine wood\",\"tanned leather brown\",\"ash gray\",\"muted olive green\",\"cool mountain blue\",\"cream fur\"],\"materials_and_textures\":\"Splintered plank walls carry visible grain, nail holes, soot streaks, and age-darkened seams. Tanned hides are stiff and uneven, furs are dense and matted, iron is blackened and lightly rusted, and the stone hearth is rough, chipped, and ash-dusted. Dried herbs, braided cord, straw, and rawhide add fibrous texture throughout the room.\",\"mood\":\"rustic, practical, secluded, fire-warmed, atmospheric\",\"supporting_details\":\"Mounted deer antlers rise above several stretched pelts on the rear and left walls. Strings of dried venison strips, garlic bulbs, and bundled mountain herbs hang beneath the beams. A clay water jar, a wooden stool, split firewood, and scattered ash sit near the hearth, while cold mountain brightness shows through the small window.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}
