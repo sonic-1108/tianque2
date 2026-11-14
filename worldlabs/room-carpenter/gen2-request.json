@@ -1,0 +1,631 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_bdc30214f0eea8cbfa6dec2aec5fcb18"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_727edd229cccb8f0a675ca52da19032a"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_910e73814e2b10d705a69defc99caf0a"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_e4b78c16bafae052ab3ef18759a6de00"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -0.2007517527228661,
+      0.0,
+      -0.28670321550114714
+     ],
+     "quaternion": [
+      0.0,
+      0.3007057995042731,
+      0.0,
+      0.9537169507482269
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_b1bf61a8227e657dad852b375d6b9b84"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_21ad4208d7a2eb00e1dc55720e1d7d8c"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.2007517527228661,
+      0.0,
+      -0.28670321550114714
+     ],
+     "quaternion": [
+      0.0,
+      -0.3007057995042731,
+      0.0,
+      0.9537169507482269
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_a37b93dfcfe9ed36802b2e20f3f78b6d"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_8e04d37f15095fbc6ea1b1c49506895d"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      -0.3288924172750679,
+      0.0,
+      -0.11970705016398409
+     ],
+     "quaternion": [
+      0.0,
+      0.573576436351046,
+      0.0,
+      0.8191520442889918
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_6db60072303f5ae85474b1bb0968622c"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_a9162d91ba467932307b80079c04866a"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.3288924172750679,
+      0.0,
+      -0.11970705016398409
+     ],
+     "quaternion": [
+      0.0,
+      -0.573576436351046,
+      0.0,
+      0.8191520442889918
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_9b0bb039cafd734e8ef2bae4ef125171"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_30b68d200c960d12d44f10fbb2c360e4"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      -0.35
+     ],
+     "quaternion": [
+      -0.3420201433256687,
+      0.0,
+      0.0,
+      0.9396926207859084
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  },
+  {
+   "imageAsset": {
+    "assetId": "asset_ff18d45b324b3e6fe947e0fb9b90ee2f"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_6ec20b8d1eb1db8c92d45d04c4042eaa"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      -2.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "cx": 640.0,
+     "cy": 360.0,
+     "width": 1280,
+     "height": 720
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     -0.3380740392011739,
+     0.0,
+     0.09058666578588229
+    ],
+    "quaternion": [
+     0.0,
+     0.7933533402912352,
+     0.0,
+     0.6087614290087207
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3380740392011739,
+     0.0,
+     0.09058666578588229
+    ],
+    "quaternion": [
+     0.0,
+     -0.7933533402912352,
+     0.0,
+     0.6087614290087207
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2249756633902888,
+     0.0,
+     0.26811555509164225
+    ],
+    "quaternion": [
+     0.0,
+     0.9396926207859083,
+     0.0,
+     0.3420201433256688
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2249756633902888,
+     0.0,
+     0.26811555509164225
+    ],
+    "quaternion": [
+     0.0,
+     -0.9396926207859083,
+     0.0,
+     0.3420201433256688
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -4.286263797015736e-17,
+     0.0,
+     0.35
+    ],
+    "quaternion": [
+     0.0,
+     1.0,
+     0.0,
+     6.123233995736766e-17
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3031088913245535,
+     0.0,
+     -0.17500000000000002
+    ],
+    "quaternion": [
+     -0.3314135740355918,
+     0.4619397662556433,
+     0.19134171618254486,
+     0.8001031451912656
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.30310889132455354,
+     0.0,
+     0.1749999999999999
+    ],
+    "quaternion": [
+     -0.19134171618254495,
+     0.8001031451912655,
+     0.3314135740355918,
+     0.4619397662556435
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -4.286263797015736e-17,
+     0.0,
+     0.35
+    ],
+    "quaternion": [
+     -2.3432602026631493e-17,
+     0.9238795325112867,
+     0.3826834323650898,
+     5.657130561438501e-17
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.30310889132455354,
+     0.0,
+     0.1749999999999999
+    ],
+    "quaternion": [
+     -0.19134171618254495,
+     -0.8001031451912655,
+     -0.3314135740355918,
+     0.4619397662556435
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3031088913245535,
+     0.0,
+     -0.17500000000000002
+    ],
+    "quaternion": [
+     -0.3314135740355918,
+     -0.4619397662556433,
+     -0.19134171618254486,
+     0.8001031451912656
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     0.3007057995042731,
+     0.0,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.35,
+     0.0,
+     -2.143131898507868e-17
+    ],
+    "quaternion": [
+     0.2126311099715939,
+     0.6743797232066278,
+     -0.21263110997159387,
+     0.6743797232066279
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -4.286263797015736e-17,
+     0.0,
+     0.35
+    ],
+    "quaternion": [
+     1.841291974239769e-17,
+     0.9537169507482269,
+     -0.3007057995042731,
+     5.83983205513195e-17
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.35,
+     0.0,
+     -2.143131898507868e-17
+    ],
+    "quaternion": [
+     0.2126311099715939,
+     -0.6743797232066278,
+     0.21263110997159387,
+     0.6743797232066279
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.2
+    ],
+    "quaternion": [
+     0.573576436351046,
+     0.0,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -2.4492935982947065e-17,
+     0.0,
+     0.2
+    ],
+    "quaternion": [
+     3.5121427342182706e-17,
+     0.8191520442889918,
+     -0.573576436351046,
+     5.015859645267624e-17
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 685.8762313618379,
+    "fy": 685.8762313618379,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A semi-realistic painterly game environment view of an ancient Chinese village carpenter's workshop home, filled with tools, timber, and warm lamplight.\",\"scene\":\"A richly detailed ancient Chinese village carpenter's workshop home stands empty, viewed at eye level from the middle of the room. A heavy timber workbench dominates the foreground, crowded with wooden planes, chisels, hand saws, an ink line reel, and a carpenter's square beside a half-made chair. Stacked planks and rough logs fill the shadowed walls, while finished stools and an ornate carved cabinet demonstrate the craftsperson's work. Warm daylight streams through an open door and mingles with the amber glow of a small oil lamp, revealing curls of fresh wood shavings across the earthen floor.\",\"subjects\":[{\"name\":\"workbench\",\"description\":\"A broad, heavy hardwood carpenter's bench fitted with a weathered wooden vise and a scarred working surface.\",\"action_or_state\":\"static, covered with active woodworking tools and a partially assembled chair frame\",\"appearance\":\"dark honey-brown timber, thick square legs, gouged surface, visible joinery, scattered pale sawdust\",\"position_or_relationship\":\"dominates the foreground slightly left of center\"},{\"name\":\"half-made chair\",\"description\":\"A traditional wooden chair in mid-construction, with an unfinished frame and separate carved back slats.\",\"action_or_state\":\"resting unfinished on the workbench\",\"appearance\":\"pale fresh-cut wood, exposed mortise-and-tenon joints, one rear leg clamped in place\",\"position_or_relationship\":\"on top of the workbench, forming the central focal point\"},{\"name\":\"carpentry tools\",\"description\":\"A working collection of hand planes, chisels, saws, an ink line reel, and a carpenter's square.\",\"action_or_state\":\"static, arranged for immediate use\",\"appearance\":\"dark iron blades, worn wooden handles, black ink-stained reel cord, aged bronze and wood fittings\",\"position_or_relationship\":\"spread across the bench and hung in orderly rows on the rear wall rack\"},{\"name\":\"finished furniture\",\"description\":\"Several completed low stools and a tall carved storage cabinet showing refined woodworking craftsmanship.\",\"action_or_state\":\"static\",\"appearance\":\"warm reddish-brown lacquered wood, simple stool silhouettes, cabinet doors carved with cloud and geometric motifs\",\"position_or_relationship\":\"grouped along the right wall behind the workbench\"},{\"name\":\"stacked timber\",\"description\":\"A dense supply of rough logs and neatly stacked lumber boards.\",\"action_or_state\":\"static\",\"appearance\":\"bark-covered logs, pale plank edges, uneven saw marks, dusty wood grain\",\"position_or_relationship\":\"piled along the left and rear walls, framing the working area\"}],\"setting\":\"An enclosed timber-and-earth workshop inside a rural ancient Chinese village home. Exposed roof beams cross overhead, plastered walls hold a wooden tool rack, and the compact room opens through a wide doorway onto a sunlit dirt courtyard outside.\",\"composition\":\"A wide eye-level interior view from the middle of the room, with the workbench and half-made chair anchoring the foreground. Tool-lined walls, lumber stacks, and finished furniture create layered depth toward the open door at the back left.\",\"style\":\"Semi-realistic painterly game environment art with sharply defined handcrafted objects, readable silhouettes, and tactile environmental detail. The image is an unoccupied historical workshop scene with no people.\",\"lighting\":\"Warm low-angle daylight pours through the open door, casting long rectangular highlights across the floor and bench. A small oil lamp adds concentrated amber illumination near the work area, with soft shadowed corners and golden reflections on polished wood.\",\"color_palette\":[\"warm honey brown\",\"reddish lacquer wood\",\"pale fresh-cut pine\",\"earthen umber\",\"amber gold\",\"charcoal black\",\"muted plaster beige\"],\"materials_and_textures\":\"Rough-sawn planks show splinters and pronounced grain, while the workbench is scarred by blade marks and darkened by years of use. Curled wood shavings, powdery sawdust, bark, worn iron tool blades, matte plaster, and smooth lacquered furniture create distinct tactile contrast.\",\"mood\":\"warm, industrious, rustic, orderly, quietly lived-in\",\"supporting_details\":\"Loose ribbons of curled shavings gather around the bench legs and trail toward the doorway. A small oil lamp with a ceramic base sits at the far end of the bench, while a bamboo basket holds offcuts beneath the wall rack. Thin daylight outlines suspended dust motes and catches the edges of the carpenter's square.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}

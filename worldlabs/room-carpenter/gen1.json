@@ -1,0 +1,310 @@
+{
+ "id": "17ddec83b420418ca26b4ddc7fa06411",
+ "ownerId": "acct_0e971b19f5e44d3895747449c8feb339",
+ "metadata": {
+  "@type": "type.worldlabs.ai/wlt.marble.v2.atlasGenerate.metadata",
+  "state": "SUCCEEDED",
+  "status": "SUCCEEDED",
+  "surface": "DEVELOPER_API",
+  "task": "atlasGenerate",
+  "taskVersion": "v1"
+ },
+ "done": true,
+ "error": null,
+ "expiresAtSecs": null,
+ "createdAtSecs": 1794697253,
+ "response": {
+  "frames": [
+   {
+    "camera": {
+     "extrinsics": {
+      "coordinateSystem": "rub",
+      "position": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "quaternion": [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     },
+     "intrinsics": {
+      "cx": 640.0,
+      "cy": 360.0,
+      "fx": 685.8762313618379,
+      "fy": 685.8762313618379,
+      "height": 720,
+      "width": 1280
+     }
+    },
+    "depth": {
+     "confidenceAsset": {
+      "assetId": "asset_fe71ba13dfaf2dddb4f52e3641ffde33",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_fe71ba13dfaf2dddb4f52e3641ffde33?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_fe71ba13dfaf2dddb4f52e3641ffde33.png%22&X-Goog-Signature=8364f25efbab8672f50f2a465ed52f41802ec57b6c6ef19524be8076a6671e74fa72fc2ce4459c4a437d179337acd637f3513cb9a67b0ee1c7dde176bf0d9369d15812b9669a60bacada3a0672fead69e2f8f7e5534a45a1103bb06976ac66f47914db544ae9c20d747f6b25cb12f2bd63d2b98aa4fb74532fde4a12c2b3899271fafe5ab3784c816cbf106834cace9b35ca2bebdd7c329f8df6627c194476607114d66f9178e36444f60264e1c2c0ae8c1613a21688bd03ea8d4e638aade13f8855b9ecc59d2658a9e49e6078f9138eee1e3d286fcd6e6678cf6f7df5e9969c74b2aebd6f833670df3011d8d725210ac9a23c4ef1d5e98d36ca1a3553c71b40"
+     },
+     "depthAsset": {
+      "assetId": "asset_727edd229cccb8f0a675ca52da19032a",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_727edd229cccb8f0a675ca52da19032a?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_727edd229cccb8f0a675ca52da19032a.exr%22&X-Goog-Signature=2df939b74227f620c4dab9b2f16d835870fe25994a1079b278dcb41b9bb6176370052978592c9a5b5a79078de1a68713e9dae2ed593ecf066688352fc9152832de0ff4c1f584d30ed431a22ed6652f058c6700921fdfbe077142af86f46f4188f99d19967a2b3a5ec285292dfa77502f143a3d5766548d229aa2d6c23f71ff4d86417b7a011a48eb717fcd96e0ae26c8f075992898ca8352240ef54a20f0bf16756a147ddce26326cc69c88695c638dfc0e05243358fd755d2f95c663c64503f02a0f69f163eeb202331290b4c5a4ffe9025a2e720810ea31cf1dd6357b09fa690bf6e3dda6cf71a60d8fcc3874cbe39370776c5b590a98ef541b9845a175c92"
+     }
+    },
+    "imageAsset": {
+     "assetId": "asset_bdc30214f0eea8cbfa6dec2aec5fcb18",
+     "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_bdc30214f0eea8cbfa6dec2aec5fcb18?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_bdc30214f0eea8cbfa6dec2aec5fcb18.jpg%22&X-Goog-Signature=a5016285048527ef98dcdaa2b4e871aabb0bd21d4c88c170e0fb473b58229d0fd90d93d361edcd2ca46276b008abf68bab4c6b498e55b30578a1c5fb90feb03b4e2b0ab87589654c103ac17b23aab5da9281303b3fa02b90dce7c9578faf386f976fc2382131094c3d764897220416b6b00f55198b3a96ec9ee3c51b147f4e387e3bf1e4f4986eaebdc75ce034696cc6244322f5280252729f3c864f17667bd7d17c1f1819ff7e703a7ffbea0565d964a9a2833604494f676a962a09011f24028e93b7d0a0c8f2a1957dd575afd15c2ba782cf429704a06ae8f1f989ff2805f461830c5aa96f4fc602e3cc93b097a39f609bb0738147a89c1412d39bae78682f"
+    },
+    "maskAsset": null
+   },
+   {
+    "camera": {
+     "extrinsics": {
+      "coordinateSystem": "rub",
+      "position": [
+       -0.2007517527228661,
+       0.0,
+       -0.28670321550114714
+      ],
+      "quaternion": [
+       0.0,
+       0.3007057995042731,
+       0.0,
+       0.9537169507482269
+      ]
+     },
+     "intrinsics": {
+      "cx": 640.0,
+      "cy": 360.0,
+      "fx": 685.8762313618379,
+      "fy": 685.8762313618379,
+      "height": 720,
+      "width": 1280
+     }
+    },
+    "depth": {
+     "confidenceAsset": {
+      "assetId": "asset_de608e312e48dea681e0ea4f1d8af6b2",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_de608e312e48dea681e0ea4f1d8af6b2?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_de608e312e48dea681e0ea4f1d8af6b2.png%22&X-Goog-Signature=1131c6c421d39df94c4e3e147121a28ee25606eac2cb51c4857fad8effcdea9692daf764f8a6086c8a3b047752d090131ce73f994286b36ce1bc1dbdd52558ee58cab3ada5fa0829ee3e93c29d3f3c20b87ef4359a52edc4d7119ef16d5d501e95139213ab44f6784ea5ee8fce841e593e309e64bdc53e2563f4b99587cf9259ab1cedcc8e36a27900a30dde4476080acc167ec4c2a50b49bb9f5148b79cad6a5100bfd605700c02ef3baefe1881dae151139e8983feaae040c95796f21d58624c740aa197d834688fa89bc4c2591d0d9b79ff55e734f92a15ba86a7317217b6f5010e79260b865493b438938d92da328c84ffeac24961cb0fec200a26978c2e"
+     },
+     "depthAsset": {
+      "assetId": "asset_e4b78c16bafae052ab3ef18759a6de00",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_e4b78c16bafae052ab3ef18759a6de00?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_e4b78c16bafae052ab3ef18759a6de00.exr%22&X-Goog-Signature=04a2ad927669cf3bad61fda1dbacbae58a01c5bd053f288a2b693fa6338e93e6f9dd8457c403ffa60dba0c4b1c89e3f5251394afad450490627e97e544fc7ad3fe439f6c25d8a18ec1bd7892e98a6ce282875a1cfdaf220fbaa2f43b021e84e43b809f0576ee49c1c3e6dfcce9a41cf08835962d2e20cf8a2a070d8060d2bac08a3f1bd6f6f40bf4df6ad6fa60c225a82254ed8e754d024dd19f5a745fad42bfc0e3dc14277fc30750c8bf93e71815548f15827bbc8e864c7ac9a8861cd2cf35c0322534c8ca0c075ad6c5cabbd8ff8671efe0ede7aa11c2cbe114948029794a8a7a8229db5fb3aecb00678a2d437d8a3e60d9bc19894c00fc5550b29f8d4f26"
+     }
+    },
+    "imageAsset": {
+     "assetId": "asset_910e73814e2b10d705a69defc99caf0a",
+     "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_910e73814e2b10d705a69defc99caf0a?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_910e73814e2b10d705a69defc99caf0a.jpg%22&X-Goog-Signature=1799b9194149f9554f2a1f93db4aa09969d5556329828c2707685f2773435403d31fe44133207675e761ec7b61f8a948c7dabbf4cf11adc8bd32d4ed8dc824679d3814b2a30d612d90c3069f2eff69f16cf68f7510f67e940d6cabacca24be3e9f7a0357842fb2de3f9ed196ef724063966d00b7c0a87ab6a75f36a92b9022812f5a24003f43ce073bf49ac66547553b865c138d0016fb206df90af7c0990da024c4a98adcd1ce7b7b4c3f026400cfea93d909c438095e81a46f22ff2854f09f92f29a5a0d55ea019701be82c9e6c2913fb8cb32a6eed17b582e76c064968150a1641133cd3f53d19019b1f1443b38fb5ce0f5fd4228083b1517aafa40c3355f"
+    },
+    "maskAsset": null
+   },
+   {
+    "camera": {
+     "extrinsics": {
+      "coordinateSystem": "rub",
+      "position": [
+       0.2007517527228661,
+       0.0,
+       -0.28670321550114714
+      ],
+      "quaternion": [
+       0.0,
+       -0.3007057995042731,
+       0.0,
+       0.9537169507482269
+      ]
+     },
+     "intrinsics": {
+      "cx": 640.0,
+      "cy": 360.0,
+      "fx": 685.8762313618379,
+      "fy": 685.8762313618379,
+      "height": 720,
+      "width": 1280
+     }
+    },
+    "depth": {
+     "confidenceAsset": {
+      "assetId": "asset_83834b46a3eeeabf51f0af6fc8939008",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_83834b46a3eeeabf51f0af6fc8939008?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_83834b46a3eeeabf51f0af6fc8939008.png%22&X-Goog-Signature=35ce956eebc7cba77495135f9c4e47e2ae1fe8abfaf4e9fc3fe134dbf7b440397cbc28862d38fb6c04a23ba20939d9844b14a1ea4e3ba62037a2c2a0708b085299d2441c6cb0788f2d800ac309216f4cc17b2751294517ce4820b0b0f955e9caa8961bddde28579cb9750ccbbd3ae3b3fc989f6387d7bd67d403028fa0638205b52d802974793ae52b93b2e6235eac971be8532daafcc792e9c74007910bcef120933803add574130d25327376fd694daf57226f4219498e40bc2c7ef807df99ea71b318b35ae4eef05b55c84f75f709f6b4407b81c64c71d7d019516dfcaee5ed1a56cf8f2e1c13ce055f0e4b6fc4e608661d2da6e2c409ab84ca7d831ce6c1"
+     },
+     "depthAsset": {
+      "assetId": "asset_21ad4208d7a2eb00e1dc55720e1d7d8c",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_21ad4208d7a2eb00e1dc55720e1d7d8c?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_21ad4208d7a2eb00e1dc55720e1d7d8c.exr%22&X-Goog-Signature=66f3986cc723bd365c09e3d1cc2232562dad59df9897ab53e97c0d537217eb21a6465f7a44e467707ee5b4efbbee4a6add4c6eace6db16bc4639b59febf04557be276f158a29e8158e642a1024ff874c33c96e5d482c90d5632d3f291965c46d10e6da4e3db0bfcb79fe8c1af2cd9b9e52f2314128e39f6ea2283c7978f6104db610d8ed0637a4fb5fe9aabafcf248fc49e8984cf051f577a19568117ba549ab4d6174cd01481d2234cc2c022267473eaf4b4f3aacc6fd43ae733839ed7c449c98c0b893b41b5cb35c16dca46b337494ecdd0938bd1a34e1770f2560b555944cc9396e86032d1704eafed914c94a2bd6d70cfdaedd28e175798e382db05f6661"
+     }
+    },
+    "imageAsset": {
+     "assetId": "asset_b1bf61a8227e657dad852b375d6b9b84",
+     "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_b1bf61a8227e657dad852b375d6b9b84?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_b1bf61a8227e657dad852b375d6b9b84.jpg%22&X-Goog-Signature=6fd627a2fa1e21b789e13d05429a604f75899bd0f82a26bda0e4147381220564e6323c24b3bc73dfbb810343ab8e8476d7da9c91468113158b94415195d657f230251694c190e37d2156a72f40307c9b8870c20dcef6c669736612b017af620eaba55fc27e0c1d2e5a935fbf1224a4ab2cf981ba2df5f22a419d43ded0b5ee6f2356a9f066f7dc22e8bfdfa9bef7ee71171d5ecbbc15b1d6713ab32090eb9e8fdca057e3c6e8f17209c4849462b22fe703a15e51b7b222dd2787fdac088675d0fee792b79a50c58141387cfc867e6d029c0038bd8842021a710746c8e59915162cee636293fae8d369855a17eb72769cc4d5d58bf27dfad1e9f72e36a860b082"
+    },
+    "maskAsset": null
+   },
+   {
+    "camera": {
+     "extrinsics": {
+      "coordinateSystem": "rub",
+      "position": [
+       -0.3288924172750679,
+       0.0,
+       -0.11970705016398409
+      ],
+      "quaternion": [
+       0.0,
+       0.573576436351046,
+       0.0,
+       0.8191520442889918
+      ]
+     },
+     "intrinsics": {
+      "cx": 640.0,
+      "cy": 360.0,
+      "fx": 685.8762313618379,
+      "fy": 685.8762313618379,
+      "height": 720,
+      "width": 1280
+     }
+    },
+    "depth": {
+     "confidenceAsset": {
+      "assetId": "asset_1b8a2f35c6bed293230c74ab5f73e7bc",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_1b8a2f35c6bed293230c74ab5f73e7bc?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_1b8a2f35c6bed293230c74ab5f73e7bc.png%22&X-Goog-Signature=69ac775cbd7f790c0be1e85d08141cc638155b69a725599488ab6e329a0fc03e2d65d49b85b71317899ab03204501c5300cd03974af663cd02bc60e6629576d0f5082e817e0e85add700434ee8e2f7230706a2693a2a39ff8037440f6561c9de8bf936c6bc16bda129443f8a8d638684200108bd8349d83c9afc4f4ba1d6ca0fcf44371071da914f60d26b6a88d136224a01de863ca5b62be6ca2cc616436a532a59f2674f6573f9584ee4106017bcabc7a3924ae5d753534345b4b5899ecda3e846c407a7f57b422cf57b491f4fb2019b6fd1d3a6cd103737443c63c30407b8838c1fb5d82e179d5d6e59f8c7c6ff1d04312da7de281953c34a92973dc9872e"
+     },
+     "depthAsset": {
+      "assetId": "asset_8e04d37f15095fbc6ea1b1c49506895d",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_8e04d37f15095fbc6ea1b1c49506895d?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_8e04d37f15095fbc6ea1b1c49506895d.exr%22&X-Goog-Signature=a09c123293a2de0eda2c96e2187dd6721b69f8a07b0b2fc2dd6e920c63fedfe18b0bafa06a779fa108d776a4c7781657509938a791ed7b782dc49a9e329eefdeb0ac602109488e2339fbc3f6e85b2cd4f484b389f45e1c76358e384583e0baaf3294fef7a92553062194ce75cd8ffcebaeb98c7ff6d1c3fc160c97256984e2658c54341bd6e7a34ef7423d236bebfef330e844fc190571c08ac204c2c68de9513bee43f5253a550d79c40434ac19503b1f78ab6262ab83dbfd2570db25a6a9b0d5f53a06d95c6bf4c781f0511baa5ddb194db9716e3a983b18d20c3aaf9be6f3c2ef5d81f497ca3ea47cdf7a7af36da4ef1b0752aacfa2861150a0ea73354ef7"
+     }
+    },
+    "imageAsset": {
+     "assetId": "asset_a37b93dfcfe9ed36802b2e20f3f78b6d",
+     "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_a37b93dfcfe9ed36802b2e20f3f78b6d?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_a37b93dfcfe9ed36802b2e20f3f78b6d.jpg%22&X-Goog-Signature=0cd35a453e049cfca4780066ffd462bafd54d3b29625b25bd8a3625a83d3037689e6f5161bb42f6e4f9028a758ed23c5769e4438251e39d33ef5400f21a3993583eb2f52a9299d847255608a520914ac28bfeaacc59aa1384e1ddc08ce7e12cf7d27c449daf0ca7c836f7af6852975c56c6ef6dad07ddeebe1a803ec38d23a477fc2e40244af6aa71ec8a1f590a267057c8c75a2e83a3d646a13d7b1b9435fce0a79df601d9395c8b5d410c1f2ad2ef4bd40fa209286657ca25d744e34eae4d981f1a5f59bcb3a5b013920a468e1b0be12dc75a2d64eaf855e77bf54f7dbb95d570715d3e3cb1b8927df38994b7d94d5fd2f6bee859b6911d5d58ed69591ae66"
+    },
+    "maskAsset": null
+   },
+   {
+    "camera": {
+     "extrinsics": {
+      "coordinateSystem": "rub",
+      "position": [
+       0.3288924172750679,
+       0.0,
+       -0.11970705016398409
+      ],
+      "quaternion": [
+       0.0,
+       -0.573576436351046,
+       0.0,
+       0.8191520442889918
+      ]
+     },
+     "intrinsics": {
+      "cx": 640.0,
+      "cy": 360.0,
+      "fx": 685.8762313618379,
+      "fy": 685.8762313618379,
+      "height": 720,
+      "width": 1280
+     }
+    },
+    "depth": {
+     "confidenceAsset": {
+      "assetId": "asset_7853f11aa7cb0c05375fd1ceb9d9d7d4",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_7853f11aa7cb0c05375fd1ceb9d9d7d4?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_7853f11aa7cb0c05375fd1ceb9d9d7d4.png%22&X-Goog-Signature=247fd4abe57917fcb88c42f097955693ae16cb01a3af8624e2dac09d3db8bb5661b4a9b855de08f33cddba9354988be0a9d77107e4fa6cbed7cb10669b78f243f3a33803bc3fd2085fa12eeb8a70ff9e3f06debf37d6f7119183abc7cf4f9d2e249c36390254be93efd9fc06141613288d6e3f0ebbe729ca8e3f98e38a85ea4537867922a9b76ccda7fca725d8ac8e31d71fc2fff9ce1df264e28bad193918166f27ed5761457cb14a3f7d0a614a17a23b5c94eab51eeae71fe5be002c0038f4126bda61cc78abfb82b9c1001553773f7bd9d8f28b1155d3245aba747fc5c3759bc940e38ca53234ba0b5994d04cb4f6a3da8b46441b23e81151b486e9f4c4ef"
+     },
+     "depthAsset": {
+      "assetId": "asset_a9162d91ba467932307b80079c04866a",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_a9162d91ba467932307b80079c04866a?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_a9162d91ba467932307b80079c04866a.exr%22&X-Goog-Signature=091424aad671fb425b51fd099ae807a9c2bfddc087de4ebf62aad16d66887728088e62518d4e233c759fcf86ce9f747e53a0a9fa10993cb36d7a738e47a5da20217164c40ffb853849a6156783fd840ed3c847423dcea93946ad5c0dec9ceef6808a1c5f032bd0dba8f43d75f9737db75648b773b4ff9b45aac90ecb9f9e740f2080bc44e445e5395eb011859c584909397c9d3f80ee853747bb2ca614760cb73a71c5d9a5e92eaf70a15a80edc11265ecb4645b43481ae2b4aedf52320ee526774f0c102fc4fcead35a5b841bc47311c506001cbd2cad4e20949d6af2f5908dfd538bc7d80b95f1afb0bbb970bee424096d68c2a98e5e255d12f33620efd367"
+     }
+    },
+    "imageAsset": {
+     "assetId": "asset_6db60072303f5ae85474b1bb0968622c",
+     "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_6db60072303f5ae85474b1bb0968622c?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_6db60072303f5ae85474b1bb0968622c.jpg%22&X-Goog-Signature=081dc501e0b86d176b9350ba6760e9f4070f1a5b57c4df75346fbee9ec02ab496f14875756e7f5c2c38fcd0d843ebfd34fb8cacfff903404c28eab84b4bb954e1af4088deadde68cacbece1e616f46aec8559811fffcd632cda0f32b55356dfd00babc0a95a173930106c6bbc0d857f56ef410fc4d82f86f7a25776db6c2a9f8f59b3d1104b4c6043b9e854d201b754b75ba8ae5d52026b1c20f3c06d030a404e7e0b66a4ead42c81a3a03fa33f6054aa99694987ff54e04b210438b66f0c135a28553578c53361c9b230388b93dec8991bcb94bf48e224eaf52eeb7bfb69a6fc928bae36671463109a83d74faff0c85a1732fc57a3b6caae5f542436ef1a396"
+    },
+    "maskAsset": null
+   },
+   {
+    "camera": {
+     "extrinsics": {
+      "coordinateSystem": "rub",
+      "position": [
+       0.0,
+       0.0,
+       -0.35
+      ],
+      "quaternion": [
+       -0.3420201433256687,
+       0.0,
+       0.0,
+       0.9396926207859084
+      ]
+     },
+     "intrinsics": {
+      "cx": 640.0,
+      "cy": 360.0,
+      "fx": 685.8762313618379,
+      "fy": 685.8762313618379,
+      "height": 720,
+      "width": 1280
+     }
+    },
+    "depth": {
+     "confidenceAsset": {
+      "assetId": "asset_ed5117cbc5b9173532034ba29e39ff25",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_ed5117cbc5b9173532034ba29e39ff25?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_ed5117cbc5b9173532034ba29e39ff25.png%22&X-Goog-Signature=79640fdc308962b2ab31a2a883c50c34aef4b6c8e12a685743a221f2242cbe8f6b8dd624b174cae5300a99636d4e0b260fbce7825ee49678ccb99b30edcbdc1f7ce3c90556efec935600b2369772caec7d7dd8e99e6250be7944b93eb970b07974d8390de7ef00d110ffb30edb96d3cf8663a3ce5725d910ff12d3426ab7d21d365771be67d72f57e5016c5ed22095f44df99b2da687090ead2c95f2a796aeda533d1f38d24ad6dc7a6459d172b31ba81330557dc7f9610c57a7a691d0eb5daaf9dbde91f36c080c88f17a5a92f613851e1e66db5f4831c9ddb32068bceb6bed4a0edd830dee3a76e2d63578bec126bce239a6b1fe0b08cd634b225507997e02"
+     },
+     "depthAsset": {
+      "assetId": "asset_30b68d200c960d12d44f10fbb2c360e4",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_30b68d200c960d12d44f10fbb2c360e4?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_30b68d200c960d12d44f10fbb2c360e4.exr%22&X-Goog-Signature=2947557199671ae64b2f9be895331ef59e48875e80ded8533956d2e99b134552d12221e0875bc091be5f85457b9583e24ce8cc2238865447b36363ef4c45b82abf528940afc1e6aaf810b7a99bc75d2133c4db93b9f6d41622d24469d079df7961954c10adf0b49890a2a43b5ad04074e2f46efa6288c5c11bccc8f54ad910539f4ed88a50ed70aa41de5d489fc37c639eafa194e09de2570ada88b95001fbc9e75b99a4cdf06b3a75ff4aa3d931693ee0e84cdfcbf49f48de995a9931fd402cc2f6cefe2e0b6ef473ae350000f56ba1c0c5aae9e1f1e42368fc497ab0940b4a235f03d9e704bad7e3a94c6a43de389103992ce95b2759f03c4d7bd33f73699c"
+     }
+    },
+    "imageAsset": {
+     "assetId": "asset_9b0bb039cafd734e8ef2bae4ef125171",
+     "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_9b0bb039cafd734e8ef2bae4ef125171?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_9b0bb039cafd734e8ef2bae4ef125171.jpg%22&X-Goog-Signature=72020f9327c2445136e291f058884e15b973e3a79f8484d110c80937fc20b230fb9239ffd3c02e15625f8cb7b4607e226e4f3a486aad120128d0c9d917a93a483dfa8087634bf37bb172d21bc3262bf9a7dec30f287dfeec277eda53fba9b33bf622c90ab77dfe1d34cef37757efcd53f6bbb4a0ee0fb9c42c99d9f25592879518f7f19b2babddef7b784d55db8622b6174ff408467ca0f4da743d2675110a08675af565896890181b962b600992d05bc5a3db7806097bef1e6d1bde98b626d4fd8364a6c4368a199db27da84093cca59c73cbb8b495cdacbe2897b9a47e3c3c2996504fe435097d3e0e7a9364a74ef7b1ef00ea13c2ca5702f6cbb8002d5c3a"
+    },
+    "maskAsset": null
+   },
+   {
+    "camera": {
+     "extrinsics": {
+      "coordinateSystem": "rub",
+      "position": [
+       0.0,
+       0.0,
+       -2.0
+      ],
+      "quaternion": [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     },
+     "intrinsics": {
+      "cx": 640.0,
+      "cy": 360.0,
+      "fx": 685.8762313618379,
+      "fy": 685.8762313618379,
+      "height": 720,
+      "width": 1280
+     }
+    },
+    "depth": {
+     "confidenceAsset": {
+      "assetId": "asset_98067d99fc38eee91700329b4139207c",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_98067d99fc38eee91700329b4139207c?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_98067d99fc38eee91700329b4139207c.png%22&X-Goog-Signature=3a0f796479e09cca1bfba90c773416364e75cdc6a1991d7a0942a3d7060dc61e6e7f326c5ba209267679fd553b1c35fd4f3622d62c407a4250bbadf94f1057f48f3d54f078a83b7b12cba0f93fb6cc7d952ccec16d2434907a6ae041688eec225b9738db6a1240bf7f6dedf788d7a59cf3106fdadebacd2662e24be4171a771a8eb7d7c9ad6bbfa7744a361c34c9e2e0e65fdf68a6bc951992baf9cae417eb3310b81d8abc7ebf9db4fe5aac0eb39c471fc136c8c78a16550fa2083208a0ed135896a238eb014408d677597e42b74c7dcc1be495dbf03404e39202511d9d9ee180766a3250c6ebb39cc2d6398993ed933ed8ec6eb6aec3f5831b214a1e33df7b"
+     },
+     "depthAsset": {
+      "assetId": "asset_6ec20b8d1eb1db8c92d45d04c4042eaa",
+      "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_6ec20b8d1eb1db8c92d45d04c4042eaa?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_6ec20b8d1eb1db8c92d45d04c4042eaa.exr%22&X-Goog-Signature=8ab647cf189fc448af6648b983beebaa3efb6f32d0c310dca92559350859d37e18633e661650367428fb4ff3328c4e98e1d31ba2d1f816cf96a3fcdacb5d7ad94150809e400509a689d3397c6b7c0f545cb61a03a99f3a91d1c2b275e2c15d523c071f6cbd8f38347a36a85cc732b37ad61a293555b0bbee31687db50e846a74adfa294524270f0c0b81533e4b482227fb459ac08adb642e94a6ceeaa7ce318689742998f7c346b0c93715d9885e7d30ce227a5ef0513a047dcbb033ef9daf9bfc5a7a3721d8b1999e14ec209671bf655448f00e051b6b51f9cf7aa54dee6ca71c17293963c50f56b23922c2083f5659a9cd8803aa1a08232084bfdc7e352e98"
+     }
+    },
+    "imageAsset": {
+     "assetId": "asset_ff18d45b324b3e6fe947e0fb9b90ee2f",
+     "url": "https://storage.googleapis.com/wlt-marble-outputs-prod/us1/acct_0e971b19f5e44d3895747449c8feb339/proj_f480f7f91d7e4a06b5c6804b3c485223/asset_ff18d45b324b3e6fe947e0fb9b90ee2f?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=marble-api-server-prod%40wlt-marble.iam.gserviceaccount.com%2F20261114%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261114T230108Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22asset_ff18d45b324b3e6fe947e0fb9b90ee2f.jpg%22&X-Goog-Signature=5754ac86812b3d8c1f2942796a26cea293fb798663b8810ba3d632b4d46c93847a5f40a9cfd977df28d575208c9cde8d6057071853caaf8ca9c5529bd10e8887205595f6df17955f1816fe574d848e17c8847d2fe00a8d940598ba7a47c1142ccf4d2e01db45792bc1b97d6c0b0be9e2a1849db59f018444959d8927c125dbeacd17ac91af4efdab57bd3e1e9a459b2fda81efd489d74a4b3dc19aecec424f5aed4eefaaacb177b74c941f1a8215b0050a74289444a5fcc99708bc126c29503ed132f09025c5059fb480ed03b70a4b4cb8a9ab5bf7d0ab1b8bb437e020bb50419adf9603f4f1d6b4c2bf3c6d713a69a8f185cb6e40036ec6e5c5e1f62fcef95c"
+    },
+    "maskAsset": null
+   }
+  ],
+  "promptUsed": "{\"short_caption\":\"A semi-realistic painterly game environment view of an ancient Chinese village carpenter's workshop home, filled with tools, timber, and warm lamplight.\",\"scene\":\"A richly detailed ancient Chinese village carpenter's workshop home stands empty, viewed at eye level from the middle of the room. A heavy timber workbench dominates the foreground, crowded with wooden planes, chisels, hand saws, an ink line reel, and a carpenter's square beside a half-made chair. Stacked planks and rough logs fill the shadowed walls, while finished stools and an ornate carved cabinet demonstrate the craftsperson's work. Warm daylight streams through an open door and mingles with the amber glow of a small oil lamp, revealing curls of fresh wood shavings across the earthen floor.\",\"subjects\":[{\"name\":\"workbench\",\"description\":\"A broad, heavy hardwood carpenter's bench fitted with a weathered wooden vise and a scarred working surface.\",\"action_or_state\":\"static, covered with active woodworking tools and a partially assembled chair frame\",\"appearance\":\"dark honey-brown timber, thick square legs, gouged surface, visible joinery, scattered pale sawdust\",\"position_or_relationship\":\"dominates the foreground slightly left of center\"},{\"name\":\"half-made chair\",\"description\":\"A traditional wooden chair in mid-construction, with an unfinished frame and separate carved back slats.\",\"action_or_state\":\"resting unfinished on the workbench\",\"appearance\":\"pale fresh-cut wood, exposed mortise-and-tenon joints, one rear leg clamped in place\",\"position_or_relationship\":\"on top of the workbench, forming the central focal point\"},{\"name\":\"carpentry tools\",\"description\":\"A working collection of hand planes, chisels, saws, an ink line reel, and a carpenter's square.\",\"action_or_state\":\"static, arranged for immediate use\",\"appearance\":\"dark iron blades, worn wooden handles, black ink-stained reel cord, aged bronze and wood fittings\",\"position_or_relationship\":\"spread across the bench and hung in orderly rows on the rear wall rack\"},{\"name\":\"finished furniture\",\"description\":\"Several completed low stools and a tall carved storage cabinet showing refined woodworking craftsmanship.\",\"action_or_state\":\"static\",\"appearance\":\"warm reddish-brown lacquered wood, simple stool silhouettes, cabinet doors carved with cloud and geometric motifs\",\"position_or_relationship\":\"grouped along the right wall behind the workbench\"},{\"name\":\"stacked timber\",\"description\":\"A dense supply of rough logs and neatly stacked lumber boards.\",\"action_or_state\":\"static\",\"appearance\":\"bark-covered logs, pale plank edges, uneven saw marks, dusty wood grain\",\"position_or_relationship\":\"piled along the left and rear walls, framing the working area\"}],\"setting\":\"An enclosed timber-and-earth workshop inside a rural ancient Chinese village home. Exposed roof beams cross overhead, plastered walls hold a wooden tool rack, and the compact room opens through a wide doorway onto a sunlit dirt courtyard outside.\",\"composition\":\"A wide eye-level interior view from the middle of the room, with the workbench and half-made chair anchoring the foreground. Tool-lined walls, lumber stacks, and finished furniture create layered depth toward the open door at the back left.\",\"style\":\"Semi-realistic painterly game environment art with sharply defined handcrafted objects, readable silhouettes, and tactile environmental detail. The image is an unoccupied historical workshop scene with no people.\",\"lighting\":\"Warm low-angle daylight pours through the open door, casting long rectangular highlights across the floor and bench. A small oil lamp adds concentrated amber illumination near the work area, with soft shadowed corners and golden reflections on polished wood.\",\"color_palette\":[\"warm honey brown\",\"reddish lacquer wood\",\"pale fresh-cut pine\",\"earthen umber\",\"amber gold\",\"charcoal black\",\"muted plaster beige\"],\"materials_and_textures\":\"Rough-sawn planks show splinters and pronounced grain, while the workbench is scarred by blade marks and darkened by years of use. Curled wood shavings, powdery sawdust, bark, worn iron tool blades, matte plaster, and smooth lacquered furniture create distinct tactile contrast.\",\"mood\":\"warm, industrious, rustic, orderly, quietly lived-in\",\"supporting_details\":\"Loose ribbons of curled shavings gather around the bench legs and trail toward the doorway. A small oil lamp with a ceramic base sits at the far end of the bench, while a bamboo basket holds offcuts beneath the wall rack. Thin daylight outlines suspended dust motes and catches the edges of the carpenter's square.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+  "requestId": "39b5ea70-1331-42b1-930d-6339278a9d3c"
+ },
+ "name": "accounts/acct_0e971b19f5e44d3895747449c8feb339/projects/proj_f480f7f91d7e4a06b5c6804b3c485223/operations/17ddec83b420418ca26b4ddc7fa06411"
+}

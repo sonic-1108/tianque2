@@ -1,0 +1,1604 @@
+{
+ "prompt": "{\"short_caption\":\"A semi-realistic painterly game environment view of an ancient Chinese village carpenter's workshop home, filled with tools, timber, and warm lamplight.\",\"scene\":\"A richly detailed ancient Chinese village carpenter's workshop home stands empty, viewed at eye level from the middle of the room. A heavy timber workbench dominates the foreground, crowded with wooden planes, chisels, hand saws, an ink line reel, and a carpenter's square beside a half-made chair. Stacked planks and rough logs fill the shadowed walls, while finished stools and an ornate carved cabinet demonstrate the craftsperson's work. Warm daylight streams through an open door and mingles with the amber glow of a small oil lamp, revealing curls of fresh wood shavings across the earthen floor.\",\"subjects\":[{\"name\":\"workbench\",\"description\":\"A broad, heavy hardwood carpenter's bench fitted with a weathered wooden vise and a scarred working surface.\",\"action_or_state\":\"static, covered with active woodworking tools and a partially assembled chair frame\",\"appearance\":\"dark honey-brown timber, thick square legs, gouged surface, visible joinery, scattered pale sawdust\",\"position_or_relationship\":\"dominates the foreground slightly left of center\"},{\"name\":\"half-made chair\",\"description\":\"A traditional wooden chair in mid-construction, with an unfinished frame and separate carved back slats.\",\"action_or_state\":\"resting unfinished on the workbench\",\"appearance\":\"pale fresh-cut wood, exposed mortise-and-tenon joints, one rear leg clamped in place\",\"position_or_relationship\":\"on top of the workbench, forming the central focal point\"},{\"name\":\"carpentry tools\",\"description\":\"A working collection of hand planes, chisels, saws, an ink line reel, and a carpenter's square.\",\"action_or_state\":\"static, arranged for immediate use\",\"appearance\":\"dark iron blades, worn wooden handles, black ink-stained reel cord, aged bronze and wood fittings\",\"position_or_relationship\":\"spread across the bench and hung in orderly rows on the rear wall rack\"},{\"name\":\"finished furniture\",\"description\":\"Several completed low stools and a tall carved storage cabinet showing refined woodworking craftsmanship.\",\"action_or_state\":\"static\",\"appearance\":\"warm reddish-brown lacquered wood, simple stool silhouettes, cabinet doors carved with cloud and geometric motifs\",\"position_or_relationship\":\"grouped along the right wall behind the workbench\"},{\"name\":\"stacked timber\",\"description\":\"A dense supply of rough logs and neatly stacked lumber boards.\",\"action_or_state\":\"static\",\"appearance\":\"bark-covered logs, pale plank edges, uneven saw marks, dusty wood grain\",\"position_or_relationship\":\"piled along the left and rear walls, framing the working area\"}],\"setting\":\"An enclosed timber-and-earth workshop inside a rural ancient Chinese village home. Exposed roof beams cross overhead, plastered walls hold a wooden tool rack, and the compact room opens through a wide doorway onto a sunlit dirt courtyard outside.\",\"composition\":\"A wide eye-level interior view from the middle of the room, with the workbench and half-made chair anchoring the foreground. Tool-lined walls, lumber stacks, and finished furniture create layered depth toward the open door at the back left.\",\"style\":\"Semi-realistic painterly game environment art with sharply defined handcrafted objects, readable silhouettes, and tactile environmental detail. The image is an unoccupied historical workshop scene with no people.\",\"lighting\":\"Warm low-angle daylight pours through the open door, casting long rectangular highlights across the floor and bench. A small oil lamp adds concentrated amber illumination near the work area, with soft shadowed corners and golden reflections on polished wood.\",\"color_palette\":[\"warm honey brown\",\"reddish lacquer wood\",\"pale fresh-cut pine\",\"earthen umber\",\"amber gold\",\"charcoal black\",\"muted plaster beige\"],\"materials_and_textures\":\"Rough-sawn planks show splinters and pronounced grain, while the workbench is scarred by blade marks and darkened by years of use. Curled wood shavings, powdery sawdust, bark, worn iron tool blades, matte plaster, and smooth lacquered furniture create distinct tactile contrast.\",\"mood\":\"warm, industrious, rustic, orderly, quietly lived-in\",\"supporting_details\":\"Loose ribbons of curled shavings gather around the bench legs and trail toward the doorway. A small oil lamp with a ceramic base sits at the far end of the bench, while a bamboo basket holds offcuts beneath the wall rack. Thin daylight outlines suspended dust motes and catches the edges of the carpenter's square.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+ "frames": [
+  {
+   "image": "v-00.jpg",
+   "view": {
+    "pos": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "yaw": 0,
+    "pitch": 0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_bdc30214f0eea8cbfa6dec2aec5fcb18",
+   "depth": {
+    "confidenceAsset": "asset_fe71ba13dfaf2dddb4f52e3641ffde33",
+    "depthAsset": "asset_727edd229cccb8f0a675ca52da19032a"
+   }
+  },
+  {
+   "image": "v-01.jpg",
+   "view": {
+    "pos": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "yaw": 35,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.2007517527228661,
+      0.0,
+      -0.28670321550114714
+     ],
+     "quaternion": [
+      0.0,
+      0.3007057995042731,
+      0.0,
+      0.9537169507482269
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_910e73814e2b10d705a69defc99caf0a",
+   "depth": {
+    "confidenceAsset": "asset_de608e312e48dea681e0ea4f1d8af6b2",
+    "depthAsset": "asset_e4b78c16bafae052ab3ef18759a6de00"
+   }
+  },
+  {
+   "image": "v-02.jpg",
+   "view": {
+    "pos": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "yaw": -35,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.2007517527228661,
+      0.0,
+      -0.28670321550114714
+     ],
+     "quaternion": [
+      0.0,
+      -0.3007057995042731,
+      0.0,
+      0.9537169507482269
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_b1bf61a8227e657dad852b375d6b9b84",
+   "depth": {
+    "confidenceAsset": "asset_83834b46a3eeeabf51f0af6fc8939008",
+    "depthAsset": "asset_21ad4208d7a2eb00e1dc55720e1d7d8c"
+   }
+  },
+  {
+   "image": "v-03.jpg",
+   "view": {
+    "pos": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "yaw": 70,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.3288924172750679,
+      0.0,
+      -0.11970705016398409
+     ],
+     "quaternion": [
+      0.0,
+      0.573576436351046,
+      0.0,
+      0.8191520442889918
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_a37b93dfcfe9ed36802b2e20f3f78b6d",
+   "depth": {
+    "confidenceAsset": "asset_1b8a2f35c6bed293230c74ab5f73e7bc",
+    "depthAsset": "asset_8e04d37f15095fbc6ea1b1c49506895d"
+   }
+  },
+  {
+   "image": "v-04.jpg",
+   "view": {
+    "pos": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "yaw": -70,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.3288924172750679,
+      0.0,
+      -0.11970705016398409
+     ],
+     "quaternion": [
+      0.0,
+      -0.573576436351046,
+      0.0,
+      0.8191520442889918
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_6db60072303f5ae85474b1bb0968622c",
+   "depth": {
+    "confidenceAsset": "asset_7853f11aa7cb0c05375fd1ceb9d9d7d4",
+    "depthAsset": "asset_a9162d91ba467932307b80079c04866a"
+   }
+  },
+  {
+   "image": "v-05.jpg",
+   "view": {
+    "pos": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "yaw": 0,
+    "pitch": -40
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -0.35
+     ],
+     "quaternion": [
+      -0.3420201433256687,
+      0.0,
+      0.0,
+      0.9396926207859084
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_9b0bb039cafd734e8ef2bae4ef125171",
+   "depth": {
+    "confidenceAsset": "asset_ed5117cbc5b9173532034ba29e39ff25",
+    "depthAsset": "asset_30b68d200c960d12d44f10fbb2c360e4"
+   }
+  },
+  {
+   "image": "v-06.jpg",
+   "view": {
+    "pos": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "yaw": 0,
+    "pitch": 0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -2.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_ff18d45b324b3e6fe947e0fb9b90ee2f",
+   "depth": {
+    "confidenceAsset": "asset_98067d99fc38eee91700329b4139207c",
+    "depthAsset": "asset_6ec20b8d1eb1db8c92d45d04c4042eaa"
+   }
+  },
+  {
+   "image": "v-07.jpg",
+   "view": {
+    "pos": [
+     -0.3380740392011739,
+     0.0,
+     0.09058666578588229
+    ],
+    "yaw": 105,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.3380740392011739,
+      0.0,
+      0.09058666578588229
+     ],
+     "quaternion": [
+      0.0,
+      0.7933533402912352,
+      0.0,
+      0.6087614290087207
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_bdbee132db6a5e3c0e64efb93ece0640",
+   "depth": {
+    "confidenceAsset": "asset_6ffcc312d7207a4b1040c12663dbaedd",
+    "depthAsset": "asset_6049c9138d67fa8fae751adb97becb03"
+   }
+  },
+  {
+   "image": "v-08.jpg",
+   "view": {
+    "pos": [
+     0.3380740392011739,
+     0.0,
+     0.09058666578588229
+    ],
+    "yaw": -105,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.3380740392011739,
+      0.0,
+      0.09058666578588229
+     ],
+     "quaternion": [
+      0.0,
+      -0.7933533402912352,
+      0.0,
+      0.6087614290087207
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_a7b639a62bf7b78efdd2fe906ae38937",
+   "depth": {
+    "confidenceAsset": "asset_80abc9dab8602555b4fe4abeba58f8c5",
+    "depthAsset": "asset_dc7f4dd74b2abcedbe192388a8fe1feb"
+   }
+  },
+  {
+   "image": "v-09.jpg",
+   "view": {
+    "pos": [
+     -0.2249756633902888,
+     0.0,
+     0.26811555509164225
+    ],
+    "yaw": 140,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.2249756633902888,
+      0.0,
+      0.26811555509164225
+     ],
+     "quaternion": [
+      0.0,
+      0.9396926207859083,
+      0.0,
+      0.3420201433256688
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_89c51d70af616ed85395015ff7b9d7a2",
+   "depth": {
+    "confidenceAsset": "asset_2b8167e56be6f7f0709d8a518343ff7f",
+    "depthAsset": "asset_35a3f49d1b08292c0a7c31714d090fbc"
+   }
+  },
+  {
+   "image": "v-10.jpg",
+   "view": {
+    "pos": [
+     0.2249756633902888,
+     0.0,
+     0.26811555509164225
+    ],
+    "yaw": -140,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.2249756633902888,
+      0.0,
+      0.26811555509164225
+     ],
+     "quaternion": [
+      0.0,
+      -0.9396926207859083,
+      0.0,
+      0.3420201433256688
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_aef2c79fe07957d3caa5f0ac88e6ef52",
+   "depth": {
+    "confidenceAsset": "asset_a9d0d606b064913625eef012e6988a66",
+    "depthAsset": "asset_283c477389f78be5744227038126ac39"
+   }
+  },
+  {
+   "image": "v-11.jpg",
+   "view": {
+    "pos": [
+     -4.286263797015736e-17,
+     0.0,
+     0.35
+    ],
+    "yaw": 180,
+    "pitch": 0.0
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -4.286263797015736e-17,
+      0.0,
+      0.35
+     ],
+     "quaternion": [
+      0.0,
+      1.0,
+      0.0,
+      6.123233995736766e-17
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_10dc4fd604efb8bd0be34eae8c691524",
+   "depth": {
+    "confidenceAsset": "asset_6e0c690d71531ecb12d444c14e09a74f",
+    "depthAsset": "asset_d38cb1cd3949a57cc5f01096da168cf0"
+   }
+  },
+  {
+   "image": "v-12.jpg",
+   "view": {
+    "pos": [
+     -0.3031088913245535,
+     0.0,
+     -0.17500000000000002
+    ],
+    "yaw": 60,
+    "pitch": -45
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.3031088913245535,
+      0.0,
+      -0.17500000000000002
+     ],
+     "quaternion": [
+      -0.3314135740355918,
+      0.4619397662556433,
+      0.19134171618254486,
+      0.8001031451912656
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_a8767eac523bb5827641202aded39314",
+   "depth": {
+    "confidenceAsset": "asset_8b2aaa60b384eef597e81ad31f764070",
+    "depthAsset": "asset_f4966b867d8f0acfd0212c39a35ffd2f"
+   }
+  },
+  {
+   "image": "v-13.jpg",
+   "view": {
+    "pos": [
+     -0.30310889132455354,
+     0.0,
+     0.1749999999999999
+    ],
+    "yaw": 120,
+    "pitch": -45
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.30310889132455354,
+      0.0,
+      0.1749999999999999
+     ],
+     "quaternion": [
+      -0.19134171618254495,
+      0.8001031451912655,
+      0.3314135740355918,
+      0.4619397662556435
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_29447715fefe08bf6f5e7ea273a3ee52",
+   "depth": {
+    "confidenceAsset": "asset_66e7bef337b55e46ea130af7841e0b6e",
+    "depthAsset": "asset_fb10dfb0cf1c6d704f6b8c8de48241f7"
+   }
+  },
+  {
+   "image": "v-14.jpg",
+   "view": {
+    "pos": [
+     -4.286263797015736e-17,
+     0.0,
+     0.35
+    ],
+    "yaw": 180,
+    "pitch": -45
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -4.286263797015736e-17,
+      0.0,
+      0.35
+     ],
+     "quaternion": [
+      -2.3432602026631493e-17,
+      0.9238795325112867,
+      0.3826834323650898,
+      5.657130561438501e-17
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_00b9b595b375922266e2d064971eb2f6",
+   "depth": {
+    "confidenceAsset": "asset_bb71bb93c43c1f69c95f3890b91f5538",
+    "depthAsset": "asset_1ae0a7e61ba582879f6e548c8ce94e03"
+   }
+  },
+  {
+   "image": "v-15.jpg",
+   "view": {
+    "pos": [
+     0.30310889132455354,
+     0.0,
+     0.1749999999999999
+    ],
+    "yaw": -120,
+    "pitch": -45
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.30310889132455354,
+      0.0,
+      0.1749999999999999
+     ],
+     "quaternion": [
+      -0.19134171618254495,
+      -0.8001031451912655,
+      -0.3314135740355918,
+      0.4619397662556435
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_391f4ba1d9f30206a13cb863f9139ae2",
+   "depth": {
+    "confidenceAsset": "asset_05dce61c58c877e039944efcbaca7f7c",
+    "depthAsset": "asset_ca11ea874bd2e8481d535d7449573c9a"
+   }
+  },
+  {
+   "image": "v-16.jpg",
+   "view": {
+    "pos": [
+     0.3031088913245535,
+     0.0,
+     -0.17500000000000002
+    ],
+    "yaw": -60,
+    "pitch": -45
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.3031088913245535,
+      0.0,
+      -0.17500000000000002
+     ],
+     "quaternion": [
+      -0.3314135740355918,
+      -0.4619397662556433,
+      -0.19134171618254486,
+      0.8001031451912656
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_c2001df522a5aa5e789700b6bd429859",
+   "depth": {
+    "confidenceAsset": "asset_045a02ee68ab2c9b212494e3b0363515",
+    "depthAsset": "asset_2c0633e190e29d3bbe88b3d543cf2051"
+   }
+  },
+  {
+   "image": "v-17.jpg",
+   "view": {
+    "pos": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "yaw": 0,
+    "pitch": 35
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -0.35
+     ],
+     "quaternion": [
+      0.3007057995042731,
+      0.0,
+      0.0,
+      0.9537169507482269
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_000859b350b0be938614a176746d68fc",
+   "depth": {
+    "confidenceAsset": "asset_222eeabcd0b2f86b8a6e1c548f38308e",
+    "depthAsset": "asset_b71e38ecb9fdd296e1badf7a6db58f95"
+   }
+  },
+  {
+   "image": "v-18.jpg",
+   "view": {
+    "pos": [
+     -0.35,
+     0.0,
+     -2.143131898507868e-17
+    ],
+    "yaw": 90,
+    "pitch": 35
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -0.35,
+      0.0,
+      -2.143131898507868e-17
+     ],
+     "quaternion": [
+      0.2126311099715939,
+      0.6743797232066278,
+      -0.21263110997159387,
+      0.6743797232066279
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_0fd951af6fcd58402cb34ece8b7e8d8f",
+   "depth": {
+    "confidenceAsset": "asset_f311508ea15776bf3174a420605cdf13",
+    "depthAsset": "asset_0e211a0c04cee5f36f352e4eff023eb8"
+   }
+  },
+  {
+   "image": "v-19.jpg",
+   "view": {
+    "pos": [
+     -4.286263797015736e-17,
+     0.0,
+     0.35
+    ],
+    "yaw": 180,
+    "pitch": 35
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -4.286263797015736e-17,
+      0.0,
+      0.35
+     ],
+     "quaternion": [
+      1.841291974239769e-17,
+      0.9537169507482269,
+      -0.3007057995042731,
+      5.83983205513195e-17
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_84e1f726342b2cd140f2517ff9a70e34",
+   "depth": {
+    "confidenceAsset": "asset_fcf782857212e12ae5f35f10e1eb9b1a",
+    "depthAsset": "asset_aa61fbac477cc32718874cb70fd249d8"
+   }
+  },
+  {
+   "image": "v-20.jpg",
+   "view": {
+    "pos": [
+     0.35,
+     0.0,
+     -2.143131898507868e-17
+    ],
+    "yaw": -90,
+    "pitch": 35
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.35,
+      0.0,
+      -2.143131898507868e-17
+     ],
+     "quaternion": [
+      0.2126311099715939,
+      -0.6743797232066278,
+      0.21263110997159387,
+      0.6743797232066279
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_84b132d3d4a6d6c89cd2558c4daebb9e",
+   "depth": {
+    "confidenceAsset": "asset_86a528c7ab60d8c983adf93559d21455",
+    "depthAsset": "asset_59b078b12517cfe1ee177412b348fd5b"
+   }
+  },
+  {
+   "image": "v-21.jpg",
+   "view": {
+    "pos": [
+     0.0,
+     0.0,
+     -0.2
+    ],
+    "yaw": 0,
+    "pitch": 70
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -0.2
+     ],
+     "quaternion": [
+      0.573576436351046,
+      0.0,
+      0.0,
+      0.8191520442889918
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_a2f444c0991852551b6381ae9ae738b9",
+   "depth": {
+    "confidenceAsset": "asset_d9fa7bbe89708d0c0d12b17a9b4d5774",
+    "depthAsset": "asset_d8cbecd24c8ce5d003a8e0521aa53d14"
+   }
+  },
+  {
+   "image": "v-22.jpg",
+   "view": {
+    "pos": [
+     -2.4492935982947065e-17,
+     0.0,
+     0.2
+    ],
+    "yaw": 180,
+    "pitch": 70
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -2.4492935982947065e-17,
+      0.0,
+      0.2
+     ],
+     "quaternion": [
+      3.5121427342182706e-17,
+      0.8191520442889918,
+      -0.573576436351046,
+      5.015859645267624e-17
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_3346cd83a78bd254bf27d46c920da506",
+   "depth": {
+    "confidenceAsset": "asset_9d195d2c6d8f0ea7f6ed7b09c3e60335",
+    "depthAsset": "asset_d99d6573d88466269a3a5763d652a6f0"
+   }
+  },
+  {
+   "image": "v-23.jpg",
+   "view": {
+    "pos": [
+     -0.0,
+     0.0,
+     -1.2
+    ],
+    "yaw": 0.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -1.2
+     ],
+     "quaternion": [
+      -0.10452846326765347,
+      0.0,
+      0.0,
+      0.9945218953682733
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_e2780f824695346847ce9be35abee9db",
+   "depth": {
+    "confidenceAsset": "asset_6997c0c0727d827aa158e954f98c7909",
+    "depthAsset": "asset_0ab31fe0fd8d3e919c784e968f8f1409"
+   }
+  },
+  {
+   "image": "v-24.jpg",
+   "view": {
+    "pos": [
+     -0.0,
+     0.0,
+     -1.2
+    ],
+    "yaw": 70.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -1.2
+     ],
+     "quaternion": [
+      -0.08562470437208512,
+      0.570434324618422,
+      0.0599550634583119,
+      0.8146646436810838
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_03b42cc44484e2123bf1fdc354f429d5",
+   "depth": {
+    "confidenceAsset": "asset_c69da0741c04cbf12ebfe239956b6422",
+    "depthAsset": "asset_f9fc7b6dfb66b68749b1088b206755cb"
+   }
+  },
+  {
+   "image": "v-25.jpg",
+   "view": {
+    "pos": [
+     0.0,
+     0.0,
+     -1.2
+    ],
+    "yaw": -70.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -1.2
+     ],
+     "quaternion": [
+      -0.08562470437208512,
+      -0.570434324618422,
+      -0.0599550634583119,
+      0.8146646436810838
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_7c0f41ea36c031a5a5e5f631e79a9179",
+   "depth": {
+    "confidenceAsset": "asset_7a410a69ea6799be11eb67a3f3d2dbde",
+    "depthAsset": "asset_5506186ebbf431c1a07b24624d7913c8"
+   }
+  },
+  {
+   "image": "v-26.jpg",
+   "view": {
+    "pos": [
+     -0.0,
+     0.0,
+     -1.2
+    ],
+    "yaw": 180.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      0.0,
+      0.0,
+      -1.2
+     ],
+     "quaternion": [
+      -6.400522398026175e-18,
+      0.9945218953682733,
+      0.10452846326765347,
+      6.089690279223575e-17
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_7fe2f0bb630521f2e2d5ea79b4e2acbd",
+   "depth": {
+    "confidenceAsset": "asset_f9215fd1117539f26cd3dd84bddffd07",
+    "depthAsset": "asset_7abd853824b8850ba4ad5fb33b62bf34"
+   }
+  },
+  {
+   "image": "v-27.jpg",
+   "view": {
+    "pos": [
+     -1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": 90.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.07391278520356671,
+      0.7032331762534041,
+      0.0739127852035667,
+      0.7032331762534042
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_2edb1e57bcdba7f2a920695dc6a18a0c",
+   "depth": {
+    "confidenceAsset": "asset_b22def838c0889eac3a6a1a8c35eeeaf",
+    "depthAsset": "asset_4afc9109db09039d69151344e8602a54"
+   }
+  },
+  {
+   "image": "v-28.jpg",
+   "view": {
+    "pos": [
+     -1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": 160.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.0181511771607527,
+      0.9794128730990714,
+      0.10294044103643694,
+      0.1726969147805623
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_a7f026ba1fb9d92cc56f518b46c092c2",
+   "depth": {
+    "confidenceAsset": "asset_aba4d9136a51fed00ec7fdf3e88857c2",
+    "depthAsset": "asset_f0bd791c0f870775f58ab561d23e0392"
+   }
+  },
+  {
+   "image": "v-29.jpg",
+   "view": {
+    "pos": [
+     -1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": 20.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.10294044103643694,
+      0.1726969147805622,
+      0.01815117716075269,
+      0.9794128730990714
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_79deec612b48da52dbda0f98b146da10",
+   "depth": {
+    "confidenceAsset": "asset_b89a7e3a5fa57b6548d78e57165d8c1a",
+    "depthAsset": "asset_09b4aa46a3ef01a8260dc0159eece342"
+   }
+  },
+  {
+   "image": "v-30.jpg",
+   "view": {
+    "pos": [
+     -1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": 270.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      0.0739127852035667,
+      0.7032331762534042,
+      0.07391278520356671,
+      -0.7032331762534041
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_f5759f44605e15faef3d492111c195bd",
+   "depth": {
+    "confidenceAsset": "asset_3495bc5e55bcea847133c3e40397e6a1",
+    "depthAsset": "asset_c0f1569d9030a9c153c1c3ea5c53b34a"
+   }
+  },
+  {
+   "image": "v-31.jpg",
+   "view": {
+    "pos": [
+     1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": -90.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.07391278520356671,
+      -0.7032331762534041,
+      -0.0739127852035667,
+      0.7032331762534042
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_ca80160fa1adc1e8d83eef4f67c2e4c3",
+   "depth": {
+    "confidenceAsset": "asset_48e79fc88a981e0318dea8ffe63dd9ee",
+    "depthAsset": "asset_04d6a97f4a5cae245dd5eba9616f9d28"
+   }
+  },
+  {
+   "image": "v-32.jpg",
+   "view": {
+    "pos": [
+     1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": -20.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.10294044103643694,
+      -0.1726969147805622,
+      -0.01815117716075269,
+      0.9794128730990714
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_8c7e17370c2ddc3139153f0d2824c85a",
+   "depth": {
+    "confidenceAsset": "asset_942fb4830efe5184886b13ddb4fe1c4d",
+    "depthAsset": "asset_a30942575373df579effa27f3846c0a5"
+   }
+  },
+  {
+   "image": "v-33.jpg",
+   "view": {
+    "pos": [
+     1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": -160.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.0181511771607527,
+      -0.9794128730990714,
+      -0.10294044103643694,
+      0.1726969147805623
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_26a1edd770e3599b0b03c1745b52795e",
+   "depth": {
+    "confidenceAsset": "asset_8cc3be5f68378d98578a9326dc3f0062",
+    "depthAsset": "asset_4942fc2c57fd2b01f9cac19ad1ac2de6"
+   }
+  },
+  {
+   "image": "v-34.jpg",
+   "view": {
+    "pos": [
+     1.2,
+     0.0,
+     -7.347880794884119e-17
+    ],
+    "yaw": 90.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      1.2,
+      0.0,
+      -7.347880794884119e-17
+     ],
+     "quaternion": [
+      -0.07391278520356671,
+      0.7032331762534041,
+      0.0739127852035667,
+      0.7032331762534042
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_a73738b90cbee127f6bcde7efc267ea6",
+   "depth": {
+    "confidenceAsset": "asset_9c3344fabda4a9f29ada9155b2a95c4a",
+    "depthAsset": "asset_6cc19f71dbf427dd5f326d097908a45f"
+   }
+  },
+  {
+   "image": "v-35.jpg",
+   "view": {
+    "pos": [
+     -1.4695761589768238e-16,
+     0.0,
+     1.2
+    ],
+    "yaw": 180.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.4695761589768238e-16,
+      0.0,
+      1.2
+     ],
+     "quaternion": [
+      -6.400522398026175e-18,
+      0.9945218953682733,
+      0.10452846326765347,
+      6.089690279223575e-17
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_19ff5d8018c05e56906d5333450cf472",
+   "depth": {
+    "confidenceAsset": "asset_e36f01ad30f37f5da5d5d52f2a1052c5",
+    "depthAsset": "asset_4d81e66497e4d26c361c70590b251840"
+   }
+  },
+  {
+   "image": "v-36.jpg",
+   "view": {
+    "pos": [
+     -1.4695761589768238e-16,
+     0.0,
+     1.2
+    ],
+    "yaw": 250.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.4695761589768238e-16,
+      0.0,
+      1.2
+     ],
+     "quaternion": [
+      0.059955063458311905,
+      0.8146646436810837,
+      0.08562470437208512,
+      -0.5704343246184221
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_e3fff9b58d10e1abfa6e8bd721aac57d",
+   "depth": {
+    "confidenceAsset": "asset_a92c597e3f2e72d977b1b9840c4ea17d",
+    "depthAsset": "asset_c0dd87602e2838f4c7f5fe753d293297"
+   }
+  },
+  {
+   "image": "v-37.jpg",
+   "view": {
+    "pos": [
+     -1.4695761589768238e-16,
+     0.0,
+     1.2
+    ],
+    "yaw": 110.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.4695761589768238e-16,
+      0.0,
+      1.2
+     ],
+     "quaternion": [
+      -0.059955063458311905,
+      0.8146646436810838,
+      0.08562470437208512,
+      0.5704343246184221
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_a661e39e2ad354577c5d8544506f76a9",
+   "depth": {
+    "confidenceAsset": "asset_8914d1bd927a8c534b55171caf925297",
+    "depthAsset": "asset_345b6dcc289417b203b964bc17dc17ed"
+   }
+  },
+  {
+   "image": "v-38.jpg",
+   "view": {
+    "pos": [
+     -1.4695761589768238e-16,
+     0.0,
+     1.2
+    ],
+    "yaw": 360.0,
+    "pitch": -12
+   },
+   "camera": {
+    "extrinsics": {
+     "coordinateSystem": "rub",
+     "position": [
+      -1.4695761589768238e-16,
+      0.0,
+      1.2
+     ],
+     "quaternion": [
+      0.10452846326765347,
+      1.217938055844715e-16,
+      1.280104479605235e-17,
+      -0.9945218953682733
+     ]
+    },
+    "intrinsics": {
+     "cx": 640.0,
+     "cy": 360.0,
+     "fx": 685.8762313618379,
+     "fy": 685.8762313618379,
+     "height": 720,
+     "width": 1280
+    }
+   },
+   "imageAsset": "asset_de1d21fac03e81c65f14588709fa0473",
+   "depth": {
+    "confidenceAsset": "asset_4f29f917e7d8833851d94690bfd57c72",
+    "depthAsset": "asset_b8c387b6af3db19f63a3b91e0f1cd46f"
+   }
+  }
+ ]
+}
