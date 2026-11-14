@@ -11,7 +11,7 @@ The key is only ever sent as a request header; nothing here prints it.
 
 Cameras are RUB (x right, y up, looking along -z), camera to world, quaternions XYZW, metres.
 """
-import json, math, os, sys, time, uuid, urllib.request, urllib.error
+import json, math, os, random, sys, time, uuid, urllib.request, urllib.error
 
 API = os.environ.get('API', 'https://api.atlas.worldlabs.ai/api/v2')
 KEY = os.environ.get('KEY', '')
@@ -78,7 +78,7 @@ def wait(op, tag, task):
     t0 = time.time()
     last = -60
     while not op.get('done'):
-        time.sleep(8)
+        time.sleep(15)
         code, o = req('GET', f'operations/{oid}')
         if code == 200 and isinstance(o, dict):
             op = o
@@ -96,10 +96,18 @@ def wait(op, tag, task):
 
 
 def run(task, bodies, tag):
-    """Submit the first body the API accepts (later ones are fallbacks for schema doubts), then wait."""
+    """Submit the first body the API accepts (later ones are fallbacks for schema doubts), then wait. Atlas caps how
+    many tasks of a kind an account has open and how fast it may ask: a 429 waits and asks again."""
     last = None
     for i, body in enumerate(bodies):
-        code, op = submit(task, body, tag if i == 0 else f'{tag}-alt{i}')
+        for attempt in range(90):
+            code, op = submit(task, body, tag if i == 0 else f'{tag}-alt{i}')
+            if code == 429:
+                if attempt % 4 == 0:
+                    log(f'{tag}: busy ({json.dumps(op)[:160]}), waiting')
+                time.sleep(20 + random.random() * 25)
+                continue
+            break
         if code < 300 and isinstance(op, dict) and op.get('id'):
             return wait(op, tag, task)
         last = (code, op)
