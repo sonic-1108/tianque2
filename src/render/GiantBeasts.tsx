@@ -55,7 +55,8 @@ function Beast({ sim, f }: { sim: Sim; f: Fighter }) {
     body.mixer.update(dt);
     if (body.gait) walkByHand(body.gait, f, live.speed, dt, body.obj, body.floor, def.bodyH);
     const t = performance.now() / 1000, ph = giantPhase(f);
-    const c = new THREE.Color(def.color).multiplyScalar(0.06 + ph * 0.025 + Math.sin(t * (ph * 2 + 2)) * 0.04);
+    // a body painted with its own colours (giant-*.glb) only glows faintly, so its fur still reads white
+    const c = new THREE.Color(def.color).multiplyScalar((0.06 + ph * 0.025 + Math.sin(t * (ph * 2 + 2)) * 0.04) * (body.gait ? 0.35 : 1));
     if (giantOpen(f) > 0) c.lerp(new THREE.Color('#ffd84a'), 0.35 + Math.sin(t * 12) * 0.12);
     for (const m of body.mats) m.emissive?.copy(c);
   });
