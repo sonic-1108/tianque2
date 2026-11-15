@@ -25,7 +25,7 @@ const isTownsfolk = (m: string) => m.startsWith('npc-');
 /** Tripo bodies for everyone who fights and isn't one of the seven houses (owner: only the houses wear the houses'
  *  looks): each fights the way a house does, borrowing that house's clips, plan and weapons; they face +x too */
 export const BODY_AS: Record<string, string> = {
-  'foe-bandit.glb': 'berserker.glb', 'boss-leibiao.glb': 'berserker.glb', 'giant-leibiao.glb': 'berserker.glb', 'giant-tongren.glb': 'guard.glb', 'boss-kuhan.glb': 'monk.glb', 'boss-jianhun.glb': 'shadowblade.glb', 'comp-shimeng.glb': 'berserker.glb',
+  'foe-bandit.glb': 'berserker.glb', 'boss-leibiao.glb': 'berserker.glb', 'giant-leibiao.glb': 'berserker.glb', 'giant-tongren.glb': 'guard.glb', 'boss-kuhan.glb': 'monk.glb', 'boss-jianhun.glb': 'shadowblade.glb', 'giant-tianmo.glb': 'berserker.glb', 'giant-jiao.glb': 'berserker.glb', 'comp-shimeng.glb': 'berserker.glb',
   'foe-thief.glb': 'ranger.glb', 'comp-feiyan.glb': 'ranger.glb',
   'foe-monk.glb': 'monk.glb', 'comp-liaochen.glb': 'monk.glb',
   'foe-assassin.glb': 'shadowblade.glb', 'boss-wumian.glb': 'shadowblade.glb', 'comp-mohan.glb': 'shadowblade.glb', 'ally-militia.glb': 'shadowblade.glb',
@@ -46,7 +46,7 @@ const LOOK_TUNE: Record<string, { metal: number; bright: number; rough?: number;
   // 剑冢守灵: a ghost in old armour, lit cold blue from inside
   'boss-jianhun.glb': { metal: 0.3, bright: 1.25, glow: ['#5ec8ff', 0.35] },
 };
-const OWN_WEAPON = new Set(['giant-leibiao.glb', 'giant-tongren.glb', 'boss-jianhun.glb']); // 铜人 fights with its bronze fists
+const OWN_WEAPON = new Set(['giant-leibiao.glb', 'giant-tongren.glb', 'boss-jianhun.glb', 'giant-tianmo.glb', 'giant-jiao.glb']); // 铜人 fights with its bronze fists
 // a borrowed house clip carries the house's own facing, so these bodies play only borrowed clips and need no turn
 const facesX = (m: string) => isTownsfolk(m);
 const TOWN_PLAN: Record<string, Spec> = { idle: { match: ['idle'], loop: true }, run: { match: ['walk'], loop: true } };

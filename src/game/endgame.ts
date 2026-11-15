@@ -96,7 +96,7 @@ export function makeEndgame(s: Sim) {
   for (const [name, model, kind] of TOWER_BOSSES) E.bosses.push(bench('sect', kind, name, model));
   // 天魔本相 in its cave (asleep till you come down; a giant like the others)
   const R = ROOMS.find((r) => r.theme === 'abyss')!;
-  const g = (s as any).make('sect', null, '天魔本相', 'giant-leibiao.glb', 40, R.ox, R.oz - 6) as Fighter;
+  const g = (s as any).make('sect', null, '天魔本相', 'giant-tianmo.glb', 40, R.ox, R.oz - 6) as Fighter;
   g.maxHp = Math.round((180 + 40 * 55) * 12); // half again 法相's: the last thing under 天阙
   g.home = [R.ox, R.oz - 6];
   (g as any).boss = true;
@@ -131,7 +131,7 @@ export function makeEndgame(s: Sim) {
   // 水战: 覆舟河蛟 in its pool and six 水寇 round it on the shallows (out once 伪帝 has fallen)
   {
     const [px, pz] = JIAO_POOL;
-    const j = (s as any).make('sect', null, '覆舟河蛟', 'giant-tianlang.glb', 30, px, pz) as Fighter;
+    const j = (s as any).make('sect', null, '覆舟河蛟', 'giant-jiao.glb', 30, px, pz) as Fighter;
     j.maxHp = Math.round((180 + 30 * 55) * 10);
     j.home = [px, pz];
     (j as any).boss = true;

@@ -197,8 +197,7 @@ export const GIANTS: Record<string, GiantDef> = {
   tianmo: {
     key: 'tianmo',
     name: '天魔本相',
-    model: 'giant-leibiao.glb', // until its own Tripo body comes: the blood giant's, burned black and violet
-    tint: '#4c3a66',
+    model: 'giant-tianmo.glb', // the owner's Tripo demon king (seal-flails chained to its wrists)
     scale: 6,
     bodyR: 3.8,
     bodyH: 11,
@@ -229,14 +228,13 @@ export const GIANTS: Record<string, GiantDef> = {
   jiao: {
     key: 'jiao',
     name: '覆舟河蛟',
-    model: 'giant-tianlang.glb', // until its own Tripo body (river-jiao.glb) comes: the wolf's, river green
-    tint: '#4f8f7a',
-    scale: 1,
-    bodyR: 4.2,
-    bodyH: 6,
+    model: 'giant-jiao.glb', // the owner's Tripo flood dragon: it stands on its hind legs and fights with its claws
+    scale: 4.6,
+    bodyR: 3.4,
+    bodyH: 8.2,
     hpMul: 1, // its life is set when it is made (endgame.ts)
     color: '#38bdf8',
-    look: 'beast',
+    look: 'blood',
     ground: 30,
     intro: '水面忽然鼓起一个大包，一条披着青鳞的河蛟从浪里抬起头来，水从它的角上往下淌。脚下是齐腰的水，你走得慢，它游得快：看清水面上的圈，别被漩涡卷进去。',
     phaseLines: ['（河水倒灌，浪头比人还高）', '（它把整条河都搅了起来）'],

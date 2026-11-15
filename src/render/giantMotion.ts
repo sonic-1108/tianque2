@@ -82,6 +82,15 @@ export const GIANT_MOTION: Record<string, GMotion> = {
   awe: POUND,
   swords: PUSH,
   fall: LEAP(1),
+  // 覆舟河蛟 (on its hind legs): a raking claw, a tail spun round, the water spat, a whirlpool roared up, a dive, rain
+  // called down, three waves pounded out of the river
+  jbite: SLAM,
+  jtail: { ...SWEEP, spin: 1 },
+  spout: PUSH,
+  whirl: ROAR,
+  dive: LEAP(0.7),
+  rain: { clip: 'g_roar', seg: [0.05, 0.2, 0.24, 0.45], strike: 0.25 },
+  tide: POUND,
   // 天魔本相
   claw: { ...SWEEP, spin: 1 },
   stomp: POUND,
