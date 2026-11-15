@@ -31,6 +31,7 @@ import { Home } from './Home';
 import { Summons } from './Summons';
 import { Calls } from './Calls';
 import { Interiors } from './Interiors';
+import { VillageDress } from './VillageDress';
 const propCache = new Map<string, Promise<THREE.Group>>();
 const propLoader = new GLTFLoader();
 propLoader.setMeshoptDecoder(typeof MeshoptDecoder === 'function' ? (MeshoptDecoder as any)() : MeshoptDecoder);
@@ -127,19 +128,7 @@ function buildVillage() {
     }
   }
   // (the old rail fence is gone: render/Stockade.tsx draws 青石村's stockade)
-  // red lanterns on posts where each road leaves the square and at the fence gaps
-  for (const ra of ROAD_A)
-    for (const r of [15, 34])
-      for (const s of [-1, 1]) {
-        const x = Math.cos(ra) * r - Math.sin(ra) * s * 3.4, z = Math.sin(ra) * r + Math.cos(ra) * s * 3.4;
-        const y = gy(x, z);
-        b.add('log', new THREE.CylinderGeometry(0.1, 0.13, 3.2, 6), x, y + 1.6, z);
-        b.box('log', x, y + 3.1, z, 0.08, 0.08, 0.9, Math.PI / 2 - ra);
-        const lx = x + Math.cos(ra) * 0.0 - Math.sin(ra) * s * -0.4, lz = z + Math.sin(ra) * 0.0 + Math.cos(ra) * s * -0.4;
-        const g = new THREE.SphereGeometry(0.32, 10, 8);
-        g.scale(1, 1.25, 1);
-        b.add('lamp', g, lx, y + 2.65, lz);
-      }
+  // (the red lantern balls on posts are gone: NightLights.tsx hangs proper lanterns from arms along the lanes)
   // fields beyond the fence in some of the gaps between roads: furrows of soil with rows of green, haystacks
   for (let k = 0; k < ROAD_A.length; k++) {
     if (k % 2 === 1) continue;
@@ -347,6 +336,7 @@ export function World({ sim }: { sim: Sim }) {
       <Outdoors sim={sim}>
         <Landscape sim={sim} />
         <Village />
+        <VillageDress sim={sim} />
         <Court />
         <Stockade sim={sim} />
         <Home sim={sim} />

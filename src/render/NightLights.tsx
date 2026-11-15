@@ -141,6 +141,26 @@ function lanternGeo(s: number) {
   const prof = [[0.0, -0.24], [0.1, -0.24], [0.1, -0.21], [0.19, -0.15], [0.23, 0], [0.19, 0.15], [0.1, 0.21], [0.1, 0.24], [0, 0.24]].map(([x, y]) => new THREE.Vector2(x * s, y * s));
   return new THREE.LatheGeometry(prof, 10);
 }
+/** what makes it a Chinese lantern and not a red ball: the black lacquered rims top and bottom, the cord it hangs by,
+ *  the tassel under it */
+function trimGeo(s: number) {
+  const parts = [
+    new THREE.CylinderGeometry(0.115 * s, 0.115 * s, 0.05 * s, 10).translate(0, 0.235 * s, 0),
+    new THREE.CylinderGeometry(0.115 * s, 0.115 * s, 0.05 * s, 10).translate(0, -0.235 * s, 0),
+    new THREE.CylinderGeometry(0.01 * s, 0.01 * s, 0.22 * s, 4).translate(0, 0.37 * s, 0),
+    new THREE.CylinderGeometry(0.012 * s, 0.012 * s, 0.1 * s, 4).translate(0, -0.31 * s, 0),
+    new THREE.ConeGeometry(0.05 * s, 0.22 * s, 6).translate(0, -0.46 * s, 0),
+  ].map((g) => g.toNonIndexed());
+  const out = new THREE.BufferGeometry();
+  const pos: number[] = [], nor: number[] = [];
+  for (const g of parts) {
+    pos.push(...(g.attributes.position.array as Float32Array));
+    nor.push(...(g.attributes.normal.array as Float32Array));
+  }
+  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  return out;
+}
 const NLIGHT = 6;
 
 export function NightLights({ sim }: { sim: Sim }) {
@@ -148,8 +168,9 @@ export function NightLights({ sim }: { sim: Sim }) {
     const sp = spots();
     const all = [...sp.big, ...sp.small];
     const mat = new THREE.MeshStandardMaterial({ color: '#c8261b', emissive: '#ff5a1e', emissiveIntensity: 0.15, roughness: 0.7 });
-    const make = (list: V3[], s: number) => {
-      const im = new THREE.InstancedMesh(lanternGeo(s), mat, list.length);
+    const trimMat = new THREE.MeshStandardMaterial({ color: '#1c1410', roughness: 0.5, metalness: 0.2 });
+    const make = (list: V3[], s: number, geo: THREE.BufferGeometry = lanternGeo(s), m0: THREE.Material = mat) => {
+      const im = new THREE.InstancedMesh(geo, m0, list.length);
       const m = new THREE.Matrix4();
       list.forEach((p, i) => im.setMatrixAt(i, m.makeTranslation(p[0], p[1], p[2])));
       im.frustumCulled = false;
@@ -157,6 +178,7 @@ export function NightLights({ sim }: { sim: Sim }) {
       return im;
     };
     const big = make(sp.big, 1.25), small = make(sp.small, 0.75);
+    const bigTrim = make(sp.big, 1.25, trimGeo(1.25), trimMat), smallTrim = make(sp.small, 0.75, trimGeo(0.75), trimMat);
     // halos: one glowing point per lantern
     const hg = new THREE.BufferGeometry();
     hg.setAttribute('position', new THREE.Float32BufferAttribute(all.flat(), 3));
@@ -172,7 +194,7 @@ export function NightLights({ sim }: { sim: Sim }) {
     }
     pools.frustumCulled = false;
     pools.renderOrder = 2;
-    return { sp, all, mat, big, small, halo, pools, pmat, poles: sp.poles.build() };
+    return { sp, all, mat, big, small, bigTrim, smallTrim, halo, pools, pmat, poles: sp.poles.build() };
   }, []);
   const lights = useRef<(THREE.PointLight | null)[]>([]);
   const pickT = useRef(0);
@@ -186,7 +208,7 @@ export function NightLights({ sim }: { sim: Sim }) {
     S.halo.visible = lit > 0.01;
     S.pmat.opacity = lit * 0.32;
     S.pools.visible = lit > 0.01;
-    S.big.visible = S.small.visible = out;
+    S.big.visible = S.small.visible = S.bigTrim.visible = S.smallTrim.visible = out;
     // the real lights go to the lanterns nearest you, kept apart so they spread over the street
     if ((pickT.current -= dt) <= 0) {
       pickT.current = 0.4;
@@ -215,6 +237,8 @@ export function NightLights({ sim }: { sim: Sim }) {
       <Built parts={S.poles} />
       <primitive object={S.big} />
       <primitive object={S.small} />
+      <primitive object={S.bigTrim} />
+      <primitive object={S.smallTrim} />
       <primitive object={S.pools} />
       <primitive object={S.halo} />
       {Array.from({ length: NLIGHT }, (_, i) => (

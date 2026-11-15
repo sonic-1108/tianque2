@@ -9,6 +9,7 @@ import { ROOM_Y, roomSolids } from './interiors';
 import { MILL_FILE, PROP_DIMS, STALLS, TEAHOUSE, fit, modelPoint } from './props';
 import { GATE_TOWERS, HOME, HOME_D, HOME_W, VILLAGE_PROPS, WALL_RUNS } from './village';
 import { BOARDS, COURT_PIECES, CT_PAD, CT_POS, CT_ROT, CT_Y, ctWorld, nearCourt } from './court';
+import { DRESS_SOLIDS } from './dress';
 export { WORLD_R, VILLAGE_R } from './layout';
 
 export const WATER_Y = -2; // lakes fill the ground below this
@@ -377,6 +378,8 @@ export const BUILDINGS: Building[] = (() => {
     const a = (deg * Math.PI) / 180, x = Math.cos(a) * r, z = Math.sin(a) * r;
     out.push(propBuilding(file, x, z, Math.atan2(-x, -z), size));
   }
+  // the village dressing (dress.ts): yard walls, wood piles, vats, racks, trees, bamboo, the square's furniture
+  for (const d of DRESS_SOLIDS) out.push({ x: d.x, z: d.z, rot: d.rot, hx: d.hx, hz: d.hz, h: d.h, model: '', scale: 1, posts: d.posts });
   // the house for sale (jianghu.ts, drawn by render/Home.tsx)
   out.push({ x: HOME.x, z: HOME.z, rot: HOME.rot, hx: HOME_W / 2, hz: HOME_D / 2, h: 4.8, model: '', scale: 1 });
   // the notice boards: their two legs block
