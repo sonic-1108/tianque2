@@ -34,8 +34,9 @@ export function BigMap({ sim, onClose }: { sim: Sim; onClose: () => void }) {
       const u = S / 900; // a unit that scales marks and text with the map
       g.clearRect(0, 0, S, S);
       g.save();
+      // the land is square (雪岭 and 寒寺遗窟 sit in its north-west corner): a round map cut them off
       g.beginPath();
-      g.arc(S / 2, S / 2, S / 2, 0, Math.PI * 2);
+      g.roundRect(0, 0, S, S, S * 0.025);
       g.clip();
       g.fillStyle = '#26301f';
       g.fillRect(0, 0, S, S);
@@ -108,7 +109,7 @@ export function BigMap({ sim, onClose }: { sim: Sim; onClose: () => void }) {
         g.fillRect(x - 8 * u, y - 8 * u, 16 * u, 16 * u);
         g.strokeRect(x - 8 * u, y - 8 * u, 16 * u, 16 * u);
         label(m, x, y + 5 * u, 12, '#5a2a10');
-        label(pl.name, x, y + 21 * u, 11);
+        label(pl.kind === 'jianzhong' ? `${pl.name} · 碑后断剑魂` : pl.name, x, y + 21 * u, 11);
       }
       // the 江湖 things you can go and do: your house, the hunter, the ring, fireflies on a summer night
       const marks: [number, number, string, string][] = [
@@ -121,7 +122,7 @@ export function BigMap({ sim, onClose }: { sim: Sim; onClose: () => void }) {
       if (storyDone(sim.progress)) marks.push([TOWER.x, TOWER.z, '塔', '天阙试炼塔'], [STELE.x, STELE.z, '碑', '巨灵碑'], [JIAO_POOL[0], JIAO_POOL[1], '蛟', '覆舟河蛟']);
       if (sequelAt(sim.progress) >= 4 || tianmoBeaten(sim.progress)) marks.push([ABYSS.x, ABYSS.z, '魔', '天魔窟']);
       // 雪岭: its camp, the summit, the ice cave
-      marks.push([SNOW_CAMP.x, SNOW_CAMP.z + 14, '营', '雪岭营地'], [SUMMIT[0], SUMMIT[1], '顶', '雪岭之巅'], [ICE_CAVE.x, ICE_CAVE.z, '窟', '寒寺遗窟']);
+      marks.push([SNOW_CAMP.x, SNOW_CAMP.z + 14, '营', '雪岭营地'], [SUMMIT[0], SUMMIT[1], '顶', '雪岭之巅'], [ICE_CAVE.x, ICE_CAVE.z, '窟', '寒寺遗窟 · 苦寒']);
       // 传送阵: lit ones bright, the rest grey
       for (const gt of GATES) {
         const x = X(gt.x), y = Z(gt.z), on = lit(sim, gt);

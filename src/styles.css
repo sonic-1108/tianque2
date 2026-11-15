@@ -109,7 +109,7 @@ button:not(:disabled):hover { border-color: var(--gold); }
 @keyframes chFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 .bigmap { position: absolute; inset: 0; background: rgba(8, 6, 4, 0.72); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 30; }
-.bigmap canvas { width: min(90vw, 90vh); height: min(90vw, 90vh); border-radius: 50%; box-shadow: 0 0 0 2px rgba(232, 181, 74, 0.6), 0 10px 40px rgba(0, 0, 0, 0.6); }
+.bigmap canvas { width: min(90vw, 90vh); height: min(90vw, 90vh); border-radius: 2.5%; box-shadow: 0 0 0 2px rgba(232, 181, 74, 0.6), 0 10px 40px rgba(0, 0, 0, 0.6); }
 .bigmap-hint { margin-top: 10px; color: #e9dcc0; font-size: 13px; letter-spacing: 1px; }
 .mm-hint { position: absolute; right: 16px; bottom: 200px; width: 180px; text-align: center; color: #e9dcc0; font-size: 12px; text-shadow: 0 1px 2px #000; }
 
