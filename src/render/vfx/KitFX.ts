@@ -56,6 +56,8 @@ interface Item {
   grow: number;
   base: number;
   wait: number; // seconds before it shows (ripples, second cuts)
+  /** a strip's own turn before it rolls about its length to face the camera */
+  q0?: THREE.Quaternion;
 }
 
 /** each house's look: its circle, how its sweeps and strips are drawn, what its blows throw off */
@@ -114,6 +116,8 @@ function fanGeometry(r: number, spread: number, sharp = 2.2, inner = 0.25, even 
   return g;
 }
 
+const ZAX = new THREE.Vector3(0, 0, 1);
+
 export class KitFX {
   root = new THREE.Group();
   private arcs: Item[] = [];
@@ -122,6 +126,10 @@ export class KitFX {
   private tips: Item[] = [];
   private v = new THREE.Vector3();
   private q = new THREE.Quaternion();
+  /** where the camera is (Juice keeps it current): strips roll about their length to show it their face, since a
+   * thrust runs away from a camera behind the one who throws it and a flat strip would be seen edge on */
+  cam = new THREE.Vector3(0, 50, 0);
+  private qr = new THREE.Quaternion();
   constructor() {
     const item = (mesh: THREE.Mesh): Item => ({ mesh, life: 0, max: 1, spin: 0, grow: 0, base: 1, wait: 0 });
     for (let k = 0; k < 28; k++) {
@@ -236,7 +244,8 @@ export class KitFX {
         for (let k = -1; k <= 1; k++) {
           const a = yaw + k * spread * 0.45;
           this.v.set(pos.x - Math.sin(a) * r * 0.15, pos.y + k * 0.12, pos.z - Math.cos(a) * r * 0.15);
-          this.fan(this.v, a, r, 0.12, color, life, 1.1 + k * 0.1, { sharp: 1.5, inner: 0.2, even: true, bright: 2.2, wait: (k + 1) * 0.04 });
+          // rolled over on their sides: three slanting rakes in the air, not pillars thrown up at the sky
+          this.fan(this.v, a, r, 0.12, color, life, 0.2, { sharp: 1.5, inner: 0.2, even: true, bright: 2.2, wait: (k + 1) * 0.04, roll: 0.95 });
         }
         return;
       }
@@ -252,6 +261,8 @@ export class KitFX {
     const d = this.v.copy(to).sub(from), L = d.length() || 0.1;
     it.mesh.position.copy(from);
     it.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), d.normalize());
+    (it.q0 ??= new THREE.Quaternion()).copy(it.mesh.quaternion);
+    this.face(it);
     it.mesh.scale.set(w * 1.15, w * 1.15, L);
     (it.mesh.material as THREE.MeshBasicMaterial).color.set(color).multiplyScalar(bright * 1.3);
     const sb = it.mesh.getObjectByName('body') as THREE.Mesh;
@@ -261,6 +272,14 @@ export class KitFX {
     it.life = it.max = life;
     it.base = w;
     return it;
+  }
+  /** roll a strip about its length so its flat face turns to the camera */
+  private face(it: Item) {
+    if (!it.q0) return;
+    // the camera in the strip's own frame (length along -z, face up along +y): roll +y round toward it
+    const c = this.v.copy(this.cam).sub(it.mesh.position).applyQuaternion(this.qr.copy(it.q0).invert());
+    const th = Math.atan2(-c.x, c.y);
+    it.mesh.quaternion.copy(it.q0).multiply(this.qr.setFromAxisAngle(ZAX, th));
   }
   /** a line strike's strip, from → to, width w, the house's way */
   beam(from: THREE.Vector3, to: THREE.Vector3, w: number, color: THREE.ColorRepresentation, life = 0.3, house?: string) {
@@ -361,6 +380,7 @@ export class KitFX {
       }
     for (const it of this.beams)
       if (it.life > 0 && wake(it)) {
+        this.face(it);
         it.life -= dt;
         const k = Math.max(0, it.life / it.max);
         it.mesh.scale.x = it.mesh.scale.y = it.base * 1.15 * (0.3 + 0.7 * k);
@@ -384,7 +404,7 @@ export class KitFX {
         it.mesh.scale.setScalar(it.base * 0.5 * (0.75 + 0.25 * Math.min(1, u * 4)));
         const so = Math.min(1, u * 6) * Math.max(0, it.life / it.max) ** 0.6;
         (it.mesh.material as THREE.MeshBasicMaterial).opacity = so;
-        ((it.mesh.getObjectByName('body') as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = so * 0.5;
+        ((it.mesh.getObjectByName('body') as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = so * 0.8;
         if (it.life <= 0) it.mesh.visible = false;
       }
   }

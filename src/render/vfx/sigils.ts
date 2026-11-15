@@ -444,6 +444,16 @@ export function sigilOf(style: SigilStyle = 'bagua') {
   c.width = c.height = N;
   const x = c.getContext('2d')!;
   x.translate(N / 2, N / 2);
+  // the pool: faint in the middle, brighter toward the rim, gone just past it
+  const pool = x.createRadialGradient(0, 0, 0, 0, 0, R * 1.04);
+  pool.addColorStop(0, 'rgba(255,255,255,0.10)');
+  pool.addColorStop(0.75, 'rgba(255,255,255,0.20)');
+  pool.addColorStop(0.95, 'rgba(255,255,255,0.34)');
+  pool.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = pool;
+  x.beginPath();
+  x.arc(0, 0, R * 1.04, 0, Math.PI * 2);
+  x.fill();
   x.strokeStyle = '#fff';
   x.fillStyle = '#fff';
   (DRAW[style] ?? DRAW.bagua)(x);

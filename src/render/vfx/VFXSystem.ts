@@ -13,6 +13,7 @@ import { SLOT_IDS } from './constants';
  */
 
 const UP = new THREE.Vector3(0, 1, 0);
+const ZAXIS = new THREE.Vector3(0, 0, 1);
 const tmpV = new THREE.Vector3();
 const tmpV2 = new THREE.Vector3();
 const tmpV3 = new THREE.Vector3();
@@ -600,6 +601,8 @@ interface MarkFx {
   maxLife: number;
   scale: number;
   active: boolean;
+  /** how slim the streak is (the white core rides thin inside the coloured cut) */
+  thin: number;
 }
 
 interface MeteorFx {
@@ -686,7 +689,7 @@ export class VFXSystem {
     for (const sl of this.slots) this.root.add(sl.vortex.group, sl.pillar.group);
 
     const plane = new THREE.PlaneGeometry(1, 1);
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 36; i++) {
       const mat = ringMaterialTemplate.clone();
       const mesh = new THREE.Mesh(plane, mat);
       mesh.rotation.x = -Math.PI / 2;
@@ -882,13 +885,13 @@ export class VFXSystem {
     });
 
     const streak = makeStreakTexture();
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 16; i++) {
       const mat = new THREE.SpriteMaterial({ map: streak, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending });
       const sprite = new THREE.Sprite(mat);
       sprite.visible = false;
       sprite.renderOrder = 30;
       this.root.add(sprite);
-      this.marks.push({ sprite, life: 0, maxLife: 1, scale: 1, active: false });
+      this.marks.push({ sprite, life: 0, maxLife: 1, scale: 1, active: false, thin: 1 });
     }
 
     for (let i = 0; i < 4; i++) {
@@ -982,17 +985,20 @@ export class VFXSystem {
   // ---------------- primitives ----------------
   /** Bright crossing blade streak at the point of impact */
   slashMark(pos: THREE.Vector3, color: THREE.ColorRepresentation, scale = 1, life = 0.16) {
-    for (let k = 0; k < 2; k++) {
+    const rot = Math.random() * Math.PI, cross = scale >= 1.4;
+    for (let k = 0; k < (cross ? 3 : 2); k++) {
       const m = this.marks.find((x) => !x.active) || this.marks.reduce((a, b) => (a.life < b.life ? a : b));
       m.active = true;
-      m.life = life;
-      m.maxLife = life;
-      m.scale = scale * (k === 0 ? 1 : 0.7);
+      m.life = life * (k === 1 ? 0.8 : 1);
+      m.maxLife = m.life;
+      m.scale = scale * (k === 0 ? 1 : k === 1 ? 0.8 : 0.75);
+      m.thin = k === 1 ? 0.45 : 1;
       m.sprite.visible = true;
       m.sprite.position.copy(pos);
       const mat = m.sprite.material as THREE.SpriteMaterial;
-      mat.color.set(k === 0 ? '#ffffff' : color);
-      mat.rotation = Math.random() * Math.PI + (k === 1 ? 1.2 : 0);
+      if (k === 1) mat.color.set('#ffffff');
+      else mat.color.set(color).multiplyScalar(1.6);
+      mat.rotation = rot + (k === 2 ? 1.25 : 0);
     }
   }
 
@@ -1032,13 +1038,17 @@ export class VFXSystem {
     }
   }
 
-  ring(pos: THREE.Vector3, radius: number, color: THREE.ColorRepresentation, life = 0.45, width = 0.14, fill = 0) {
+  /** a ring of shock spreading on the ground; with `facing` it stands up across that direction instead (a thrust's
+   * sonic rings, seen face on from behind the one who throws it) */
+  ring(pos: THREE.Vector3, radius: number, color: THREE.ColorRepresentation, life = 0.45, width = 0.14, fill = 0, facing?: THREE.Vector3) {
     const r = this.rings.find((x) => !x.active) || this.rings.reduce((a, b) => (a.life < b.life ? a : b));
     r.active = true;
     r.life = life;
     r.maxLife = life;
     r.radius = radius;
     r.mesh.visible = true;
+    if (facing && facing.lengthSq() > 1e-6) r.mesh.quaternion.setFromUnitVectors(ZAXIS, tmpV.copy(facing).normalize());
+    else r.mesh.rotation.set(-Math.PI / 2, 0, 0);
     r.mesh.position.set(pos.x, Math.max(0.03, pos.y), pos.z);
     r.mesh.scale.set(radius * 2, radius * 2, 1);
     r.mat.uniforms.uColor.value.set(color);
@@ -1355,6 +1365,12 @@ export class VFXSystem {
     const L = from.distanceTo(to), n = Math.min(16, Math.round(3 + L * 0.8));
     tmpV.copy(to).sub(from).normalize();
     const dir = tmpV.clone();
+    // a thrust runs away from the camera, so its strip is seen nearly end on: rings standing across the line, thrown
+    // one after another outward, are what shows it from behind
+    for (let k = 0; k < 3; k++) {
+      const at = from.clone().lerp(to, 0.22 + k * 0.3);
+      this.later(k * 0.04, () => this.ring(at, Math.max(0.7, w * 0.6) * (1 + k * 0.15), color, 0.34, 0.24, 0.22, dir));
+    }
     for (let k = 0; k < n; k++) {
       tmpV2.copy(from).lerp(to, Math.random());
       this.accent(house, tmpV2, dir, color, 0.8);
@@ -1376,57 +1392,57 @@ export class VFXSystem {
     const v = tmpV3.set(dir.x * 3 + rnd(1.2), dir.y * 3 + 1 + Math.random() * 1.5, dir.z * 3 + rnd(1.2)).multiplyScalar(k);
     switch (house) {
       case 'kuangren': // stone chips and red embers
-        this.sparks.emit(p, v.multiplyScalar(1.4), Math.random() < 0.5 ? '#ff5a1f' : '#ffb347', 0.11, 0.45, { drag: 2.5, gravity: 14 });
+        this.sparks.emit(p, v.multiplyScalar(1.4), Math.random() < 0.5 ? '#ff5a1f' : '#ffb347', 0.15, 0.45, { drag: 2.5, gravity: 14 });
         break;
       case 'fanyin': // golden motes rising like petals
-        this.sparks.emit(p, v.set(rnd(0.6), 1.2 + Math.random(), rnd(0.6)), Math.random() < 0.5 ? '#ffe9a3' : '#f6c453', 0.1, 0.9, { drag: 1.5, gravity: -0.5 });
+        this.sparks.emit(p, v.set(rnd(0.6), 1.2 + Math.random(), rnd(0.6)), Math.random() < 0.5 ? '#ffe9a3' : '#f6c453', 0.17, 0.9, { drag: 1.5, gravity: -0.5 });
         break;
       case 'yingren': // violet shadow wisps that hang and fade
       case 'shuangdao':
-        this.sparks.emit(p, v.multiplyScalar(0.5), house === 'yingren' ? '#a78bfa' : '#f87171', 0.16, 0.6, { drag: 4, gravity: -0.4 });
+        this.sparks.emit(p, v.multiplyScalar(0.5), house === 'yingren' ? '#a78bfa' : '#f87171', 0.22, 0.6, { drag: 4, gravity: -0.4 });
         break;
       case 'tianzi': // gold sparks and a little imperial red
-        this.sparks.emit(p, v.multiplyScalar(1.3), Math.random() < 0.7 ? '#ffd76a' : '#ff5a5a', 0.1, 0.5, { drag: 3, gravity: 6 });
+        this.sparks.emit(p, v.multiplyScalar(1.3), Math.random() < 0.7 ? '#ffd76a' : '#ff5a5a', 0.14, 0.5, { drag: 3, gravity: 6 });
         break;
       case 'jiaoyi': // flicked coins: gold, falling
-        this.sparks.emit(p, v.set(rnd(2), 3 + Math.random() * 2, rnd(2)), '#ffd24a', 0.13, 0.8, { drag: 1, gravity: 12 });
+        this.sparks.emit(p, v.set(rnd(2), 3 + Math.random() * 2, rnd(2)), '#ffd24a', 0.2, 0.8, { drag: 1, gravity: 12 });
         break;
       case 'dixian': // leaves drifting down
-        this.sparks.emit(p, v.set(rnd(1.5), 1 + Math.random(), rnd(1.5)), Math.random() < 0.6 ? '#86efac' : '#facc15', 0.12, 1.1, { drag: 2.2, gravity: 1.2 });
+        this.sparks.emit(p, v.set(rnd(1.5), 1 + Math.random(), rnd(1.5)), Math.random() < 0.6 ? '#86efac' : '#facc15', 0.2, 1.1, { drag: 2.2, gravity: 1.2 });
         break;
       case 'jianke': // white glints of sword light, fast
-        this.sparks.emit(p, v.multiplyScalar(2), Math.random() < 0.6 ? '#ffffff' : '#bfe3ff', 0.08, 0.3, { drag: 5, gravity: 0 });
+        this.sparks.emit(p, v.multiplyScalar(2), Math.random() < 0.6 ? '#ffffff' : '#bfe3ff', 0.12, 0.3, { drag: 5, gravity: 0 });
         break;
       case 'qiangwang': // long streaks along the thrust
-        this.sparks.emit(p, v.set(dir.x * 9 + rnd(0.6), 0.3, dir.z * 9 + rnd(0.6)), '#fde68a', 0.09, 0.28, { drag: 6, gravity: 0 });
+        this.sparks.emit(p, v.set(dir.x * 9 + rnd(0.6), 0.3, dir.z * 9 + rnd(0.6)), '#fde68a', 0.13, 0.28, { drag: 6, gravity: 0 });
         break;
       case 'quanshi': // dust kicked up by the blow
-        this.sparks.emit(p, v.multiplyScalar(0.8), '#e7d3b0', 0.2, 0.6, { drag: 3.5, gravity: 1 });
+        this.sparks.emit(p, v.multiplyScalar(0.8), '#e7d3b0', 0.3, 0.6, { drag: 3.5, gravity: 1 });
         break;
       case 'fushi': // burning paper flecks, yellow and red
-        this.sparks.emit(p, v.set(rnd(1.4), 1.5 + Math.random() * 1.5, rnd(1.4)), Math.random() < 0.6 ? '#fde047' : '#ef4444', 0.11, 0.9, { drag: 2, gravity: -0.6 });
+        this.sparks.emit(p, v.set(rnd(1.4), 1.5 + Math.random() * 1.5, rnd(1.4)), Math.random() < 0.6 ? '#fde047' : '#ef4444', 0.18, 0.9, { drag: 2, gravity: -0.6 });
         break;
       case 'qinshi': // cyan motes on the sound wave
-        this.sparks.emit(p, v.multiplyScalar(0.9), Math.random() < 0.5 ? '#67e8f9' : '#e0f2fe', 0.1, 0.7, { drag: 3, gravity: -0.3 });
+        this.sparks.emit(p, v.multiplyScalar(0.9), Math.random() < 0.5 ? '#67e8f9' : '#e0f2fe', 0.16, 0.7, { drag: 3, gravity: -0.3 });
         break;
       case 'yushou': // fur and dust from the claws
-        this.sparks.emit(p, v.multiplyScalar(1.1), Math.random() < 0.5 ? '#d6b48a' : '#fca5a5', 0.12, 0.45, { drag: 3, gravity: 8 });
+        this.sparks.emit(p, v.multiplyScalar(1.1), Math.random() < 0.5 ? '#d6b48a' : '#fca5a5', 0.16, 0.45, { drag: 3, gravity: 8 });
         break;
       case 'duzong': // green venom dripping
-        this.sparks.emit(p, v.set(rnd(0.8), 0.6 + Math.random(), rnd(0.8)), Math.random() < 0.6 ? '#4ade80' : '#a3e635', 0.13, 0.9, { drag: 2, gravity: 5 });
+        this.sparks.emit(p, v.set(rnd(0.8), 0.6 + Math.random(), rnd(0.8)), Math.random() < 0.6 ? '#4ade80' : '#a3e635', 0.19, 0.9, { drag: 2, gravity: 5 });
         break;
       case 'gongshou':
       case 'anqi': // bright sparks off the point
-        this.sparks.emit(p, v.multiplyScalar(1.6), Math.random() < 0.5 ? '#fff7d6' : color, 0.08, 0.3, { drag: 5, gravity: 4 });
+        this.sparks.emit(p, v.multiplyScalar(1.6), Math.random() < 0.5 ? '#fff7d6' : color, 0.12, 0.3, { drag: 5, gravity: 4 });
         break;
       case 'qizong': // soft blue qi puffs
-        this.sparks.emit(p, v.multiplyScalar(0.6), Math.random() < 0.5 ? '#93c5fd' : '#e0f2fe', 0.22, 0.8, { drag: 3, gravity: -0.6 });
+        this.sparks.emit(p, v.multiplyScalar(0.6), Math.random() < 0.5 ? '#93c5fd' : '#e0f2fe', 0.3, 0.8, { drag: 3, gravity: -0.6 });
         break;
       case 'jiguan': // hot metal sparks
-        this.sparks.emit(p, v.multiplyScalar(1.8), Math.random() < 0.6 ? '#fdba74' : '#fff7ed', 0.07, 0.4, { drag: 3, gravity: 14 });
+        this.sparks.emit(p, v.multiplyScalar(1.8), Math.random() < 0.6 ? '#fdba74' : '#fff7ed', 0.11, 0.4, { drag: 3, gravity: 14 });
         break;
       default:
-        this.sparks.emit(p, v, color, 0.1, 0.45, { drag: 3, gravity: 4 });
+        this.sparks.emit(p, v, color, 0.14, 0.45, { drag: 3, gravity: 4 });
     }
   }
 
@@ -1484,7 +1500,7 @@ export class VFXSystem {
       }
       const t = 1 - m.life / m.maxLife;
       const w = m.scale * (1.2 + 1.4 * easeOutCubic(Math.min(1, t * 3)));
-      m.sprite.scale.set(w * 1.6, w * 0.32 * (1 - t * 0.6), 1);
+      m.sprite.scale.set(w * 1.6, w * 0.32 * (1 - t * 0.6) * (m.thin ?? 1), 1);
       (m.sprite.material as THREE.SpriteMaterial).opacity = 1 - t * t;
     }
     this.sparks.update(dt);

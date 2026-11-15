@@ -70,7 +70,7 @@ export function Juice({ sim }: { sim: Sim }) {
   const shotTrails = useMemo(
     () =>
       Array.from({ length: 20 }, () => {
-        const t = vfx.createTrail('#ffffff', { sym: true, lifetime: 0.28 });
+        const t = vfx.createTrail('#ffffff', { sym: true, lifetime: 0.28, samples: 40 });
         return { t, id: -1, seen: false };
       }),
     [vfx],
@@ -130,6 +130,7 @@ export function Juice({ sim }: { sim: Sim }) {
         vfx.emperor.imperial.setGuardY(c.k, g, groundHeight(v.c.x, v.c.z));
       }
     vfx.emperor.imperial.setView(camera.position, v.d.set(p.pos[0], p.pos[1] + 1.2, p.pos[2]));
+    vfx.kit.cam.copy(camera.position);
     drawProjectiles(state.clock.elapsedTime, dt);
     // what's on people: rage, the golden bell, daydreams, being pinned or sealed
     for (const f of sim.fighters) {
@@ -147,10 +148,11 @@ export function Juice({ sim }: { sim: Sim }) {
     if (sim.ultCharge !== null && p.hp > 0) {
       const u = Math.min(1, sim.ultCharge / ULT_CHARGE), rId = sim.progress.bar[BAR_R];
       const col = houseOf(SKILLS[rId]?.sect)?.color ?? '#ffd36a';
-      ultAcc.current += dt * (30 + u * 70);
+      ultAcc.current += dt * (60 + u * 140);
       const n = Math.floor(ultAcc.current);
       ultAcc.current -= n;
-      if (n > 0) vfx.gather(v.b.set(p.pos[0], p.pos[1] + 1.1, p.pos[2]), n, col, 2.4 - u * 0.8, 0.32, 0.08 + u * 0.05);
+      if (n > 0) vfx.gather(v.b.set(p.pos[0], p.pos[1] + 1.1, p.pos[2]), n, col, 2.6 - u * 0.9, 0.32, 0.11 + u * 0.08);
+      if (Math.random() < dt * 8) vfx.flash(v.b, col, 4 + u * 10, 0.15, 6);
       ultRing.current -= dt;
       if (ultRing.current <= 0) {
         ultRing.current = 0.16;
@@ -211,11 +213,13 @@ export function Juice({ sim }: { sim: Sim }) {
       tr.t.setColor(pr.color, 1.7);
     }
     tr.seen = true;
-    // a flat ribbon across the flight (the camera looks down on most shots)
-    const vl = Math.hypot(pr.vel[0], pr.vel[2]) || 1, w = Math.max(0.09, (pr.radius ?? 0.3) * 0.45);
-    const sx = (-pr.vel[2] / vl) * w, sz = (pr.vel[0] / vl) * w;
+    // a ribbon across the flight, turned to face the camera (a shot flies away from it, so a flat one is seen edge on)
+    const w = Math.max(0.13, (pr.radius ?? 0.3) * 0.5);
+    v.a.set(pr.vel[0], pr.vel[1], pr.vel[2]).cross(v.b.set(camera.position.x - pr.pos[0], camera.position.y - pr.pos[1], camera.position.z - pr.pos[2]));
+    if (v.a.lengthSq() < 1e-8) v.a.set(-pr.vel[2], 0, pr.vel[0]);
+    v.a.normalize().multiplyScalar(w);
     tr.t.emitting = true;
-    tr.t.update(dt, v.c.set(pr.pos[0] + sx, pr.pos[1], pr.pos[2] + sz), v.d.set(pr.pos[0] - sx, pr.pos[1], pr.pos[2] - sz), time);
+    tr.t.update(dt, v.c.set(pr.pos[0] + v.a.x, pr.pos[1] + v.a.y, pr.pos[2] + v.a.z), v.d.set(pr.pos[0] - v.a.x, pr.pos[1] - v.a.y, pr.pos[2] - v.a.z), time);
   }
   function drawProjectiles(time: number, dt = 1 / 60) {
     const live = new Set<number>();
