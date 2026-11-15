@@ -83,6 +83,7 @@ export const GIANTS: Record<string, GiantDef> = {
   leibiao: {
     key: 'leibiao',
     name: '血傀 · 雷彪',
+    model: 'giant-leibiao.glb',
     scale: 4.6,
     bodyR: 3.0,
     bodyH: 8.4,

@@ -24,7 +24,7 @@ const isTownsfolk = (m: string) => m.startsWith('npc-');
 /** Tripo bodies for everyone who fights and isn't one of the seven houses (owner: only the houses wear the houses'
  *  looks): each fights the way a house does, borrowing that house's clips, plan and weapons; they face +x too */
 export const BODY_AS: Record<string, string> = {
-  'foe-bandit.glb': 'berserker.glb', 'boss-leibiao.glb': 'berserker.glb', 'comp-shimeng.glb': 'berserker.glb',
+  'foe-bandit.glb': 'berserker.glb', 'boss-leibiao.glb': 'berserker.glb', 'giant-leibiao.glb': 'berserker.glb', 'comp-shimeng.glb': 'berserker.glb',
   'foe-thief.glb': 'ranger.glb', 'comp-feiyan.glb': 'ranger.glb',
   'foe-monk.glb': 'monk.glb', 'comp-liaochen.glb': 'monk.glb',
   'foe-assassin.glb': 'shadowblade.glb', 'boss-wumian.glb': 'shadowblade.glb', 'comp-mohan.glb': 'shadowblade.glb', 'ally-militia.glb': 'shadowblade.glb',
@@ -404,7 +404,8 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
       // a giant's skin: blood under it pulsing (or bronze, or gold), a yellow glow while it stands open
       const t = performance.now() / 1000, open = giantOpen(f) > 0, k = body.flash > 0.01 ? body.flash * body.flash * 0.6 : 0;
       const pulse = 0.1 + giantPhase(f) * 0.03 + Math.sin(t * (giantPhase(f) * 2 + 2)) * 0.07;
-      const base = new THREE.Color(gd.color).multiplyScalar(pulse);
+      // a giant with its own painted body (giant-*.glb) is already red: only a faint glow under the skin
+      const base = new THREE.Color(gd.color).multiplyScalar(f.model.startsWith('giant-') ? pulse * 0.35 : pulse);
       if (open) base.lerp(new THREE.Color('#ffd84a'), 0.3 + Math.sin(t * 12) * 0.12);
       for (const m of mats) m.emissive.setRGB(base.r + k, base.g + k, base.b + k);
       body.flash *= Math.exp(-dt * 15);
