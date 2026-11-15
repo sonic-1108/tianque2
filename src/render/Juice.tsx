@@ -6,7 +6,8 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import type { Sim, SimEvent, VCmd } from '../game/sim';
-import { PLAYER } from '../game/sim';
+import { PLAYER, ULT_CHARGE } from '../game/sim';
+import { BAR_R } from '../game/progress';
 import { VFXSystem } from './vfx/VFXSystem';
 import { sfx } from '../audio/audio';
 import { swordSockets } from './Rig';
@@ -15,6 +16,9 @@ import { questTarget } from '../game/quests';
 import { groundHeight } from '../game/world';
 import { animateShot, disposeShot, shotMesh } from './shotLook';
 import { KitAuras } from './KitAuras';
+import { SKILLS } from '../game/skills';
+import { houseOf } from '../game/sects';
+import { heroOf } from '../game/heroes';
 
 /** camera trauma (0..1) and FOV punch the camera loop reads */
 export const juice = { trauma: 0, kick: 0, push: 0, px: 0, pz: 0 };
@@ -58,7 +62,19 @@ export function Juice({ sim }: { sim: Sim }) {
   const vfx = useMemo(() => new VFXSystem(), []);
   const size = useThree((s) => s.size);
   const camera = useThree((s) => s.camera);
-  const trail = useMemo(() => vfx.createTrail('#dff3ff'), [vfx]);
+  const trail = useMemo(() => vfx.createTrail('#dff3ff', { lifetime: 0.24, samples: 30 }), [vfx]);
+  const trailCol = useRef('');
+  const ultAcc = useRef(0);
+  const ultRing = useRef(0);
+  // every shot in flight draws a glowing ribbon behind it (pooled; a ribbon fades out after its shot is gone)
+  const shotTrails = useMemo(
+    () =>
+      Array.from({ length: 20 }, () => {
+        const t = vfx.createTrail('#ffffff', { sym: true, lifetime: 0.28 });
+        return { t, id: -1, seen: false };
+      }),
+    [vfx],
+  );
   const seen = useRef(new WeakSet<Fx>());
   const stepT = useRef(0);
   const lastT = useRef(sim.time);
@@ -114,7 +130,7 @@ export function Juice({ sim }: { sim: Sim }) {
         vfx.emperor.imperial.setGuardY(c.k, g, groundHeight(v.c.x, v.c.z));
       }
     vfx.emperor.imperial.setView(camera.position, v.d.set(p.pos[0], p.pos[1] + 1.2, p.pos[2]));
-    drawProjectiles(state.clock.elapsedTime);
+    drawProjectiles(state.clock.elapsedTime, dt);
     // what's on people: rage, the golden bell, daydreams, being pinned or sealed
     for (const f of sim.fighters) {
       if (f.hp <= 0 || !near(f.pos[0], f.pos[2], 50)) continue;
@@ -126,13 +142,40 @@ export function Juice({ sim }: { sim: Sim }) {
       if (f.st.protect > 0 && Math.random() < dt * 8) vfx.embers(v.b, 1, '#bbf7d0', 0.6, 1.4, 0.07);
       if ((f.st.root > 0 || f.st.kneel > 0) && Math.random() < dt * 4) vfx.ring(v.c.set(f.pos[0], f.pos[1] + 0.08, f.pos[2]), 0.9, f.st.kneel > 0 ? '#ffd36a' : '#5eead4', 0.4, 0.1);
     }
-    // the player's blade leaves a ribbon while it swings
+    // holding R: the ultimate's strength pours into the body (motes drawn in, a ring tightening at the feet), harder
+    // as the charge fills
+    if (sim.ultCharge !== null && p.hp > 0) {
+      const u = Math.min(1, sim.ultCharge / ULT_CHARGE), rId = sim.progress.bar[BAR_R];
+      const col = houseOf(SKILLS[rId]?.sect)?.color ?? '#ffd36a';
+      ultAcc.current += dt * (30 + u * 70);
+      const n = Math.floor(ultAcc.current);
+      ultAcc.current -= n;
+      if (n > 0) vfx.gather(v.b.set(p.pos[0], p.pos[1] + 1.1, p.pos[2]), n, col, 2.4 - u * 0.8, 0.32, 0.08 + u * 0.05);
+      ultRing.current -= dt;
+      if (ultRing.current <= 0) {
+        ultRing.current = 0.16;
+        vfx.ring(v.c.set(p.pos[0], groundHeight(p.pos[0], p.pos[2]) + 0.06, p.pos[2]), 2.6 - u * 1.8, col, 0.22, 0.1 + u * 0.08, 0.05);
+      }
+      if (u > 0.6 && Math.random() < dt * 20) vfx.embers(v.c.set(p.pos[0], p.pos[1] + 0.1, p.pos[2]), 2, col, 0.5, 3, 0.08);
+    } else ultAcc.current = 0;
+    // the player's blade leaves a ribbon while it swings, in the colour of the house whose move it is (a plain swing:
+    // the hero's own colour; the 散人's: a cold white)
     const swinging = p.act === 'attack' || p.act === 'cast';
     if (swordSockets.base && swordSockets.tip && swinging) {
+      const mv = p.act === 'cast' && p.run ? SKILLS[p.run.id] : undefined;
+      const col = (mv && houseOf(mv.sect)?.color) ?? heroOf(sim.progress.hero)?.color ?? '#dff3ff';
+      if (col !== trailCol.current) {
+        trailCol.current = col;
+        trail.setColor(col, 1.25);
+      }
       swordSockets.base.getWorldPosition(v.c);
       swordSockets.tip.getWorldPosition(v.d);
+      trail.emitting = true;
       trail.update(dt, v.c, v.d, state.clock.elapsedTime);
-    } else trail.update(dt, null, null, state.clock.elapsedTime);
+    } else {
+      trail.emitting = false;
+      trail.update(dt, null, null, state.clock.elapsedTime);
+    }
     // footsteps
     if (p.act === 'run' && p.grounded) {
       stepT.current -= dt * Math.max(0.6, Math.hypot(p.vel[0], p.vel[2]) / 6);
@@ -157,9 +200,34 @@ export function Juice({ sim }: { sim: Sim }) {
   });
 
   /** darts, pins, knives and boomerangs: the old game's meshes; Rolexes; the mantra's words go to the monk effects */
-  function drawProjectiles(time: number) {
+  function shotTrail(pr: (typeof sim.proj)[number], dt: number, time: number) {
+    if ((pr.delay ?? 0) > 0 || pr.stuck !== undefined || Math.abs(pr.pos[0] - sim.player.pos[0]) > 80) return;
+    const id = pr.id ?? -1;
+    let tr = shotTrails.find((x) => x.id === id);
+    if (!tr) {
+      tr = shotTrails.find((x) => x.id === -1);
+      if (!tr) return;
+      tr.id = id;
+      tr.t.setColor(pr.color, 1.7);
+    }
+    tr.seen = true;
+    // a flat ribbon across the flight (the camera looks down on most shots)
+    const vl = Math.hypot(pr.vel[0], pr.vel[2]) || 1, w = Math.max(0.09, (pr.radius ?? 0.3) * 0.45);
+    const sx = (-pr.vel[2] / vl) * w, sz = (pr.vel[0] / vl) * w;
+    tr.t.emitting = true;
+    tr.t.update(dt, v.c.set(pr.pos[0] + sx, pr.pos[1], pr.pos[2] + sz), v.d.set(pr.pos[0] - sx, pr.pos[1], pr.pos[2] - sz), time);
+  }
+  function drawProjectiles(time: number, dt = 1 / 60) {
     const live = new Set<number>();
     let w = 0;
+    for (const tr of shotTrails) tr.seen = false;
+    for (const pr of sim.proj) shotTrail(pr, dt, time);
+    for (const tr of shotTrails)
+      if (!tr.seen && tr.id !== -1) {
+        tr.t.emitting = false;
+        tr.t.update(dt, null, null, time);
+        if (tr.t.count === 0) tr.id = -1;
+      }
     for (const pr of sim.proj) {
       const id = pr.id ?? -1;
       live.add(id);

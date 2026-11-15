@@ -949,6 +949,10 @@ export function defineMove(m: MoveSpec) {
         f.grounded = false;
       }
       if (m.charge && f.team === 'player') s.text(f, '蓄力……', col(f, m.house, m.color));
+      // a charged move draws its strength in through the charge, in waves
+      if (m.charge)
+        for (let w = 0, n = Math.max(2, Math.round(m.charge / 0.12)); w < n; w++)
+          s.later((w * m.charge) / n, () => f.run?.id === m.id && s.vfx('gather', P(f.pos[0], f.pos[1] + 1.15, f.pos[2]), 7, col(f, m.house, m.color), 1.8, Math.min(0.35, m.charge! * 0.5)));
       s.vfx('sound', m.sound ?? (m.ult ? 'ultRise' : 'swing'));
       {
         const c = col(f, m.house, m.color), g = P(f.pos[0], gh(f.pos[0], f.pos[2]), f.pos[2]);

@@ -15,6 +15,7 @@ import { SLOT_IDS } from './constants';
 const UP = new THREE.Vector3(0, 1, 0);
 const tmpV = new THREE.Vector3();
 const tmpV2 = new THREE.Vector3();
+const tmpV3 = new THREE.Vector3();
 const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
 const tmpS = new THREE.Vector3();
@@ -363,9 +364,12 @@ export class RibbonTrail {
   private ages: Float32Array;
   private sides: Float32Array;
   private mat: THREE.ShaderMaterial;
+  /** a normal-blended body under the glow, so the ribbon reads on a bright day (additive alone washes out) */
+  under: THREE.Mesh;
   emitting = false;
 
-  constructor(color: THREE.ColorRepresentation, maxSamples = 26, lifetime = 0.2) {
+  /** sym: a shot's ribbon, brightest along its middle (a blade's is brightest at the tip) */
+  constructor(color: THREE.ColorRepresentation, maxSamples = 26, lifetime = 0.2, sym = false) {
     this.maxSamples = maxSamples;
     this.lifetime = lifetime;
     const n = maxSamples * 2;
@@ -394,19 +398,27 @@ export class RibbonTrail {
       depthWrite: false,
       side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending,
-      uniforms: { uColor: { value: new THREE.Color(color) }, uTime: { value: 0 }, uBoost: { value: 1 } },
+      uniforms: { uColor: { value: new THREE.Color(color) }, uTime: { value: 0 }, uBoost: { value: 1 }, uBody: { value: 0 } },
       vertexShader: /* glsl */ `
         attribute float aAge; attribute float aSide; varying float vAge; varying float vSide;
         void main(){ vAge = aAge; vSide = aSide; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
       fragmentShader: /* glsl */ `
-        varying float vAge; varying float vSide; uniform vec3 uColor; uniform float uTime; uniform float uBoost;
+        varying float vAge; varying float vSide; uniform vec3 uColor; uniform float uTime; uniform float uBoost; uniform float uBody;
         ${NOISE_GLSL}
         void main(){
           float fade = clamp(1.0 - vAge, 0.0, 1.0);
-          float edge = smoothstep(0.0, 0.35, vSide);           // fade toward the blade root
-          float core = smoothstep(0.55, 1.0, vSide);            // hot edge near the tip
+          ${sym ? 'float s = 1.0 - abs(vSide * 2.0 - 1.0);' : 'float s = vSide;'}
+          float edge = smoothstep(0.0, 0.35, s);           // fade toward the blade root (a shot: toward both sides)
+          float core = smoothstep(0.55, 1.0, s);            // hot edge near the tip (a shot: its middle)
           float wisp = 0.65 + 0.35 * noise(vec2(vAge * 9.0 - uTime * 3.0, vSide * 6.0));
           float a = fade * fade * edge * wisp * 0.95;
+          if (uBody > 0.0) {
+            // the body: the house colour itself, deeper, laid under the glow; it lingers a little less
+            float b = fade * edge * (0.55 + 0.45 * wisp) * uBody;
+            if (b < 0.004) discard;
+            gl_FragColor = vec4(uColor * 0.85, b);
+            return;
+          }
           vec3 col = mix(uColor, vec3(1.0, 0.97, 0.9), core * fade);
           if (a < 0.004) discard;
           gl_FragColor = vec4(col * uBoost, a);
@@ -415,6 +427,12 @@ export class RibbonTrail {
     this.mesh = new THREE.Mesh(geo, this.mat);
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = 25;
+    const body = this.mat.clone();
+    body.uniforms = { ...this.mat.uniforms, uBody: { value: 0.5 } };
+    body.blending = THREE.NormalBlending;
+    this.under = new THREE.Mesh(geo, body);
+    this.under.frustumCulled = false;
+    this.under.renderOrder = 24;
   }
 
   setColor(c: THREE.ColorRepresentation, boost = 1) {
@@ -880,10 +898,10 @@ export class VFXSystem {
     }
   }
 
-  createTrail(color: THREE.ColorRepresentation) {
-    const t = new RibbonTrail(color);
+  createTrail(color: THREE.ColorRepresentation, opts: { sym?: boolean; lifetime?: number; samples?: number } = {}) {
+    const t = new RibbonTrail(color, opts.samples ?? 26, opts.lifetime ?? 0.2, opts.sym);
     this.trails.push(t);
-    this.root.add(t.mesh);
+    this.root.add(t.under, t.mesh);
     return t;
   }
 
@@ -935,7 +953,7 @@ export class VFXSystem {
   /** Small sparkle trail behind a flying dart */
   dartTrail(pos: THREE.Vector3, color: THREE.ColorRepresentation) {
     tmpV.set((Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.3);
-    this.sparks.emit(pos, tmpV, color, 0.035, 0.12, { drag: 6, gravity: 0 });
+    this.sparks.emit(pos, tmpV, color, 0.06, 0.18, { drag: 6, gravity: 0 });
   }
 
   // ---------------- scheduling ----------------
@@ -1069,6 +1087,19 @@ export class VFXSystem {
       tmpV.set(Math.random() - 0.5, Math.random() * 0.6, Math.random() - 0.5).multiplyScalar(0.8).addScaledVector(wind, 0.5 + Math.random() * 0.8);
       tmpV.y += 0.3 + Math.random() * 0.7;
       this.sparks.emit(tmpV2, tmpV, color, size * (0.6 + Math.random() * 0.9), 1.0 + Math.random() * 1.4, { drag: 0.5, gravity: -0.25 });
+    }
+  }
+
+  /** motes drawn in from all round onto a point (a move gathering its strength): each starts on a shell `radius` out
+   * and arrives in `travel` seconds, brightening as it comes */
+  gather(posIn: THREE.Vector3, count: number, color: THREE.ColorRepresentation, radius = 1.6, travel = 0.4, size = 0.09) {
+    const pos = origin.copy(posIn);
+    for (let i = 0; i < count; i++) {
+      tmpV.set(Math.random() * 2 - 1, Math.random() * 1.4 - 0.5, Math.random() * 2 - 1).normalize();
+      const r = radius * (0.7 + Math.random() * 0.5), tt = travel * (0.8 + Math.random() * 0.4);
+      tmpV2.copy(pos).addScaledVector(tmpV, r);
+      tmpV.multiplyScalar(-r / tt);
+      this.sparks.emit(tmpV2, tmpV, Math.random() < 0.3 ? '#fffbeb' : color, size * (0.7 + Math.random() * 0.8), tt * 1.05, { drag: 0, gravity: 0 });
     }
   }
 
@@ -1221,9 +1252,11 @@ export class VFXSystem {
     const pos = posIn.clone();
     this.sparkBurst(pos, heavy ? 34 : 18, color, heavy ? 9 : 6.5, heavy ? 0.12 : 0.09, dir, 0.9);
     this.flash(pos, heavy ? '#ffb46b' : '#ff8a4a', heavy ? 26 : 12, heavy ? 0.16 : 0.1, 6);
-    if (heavy) this.ring(new THREE.Vector3(pos.x, pos.y - 1.05, pos.z), 1.3, color, 0.3, 0.18);
+    if (heavy) this.ring(new THREE.Vector3(pos.x, pos.y - 1.05, pos.z), 1.5, color, 0.34, 0.2, 0.25);
+    // a puff of shock right where it lands, so even a light blow shows on a bright day
+    this.ring(new THREE.Vector3(pos.x, pos.y - 1.0, pos.z), heavy ? 0.9 : 0.6, '#fff6e0', 0.18, 0.3, 0.6);
     // the cut itself: a bright streak across the point struck, and on a heavy blow the dust kicked up round his feet
-    this.slashMark(pos, color, heavy ? 1.25 : 0.8, heavy ? 0.14 : 0.1);
+    this.slashMark(pos, color, heavy ? 1.5 : 1.0, heavy ? 0.18 : 0.13);
     if (heavy) this.dustPuff(new THREE.Vector3(pos.x, pos.y - 1.0, pos.z), 10, 0.6, 2.8, 0.75);
   }
 
@@ -1307,12 +1340,94 @@ export class VFXSystem {
 
   kitArc(pos: THREE.Vector3, yaw: number, r: number, spread: number, color: THREE.ColorRepresentation, life?: number, tilt?: number, house?: string) {
     this.kit.arc(pos, yaw, r, spread, color, life, tilt, house);
+    // along the cut's rim, the house's own matter flies off (sparks, petals, smoke, coins, leaves...)
+    const n = Math.round(4 + r * 2.2);
+    for (let k = 0; k < n; k++) {
+      const a = yaw + (Math.random() * 2 - 1) * spread;
+      const d = r * (0.75 + Math.random() * 0.3);
+      tmpV2.set(pos.x - Math.sin(a) * d, pos.y + (Math.random() - 0.3) * 0.4, pos.z - Math.cos(a) * d);
+      tmpV.set(-Math.sin(a), 0.25, -Math.cos(a));
+      this.accent(house, tmpV2, tmpV, color, 1);
+    }
   }
   kitBeam(from: THREE.Vector3, to: THREE.Vector3, w: number, color: THREE.ColorRepresentation, life?: number, house?: string) {
     this.kit.beam(from, to, w, color, life, house);
+    const L = from.distanceTo(to), n = Math.min(16, Math.round(3 + L * 0.8));
+    tmpV.copy(to).sub(from).normalize();
+    const dir = tmpV.clone();
+    for (let k = 0; k < n; k++) {
+      tmpV2.copy(from).lerp(to, Math.random());
+      this.accent(house, tmpV2, dir, color, 0.8);
+    }
   }
   kitSigil(pos: THREE.Vector3, r: number, color: THREE.ColorRepresentation, life?: number, spin?: number, house?: string) {
     this.kit.sigil(pos, r, color, life, spin, house);
+    const n = Math.round(6 + r * 3);
+    for (let k = 0; k < n; k++) {
+      const a = Math.random() * Math.PI * 2, d = r * Math.sqrt(Math.random());
+      tmpV2.set(pos.x + Math.cos(a) * d, pos.y + 0.1, pos.z + Math.sin(a) * d);
+      this.accent(house, tmpV2, UP, color, 0.9);
+    }
+  }
+  /** one fleck of a house's matter at p, thrown along dir: what makes a 狂刃 cut throw stone chips and a 琴师 note
+   * scatter cyan motes, a 毒宗 cloud drip green, a 交易员 swing flick gold coins */
+  private accent(house: string | undefined, p: THREE.Vector3, dir: THREE.Vector3, color: THREE.ColorRepresentation, k: number) {
+    const rnd = (a: number) => (Math.random() * 2 - 1) * a;
+    const v = tmpV3.set(dir.x * 3 + rnd(1.2), dir.y * 3 + 1 + Math.random() * 1.5, dir.z * 3 + rnd(1.2)).multiplyScalar(k);
+    switch (house) {
+      case 'kuangren': // stone chips and red embers
+        this.sparks.emit(p, v.multiplyScalar(1.4), Math.random() < 0.5 ? '#ff5a1f' : '#ffb347', 0.11, 0.45, { drag: 2.5, gravity: 14 });
+        break;
+      case 'fanyin': // golden motes rising like petals
+        this.sparks.emit(p, v.set(rnd(0.6), 1.2 + Math.random(), rnd(0.6)), Math.random() < 0.5 ? '#ffe9a3' : '#f6c453', 0.1, 0.9, { drag: 1.5, gravity: -0.5 });
+        break;
+      case 'yingren': // violet shadow wisps that hang and fade
+      case 'shuangdao':
+        this.sparks.emit(p, v.multiplyScalar(0.5), house === 'yingren' ? '#a78bfa' : '#f87171', 0.16, 0.6, { drag: 4, gravity: -0.4 });
+        break;
+      case 'tianzi': // gold sparks and a little imperial red
+        this.sparks.emit(p, v.multiplyScalar(1.3), Math.random() < 0.7 ? '#ffd76a' : '#ff5a5a', 0.1, 0.5, { drag: 3, gravity: 6 });
+        break;
+      case 'jiaoyi': // flicked coins: gold, falling
+        this.sparks.emit(p, v.set(rnd(2), 3 + Math.random() * 2, rnd(2)), '#ffd24a', 0.13, 0.8, { drag: 1, gravity: 12 });
+        break;
+      case 'dixian': // leaves drifting down
+        this.sparks.emit(p, v.set(rnd(1.5), 1 + Math.random(), rnd(1.5)), Math.random() < 0.6 ? '#86efac' : '#facc15', 0.12, 1.1, { drag: 2.2, gravity: 1.2 });
+        break;
+      case 'jianke': // white glints of sword light, fast
+        this.sparks.emit(p, v.multiplyScalar(2), Math.random() < 0.6 ? '#ffffff' : '#bfe3ff', 0.08, 0.3, { drag: 5, gravity: 0 });
+        break;
+      case 'qiangwang': // long streaks along the thrust
+        this.sparks.emit(p, v.set(dir.x * 9 + rnd(0.6), 0.3, dir.z * 9 + rnd(0.6)), '#fde68a', 0.09, 0.28, { drag: 6, gravity: 0 });
+        break;
+      case 'quanshi': // dust kicked up by the blow
+        this.sparks.emit(p, v.multiplyScalar(0.8), '#e7d3b0', 0.2, 0.6, { drag: 3.5, gravity: 1 });
+        break;
+      case 'fushi': // burning paper flecks, yellow and red
+        this.sparks.emit(p, v.set(rnd(1.4), 1.5 + Math.random() * 1.5, rnd(1.4)), Math.random() < 0.6 ? '#fde047' : '#ef4444', 0.11, 0.9, { drag: 2, gravity: -0.6 });
+        break;
+      case 'qinshi': // cyan motes on the sound wave
+        this.sparks.emit(p, v.multiplyScalar(0.9), Math.random() < 0.5 ? '#67e8f9' : '#e0f2fe', 0.1, 0.7, { drag: 3, gravity: -0.3 });
+        break;
+      case 'yushou': // fur and dust from the claws
+        this.sparks.emit(p, v.multiplyScalar(1.1), Math.random() < 0.5 ? '#d6b48a' : '#fca5a5', 0.12, 0.45, { drag: 3, gravity: 8 });
+        break;
+      case 'duzong': // green venom dripping
+        this.sparks.emit(p, v.set(rnd(0.8), 0.6 + Math.random(), rnd(0.8)), Math.random() < 0.6 ? '#4ade80' : '#a3e635', 0.13, 0.9, { drag: 2, gravity: 5 });
+        break;
+      case 'gongshou':
+      case 'anqi': // bright sparks off the point
+        this.sparks.emit(p, v.multiplyScalar(1.6), Math.random() < 0.5 ? '#fff7d6' : color, 0.08, 0.3, { drag: 5, gravity: 4 });
+        break;
+      case 'qizong': // soft blue qi puffs
+        this.sparks.emit(p, v.multiplyScalar(0.6), Math.random() < 0.5 ? '#93c5fd' : '#e0f2fe', 0.22, 0.8, { drag: 3, gravity: -0.6 });
+        break;
+      case 'jiguan': // hot metal sparks
+        this.sparks.emit(p, v.multiplyScalar(1.8), Math.random() < 0.6 ? '#fdba74' : '#fff7ed', 0.07, 0.4, { drag: 3, gravity: 14 });
+        break;
+      default:
+        this.sparks.emit(p, v, color, 0.1, 0.45, { drag: 3, gravity: 4 });
+    }
   }
 
   update(dt: number) {
