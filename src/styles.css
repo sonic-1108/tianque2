@@ -238,3 +238,17 @@ button:not(:disabled):hover { border-color: var(--gold); }
 .giant-bar .gb-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #7f1010, #e0362a); transition: width 0.2s; }
 .giant-bar.open .gb-bar i { background: linear-gradient(90deg, #a16207, #fde047); }
 .giant-bar .gb-bar s { position: absolute; top: 0; bottom: 0; width: 2px; background: #000a; }
+
+/* a talk (F by a villager): black bars slide in, the HUD steps aside, the words fade up after the bow; buttons numbered */
+.hud.talking > *:not(.letterbox):not(.giant-bar) { opacity: 0; transition: opacity 0.35s; pointer-events: none; }
+.letterbox { position: fixed; left: 0; right: 0; height: 9vh; background: #000; z-index: 15; pointer-events: none; animation: lbIn 0.5s ease both; }
+.letterbox.top { top: 0; transform-origin: top; }
+.letterbox.bottom { bottom: 0; transform-origin: bottom; }
+@keyframes lbIn { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.dialog.talk-in { z-index: 25; bottom: calc(9vh + 16px); animation: talkIn 0.45s ease 0.55s both; }
+@keyframes talkIn { from { opacity: 0; transform: translate(-50%, 14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.dialog-body { animation: lineIn 0.35s ease both; }
+@keyframes lineIn { from { opacity: 0.2; } to { opacity: 1; } }
+.dialog-btns.numbered { counter-reset: btn; }
+.dialog-btns.numbered button { counter-increment: btn; cursor: pointer; }
+.dialog-btns.numbered button::before { content: counter(btn) ' '; opacity: 0.55; font-size: 0.85em; margin-right: 2px; }

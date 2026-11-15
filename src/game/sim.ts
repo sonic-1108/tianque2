@@ -231,6 +231,9 @@ export class Sim {
     this.door = -1;
   }
   dialog = -1;
+  /** seconds since this talk began, and with whom (the talk scene: render/Scene camera, Rig bow, Hud bars) */
+  talkT = 0;
+  talkWith = -1;
   /** the player holding R for an ultimate: seconds held (null = not charging) */
   ultCharge: number | null = null;
   private toastId = 0;
@@ -1118,7 +1121,14 @@ export class Sim {
         this.near = f.id;
         nearD = this.dist(f, pl);
       }
-    if (this.dialog >= 0 && this.near !== this.dialog) this.dialog = -1;
+    // a talk holds while you stay by them (a stroller doesn't walk off mid-sentence; someone else coming near doesn't cut in)
+    if (this.dialog >= 0) {
+      const t = this.fighters[this.dialog];
+      if (!t || t.hp <= 0 || (t as any).away || this.dist(t, pl) > 6) this.dialog = -1;
+      else this.near = this.dialog;
+    }
+    this.talkT = this.dialog >= 0 ? (this.dialog === this.talkWith ? this.talkT + dt : 0) : 0;
+    this.talkWith = this.dialog;
     // a door the player stands at: a room's way in (outside) or its way out (inside)
     this.door = -1;
     if (pl.hp > 0) {
@@ -1222,6 +1232,9 @@ export class Sim {
       this.dialog = this.dialog >= 0 ? -1 : this.near;
       if (this.dialog >= 0) {
         const t = this.fighters[this.dialog] as any;
+        // the two of you turn to each other
+        this.faceTo(t, this.player.pos[0], this.player.pos[2]);
+        this.faceTo(this.player, t.pos[0], t.pos[2]);
         this.talk(t.role, t.folk !== undefined ? t.name : undefined);
       }
     }

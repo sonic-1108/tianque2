@@ -269,7 +269,13 @@ export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
   const showT = t && t.hp > 0 && sim.dist(p, t) < 30;
   const free = spFree(P);
   return (
-    <div className={'hud' + (look.on ? ' looking' : '')}>
+    <div className={'hud' + (look.on ? ' looking' : '') + (sim.dialog >= 0 ? ' talking' : '')}>
+      {sim.dialog >= 0 && (
+        <>
+          <div className="letterbox top" />
+          <div className="letterbox bottom" />
+        </>
+      )}
       <GiantBar sim={sim} />
       <div className="me">
         <div className="me-name">

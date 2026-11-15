@@ -10,6 +10,8 @@ import type * as THREE from 'three';
  */
 /** 0 normal .. 1 pitch-black night: dims the viewer-side fill and rim so characters vanish into the dark */
 export const TQ_DARK = { value: 0 };
+/** the player's robe dye (game/wardrobe.ts): its light and dark cloth, and how much (0: the clothes as made) */
+export const TQ_DYE = { a: { value: null as any }, b: { value: null as any }, k: { value: 0 } };
 
 export function applyCharacterShading(m: THREE.MeshStandardMaterial, isPlayer: boolean, monkGold: boolean, cut?: { value: number }, suit = false, hemp = false) {
   // close up (端详) the face and cloth stay sharp at a slant
@@ -17,6 +19,11 @@ export function applyCharacterShading(m: THREE.MeshStandardMaterial, isPlayer: b
   const rim = isPlayer ? 'vec3(1.0, 0.82, 0.55) * 0.22' : 'vec3(0.45, 0.68, 1.0) * 0.28';
   m.onBeforeCompile = (sh) => {
     sh.uniforms.tqDark = TQ_DARK;
+    if (isPlayer) {
+      sh.uniforms.tqDyeA = TQ_DYE.a;
+      sh.uniforms.tqDyeB = TQ_DYE.b;
+      sh.uniforms.tqDyeK = TQ_DYE.k;
+    }
     // 飞虫沙暴: everything above world height tqCut is gone (eaten from the head down), with a glowing ragged edge
     sh.uniforms.tqCut = cut ?? { value: 99 };
     sh.vertexShader = sh.vertexShader
@@ -64,6 +71,24 @@ export function applyCharacterShading(m: THREE.MeshStandardMaterial, isPlayer: b
           float tqHair = (1.0 - smoothstep(0.03, 0.06, tqL)) * (1.0 - smoothstep(1.6, 2.4, tqR / max(tqC.g, 1e-4))) * (1.0 - smoothstep(0.012, 0.03, tqChroma) * step(tqC.r, tqC.b));
           vec3 tqCloth = mix(vec3(0.16, 0.17, 0.18), vec3(0.47, 0.42, 0.33), smoothstep(0.08, 0.3, tqL)) * (0.7 + tqL * 1.2);
           diffuseColor.rgb = mix(tqCloth, tqC, max(max(tqSkin, tqHair), smoothstep(0.08, 0.3, vTqHead)));
+        }`);
+    }
+    if (isPlayer) {
+      // the robe bought at the cloth stall: every cloth colour turns the dye's (its light and dark by the texel's
+      // brightness, the weave kept as shading); skin and hair keep their own
+      f = f.replace('void main() {', 'uniform vec3 tqDyeA;\nuniform vec3 tqDyeB;\nuniform float tqDyeK;\nvoid main() {');
+      f = f.replace('#include <map_fragment>', `#include <map_fragment>
+        if (tqDyeK > 0.0) {
+          vec3 tqC = diffuseColor.rgb;
+          float tqR = max(tqC.r, 1e-4);
+          float tqGR = tqC.g / tqR;
+          float tqBG = tqC.b / max(tqC.g, 1e-4);
+          float tqL = dot(tqC, vec3(0.3, 0.59, 0.11));
+          float tqSkinD = max(smoothstep(0.15, 0.26, tqGR), smoothstep(0.07, 0.13, tqGR) * smoothstep(0.14, 0.22, tqL)) * (1.0 - smoothstep(0.9, 1.0, tqGR)) * smoothstep(0.35, 0.5, tqBG) * (1.0 - smoothstep(0.95, 1.1, tqBG)) * smoothstep(0.06, 0.14, tqC.r);
+          float tqChroma = max(tqC.r, max(tqC.g, tqC.b)) - min(tqC.r, min(tqC.g, tqC.b));
+          float tqHairD = (1.0 - smoothstep(0.03, 0.06, tqL)) * (1.0 - smoothstep(1.6, 2.4, tqR / max(tqC.g, 1e-4))) * (1.0 - smoothstep(0.012, 0.03, tqChroma) * step(tqC.r, tqC.b));
+          vec3 tqDyed = mix(tqDyeB, tqDyeA, smoothstep(0.05, 0.4, tqL)) * (0.7 + tqL * 0.9);
+          diffuseColor.rgb = mix(tqC, mix(tqDyed, tqC, max(tqSkinD, tqHairD)), tqDyeK);
         }`);
     }
     if (suit) {

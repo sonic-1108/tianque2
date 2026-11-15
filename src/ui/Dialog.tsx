@@ -1,5 +1,5 @@
 // Talking to a villager (F): the elder gives and takes the story quests, the doctor heals, the storyteller gossips.
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Sim } from '../game/sim';
 import { NPCS, QUESTS, TELLER_LINES } from '../game/quests';
 import { save } from '../game/progress';
@@ -8,6 +8,38 @@ import { worldRemark } from '../game/life';
 import { BUYERS, ITEMS, SHOPS, bag, buy, done, give, nextCase, priceOf, purse, sell, startSpar, wantOf } from '../game/play';
 import type { Sim as SimT } from '../game/sim';
 import { GIFTS, RIVALS, arenaState, comps, giftTo, setMode, startArena, type Comp } from '../game/jianghu';
+
+/** 1 to 9 press a talk's buttons in order (the mouse works too) */
+function useNumberKeys() {
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => {
+      const n = /^Digit([1-9])$/.exec(e.code)?.[1];
+      if (!n) return;
+      const btns = [...(box.current?.querySelectorAll('.dialog-btns button') ?? [])] as HTMLButtonElement[];
+      const b = btns[+n - 1];
+      if (b && !b.disabled) {
+        e.preventDefault();
+        e.stopPropagation();
+        b.click();
+      }
+    };
+    window.addEventListener('keydown', k, true);
+    return () => window.removeEventListener('keydown', k, true);
+  }, []);
+  return box;
+}
+
+/** what a villager has heard: where your errand lies, the giants on the land, someone who wishes for something */
+function rumour(sim: SimT, k: number) {
+  const q = sim.quest();
+  const out: string[] = [];
+  if (q) out.push(`听说你在办「${q.title}」？${q.goal.type === 'boss' ? '那东西可不是人能单打独斗的，看清地上的红圈再躲，等它露出破绽再下狠手。' : '打开大地图（M）看看金星标的地方，往那儿去准没错。'}`);
+  const giants = sim.fighters.filter((f) => (f as any).giant && f.hp > 0 && !(f as any).benched);
+  for (const g of giants) out.push(`赶路的人说，${g.name}那边夜里地都在抖。打它别逞强，进它的地界自会有江湖朋友来帮你。`);
+  out.push('最近驿道上不太平，伪朝的兵三个一伙地巡，见了带刀的就拦。', '雪岭上有人看见一朵会发光的雪莲，夜里才瞧得见。', '城里绸缎庄新到了料子，做身新衣裳去吧，人靠衣装。', '老槐树下天天有人下棋，输了的请一碗面。');
+  return out[k % out.length];
+}
 
 /** what you can do with a folk besides talk: buy, sell, give what they wished for, play their game */
 function actionsFor(sim: SimT, name: string, changed: () => void, startGame: () => void) {
@@ -60,6 +92,7 @@ function actionsFor(sim: SimT, name: string, changed: () => void, startGame: () 
 
 /** a companion: how they are with you, what they say, where they go, a gift */
 function CompDialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => void; onChange: () => void }) {
+  const box = useNumberKeys();
   const f = sim.fighters[sim.dialog];
   const r = RIVALS[(f as any).rival];
   const c: Comp | undefined = comps(sim.progress)[r?.id];
@@ -75,13 +108,13 @@ function CompDialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => void;
   };
   const gifts = GIFTS.filter((id) => (B[id] ?? 0) > 0);
   return (
-    <div className="dialog">
+    <div className="dialog talk-in" ref={box}>
       <div className="dialog-name">
         {r.name}
         <span className="dialog-act"> · 同伴 · {mode} · 好感 {Math.round(c.aff)}</span>
       </div>
       <div className="dialog-body">{said}</div>
-      <div className="dialog-btns">
+      <div className="dialog-btns numbered">
         {c.mode !== 'follow' && (
           <button className="hot" onClick={go('follow')}>
             跟我走
@@ -109,25 +142,44 @@ export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => vo
   const [line] = useState(() => TELLER_LINES[Math.floor(Math.random() * TELLER_LINES.length)]);
   const folk = f && (f as any).folk !== undefined ? ALL_FOLK[(f as any).folk] : null;
   const [pick] = useState(() => Math.random());
+  const [say, setSay] = useState<string | null>(null);
+  const [turn, setTurn] = useState(0);
+  const box = useNumberKeys();
   if (f && folk) {
     // now and then they talk about the world: the weather, the season, the festival, what you've been up to
     const deeds = sim.chronicle.filter((e) => e.talk).map((e) => e.talk!);
     const remark = pick < 0.45 ? worldRemark(sim.clock, sim.weather, deeds, pick / 0.45) : null;
     const want = wantOf(sim, folk.name);
-    const said = want ? want.ask : remark ?? folk.lines[Math.floor(pick * folk.lines.length)];
+    const said = say ?? (want ? want.ask : remark ?? folk.lines[Math.floor(pick * folk.lines.length)]);
     const acts = actionsFor(sim, folk.name, () => onChange(), () => {
       sim.dialog = -1;
       onChange();
     });
     const act = (f as any).plan?.act;
     return (
-      <div className="dialog">
+      <div className="dialog talk-in" ref={box} key={f.id}>
         <div className="dialog-name">
           {folk.name}
           {act && <span className="dialog-act"> · {act}</span>}
         </div>
-        <div className="dialog-body">{said}</div>
-        <div className="dialog-btns">
+        <div className="dialog-body" key={said}>{said}</div>
+        <div className="dialog-btns numbered">
+          <button
+            onClick={() => {
+              setTurn(turn + 1);
+              setSay(folk.lines[(Math.floor(pick * folk.lines.length) + turn + 1) % folk.lines.length]);
+            }}
+          >
+            闲聊
+          </button>
+          <button
+            onClick={() => {
+              setTurn(turn + 1);
+              setSay(rumour(sim, Math.floor(pick * 7) + turn));
+            }}
+          >
+            打听消息
+          </button>
           {folk.heal && (
             <button
               onClick={() => {
@@ -177,10 +229,10 @@ export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => vo
         ? '石伯让你来听天阙的事？好，听着。\n\n' + TELLER_LINES.slice(0, 3).join('\n\n') + '\n\n雷彪那封信上的印？那是天阙的金印。可盖印的人，不该还活着。'
         : line;
   return (
-    <div className="dialog">
+    <div className="dialog talk-in" ref={box}>
       <div className="dialog-name">{npc.name}</div>
       <div className="dialog-body">{body}</div>
-      <div className="dialog-btns">
+      <div className="dialog-btns numbered">
         {buttons.map((b) => (
           <button
             key={b.label}

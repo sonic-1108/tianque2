@@ -18,6 +18,8 @@ import { Post } from './Post';
 export const cam = { yaw: 0, pitch: 0.22, dist: 4.2 };
 (globalThis as any).__T2_CAM = cam;
 /** 端详 (V): the camera comes round to the face of whoever is nearest in front (or your own) */
+/** the talk two-shot's state (its blend, who, which shoulder) */
+export const talkCam = { blend: 0, id: -1, side: 1, a: new THREE.Vector3(), b: new THREE.Vector3() };
 export const look = { on: false, id: -1, yaw: 0, pitch: 0.05, dist: 0.85, blend: 0, head: new THREE.Vector3(), name: '' };
 (globalThis as any).__T2_LOOK = look;
 const heads = new Map<number, THREE.Object3D | null>();
@@ -190,7 +192,32 @@ function Loop({ sim }: { sim: Sim }) {
       const at = new THREE.Vector3(tx, ty, tz).lerp(h, k);
       camera.lookAt(at);
     }
-    const fov = 62 + juice.kick - scope.current * 40 - look.blend * 30;
+    // talking (F by a villager): a two-shot that glides in from beside the pair, the one speaking over your shoulder,
+    // both heads in frame; it eases out when the talk ends
+    const tk = sim.dialog >= 0 && sim.fighters[sim.dialog] && !look.on ? 1 : 0;
+    talkCam.blend += (tk - talkCam.blend) * Math.min(1, dt * (tk ? 2.6 : 4));
+    if (talkCam.blend > 0.002) {
+      if (tk) talkCam.id = sim.dialog;
+      const o = sim.fighters[talkCam.id];
+      if (o) {
+        const me = headOf(sim, sim.player.id, talkCam.a), them = headOf(sim, talkCam.id, talkCam.b);
+        const mid = me.clone().lerp(them, 0.55);
+        const dx = them.x - me.x, dz = them.z - me.z, L = Math.hypot(dx, dz) || 1;
+        // from behind your shoulder, off to the side, a little above the eyes
+        const side = talkCam.side;
+        const eye = new THREE.Vector3(
+          me.x - (dx / L) * 1.6 + (-dz / L) * side * 1.25,
+          Math.max(me.y, them.y) + 0.25,
+          me.z - (dz / L) * 1.6 + (dx / L) * side * 1.25,
+        );
+        const k0 = talkCam.blend, k = k0 * k0 * (3 - 2 * k0);
+        // a slow push in over the first seconds
+        eye.lerp(mid, Math.min(0.18, sim.talkT * 0.06) * k);
+        camera.position.lerp(eye, k);
+        camera.lookAt(new THREE.Vector3(tx, ty, tz).lerp(mid, k));
+      }
+    } else talkCam.side = Math.random() < 0.5 ? 1 : -1;
+    const fov = 62 + juice.kick - scope.current * 40 - look.blend * 30 - talkCam.blend * 22;
     if (Math.abs(camera.fov - fov) > 0.01) {
       camera.fov = fov;
       camera.updateProjectionMatrix();

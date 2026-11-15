@@ -6,6 +6,11 @@ import { useFrame } from '@react-three/fiber';
 import { GLTFLoader, SkeletonUtils, MeshoptDecoder } from 'three-stdlib';
 import type { Fighter } from '../game/types';
 import { giantOf, giantOpen, giantPhase } from '../game/giants';
+import { garment, ward, wornKey } from '../game/wardrobe';
+import { TQ_DYE } from './characterShading';
+import { dressBody, swayCloak } from './outfit';
+TQ_DYE.a.value = new THREE.Color('#ffffff');
+TQ_DYE.b.value = new THREE.Color('#000000');
 import { KIT_FLY } from '../game/kit';
 import type { Sim } from '../game/sim';
 import { heroWeapons, weaponsFor } from './weapons';
@@ -353,6 +358,29 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     const saddle = f.id === 0 && sim.riding >= 0 ? 1.05 : 0;
     g.position.set(f.pos[0], f.pos[1] - (f.act === 'burrow' ? 1.3 : 0) + saddle, f.pos[2]);
     g.rotation.y = f.yaw + Math.PI;
+    // what the player wears (wardrobe.ts): the robe's dye eased in, the pieces put on when they change, the cloak's swing
+    if (f.id === sim.player.id && model?.obj) {
+      const key = wornKey(sim.progress), o = model.obj as any;
+      if (o.userData.wornKey !== key) {
+        o.userData.wornKey = key;
+        dressBody(model.obj, ward(sim.progress).worn);
+      }
+      const robe = garment(ward(sim.progress).worn.robe);
+      if (robe) {
+        (TQ_DYE.a.value as THREE.Color).lerp(new THREE.Color(robe.a), Math.min(1, dt * 6));
+        (TQ_DYE.b.value as THREE.Color).lerp(new THREE.Color(robe.b), Math.min(1, dt * 6));
+      }
+      TQ_DYE.k.value += ((robe ? 1 : 0) - TQ_DYE.k.value) * Math.min(1, dt * 6);
+      swayCloak(model.obj, Math.hypot(f.vel[0], f.vel[2]), performance.now() / 1000);
+    }
+    // a talk's opening: the villager bows to you, you cup your fists back (a short dip and rise)
+    g.rotation.order = 'YXZ';
+    let bow = 0;
+    if (sim.dialog >= 0 && (f.id === sim.dialog || f.id === sim.player.id) && sim.talkT < 1.6) {
+      const u = sim.talkT / 1.6, dip = Math.sin(Math.min(1, u * 1.15) * Math.PI);
+      bow = dip * (f.id === sim.dialog ? 0.32 : 0.14);
+    }
+    g.rotation.x = bow;
     // a giant (giants.ts): drawn many times life size
     const gd = giantOf(f);
     g.scale.setScalar(gd ? gd.scale : 1);
