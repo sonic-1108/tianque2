@@ -26,6 +26,7 @@ function Beast({ sim, f }: { sim: Sim; f: Fighter }) {
       obj.traverse((o: any) => {
         if (!o.isMesh) return;
         o.material = (o.material as THREE.MeshStandardMaterial).clone();
+        if (def.tint) (o.material as THREE.MeshStandardMaterial).color.multiply(new THREE.Color(def.tint));
         mats.push(o.material);
       });
       const mixer = new THREE.AnimationMixer(obj);

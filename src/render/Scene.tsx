@@ -1,4 +1,5 @@
 // The 3D view: steps the sim every frame, puts the camera over the player's shoulder, draws the world and everyone in it.
+import { coop, guestStep, hostAfterStep } from '../net/coop';
 import { useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -116,7 +117,11 @@ function Loop({ sim }: { sim: Sim }) {
       sim.slowmo -= dt;
       sdt = dt * (0.3 + 0.7 * (1 - Math.min(1, sim.slowmo / 0.35)) ** 2);
     }
-    for (let k = 0; k < turbo; k++) sim.step(sdt, readInput(cam.yaw));
+    if (coop.role === 'guest' && sim.netGuest) guestStep(sim, sdt, readInput(cam.yaw));
+    else {
+      for (let k = 0; k < turbo; k++) sim.step(sdt, readInput(cam.yaw));
+      hostAfterStep(sim, sdt);
+    }
     // camera: over the right shoulder, the player in the left third; wheeled in close it comes up to the head
     const p = sim.player.pos;
     const near = Math.max(0, Math.min(1, (2.6 - cam.dist) / 1.2));

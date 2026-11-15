@@ -44,7 +44,8 @@ export function walkByHand(g: Gait, f: Fighter, speed: number, dt: number, obj: 
   let paw = 0, crouch = 0, head = 0, headYaw = Math.sin(t * 0.45) * 0.3 * (stepK > 0.05 ? 0.2 : 1), tail = 0, twist = 0, pitch = 0, lunge = 0, fore = 0, hind = 0;
   if (mv) {
     const w = mv.m.wind, k = ease(Math.min(1, mv.t / w)), hit = mv.t >= w, after = hit ? Math.max(0, 1 - (mv.t - w) * 1.6) : 1;
-    switch (mv.m.id) {
+    const ALIAS: Record<string, string> = { jbite: 'bite', jtail: 'tail', spout: 'breath', whirl: 'howl', dive: 'pounce', rain: 'icicles', tide: 'frost' };
+    switch (ALIAS[mv.m.id] ?? mv.m.id) {
       case 'frost': // rears right up and brings both forepaws down: the ground freezes
         pitch = (hit ? 0.1 : -0.55 * k) * after;
         fore = (hit ? 0.3 : -0.8 * k) * after;
@@ -79,7 +80,7 @@ export function walkByHand(g: Gait, f: Fighter, speed: number, dt: number, obj: 
         break;
       case 'pounce': // gathers on its haunches, then flies with every leg stretched (the sim carries it over the
       case 'chain': // last 0.7 / 0.55 s of the wind-up: giants.ts runMove)
-        if (mv.t < w - (mv.m.id === 'pounce' ? 0.7 : 0.55)) {
+        if (mv.t < w - (mv.m.id === 'pounce' || mv.m.id === 'dive' ? 0.7 : 0.55)) {
           crouch = 0.8 * k;
           pitch = 0.1 * k;
           head = 0.25 * k;
@@ -141,6 +142,6 @@ export function walkByHand(g: Gait, f: Fighter, speed: number, dt: number, obj: 
   obj.position.x = dx - lunge * sc;
   // the pounce's arc onto its mark
   let arc = 0;
-  if (mv && mv.m.id === 'pounce' && mv.t < mv.m.wind && mv.t > mv.m.wind - 0.7) arc = Math.sin(((mv.t - (mv.m.wind - 0.7)) / 0.7) * Math.PI) * 0.45;
+  if (mv && (mv.m.id === 'pounce' || mv.m.id === 'dive') && mv.t < mv.m.wind && mv.t > mv.m.wind - 0.7) arc = Math.sin(((mv.t - (mv.m.wind - 0.7)) / 0.7) * Math.PI) * 0.45;
   obj.position.y = floor + dy + h * (Math.abs(Math.sin(p)) * 0.03 * run - crouch * 0.07 + arc);
 }

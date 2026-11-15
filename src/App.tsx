@@ -58,6 +58,8 @@ export function App() {
       if (e.code === 'KeyK' || e.code === 'Tab') setTree((v) => !v);
       if (e.code === 'KeyM') setBigMap((v) => !v);
       if (e.code === 'KeyJ') setChron((v) => !v);
+      if (e.code === 'KeyO' && !sim.game) sim.game = { kind: 'online' };
+      else if (e.code === 'KeyO' && sim.game?.kind === 'online') sim.game = null;
       if (e.code === 'KeyB' && !sim.game) sim.game = { kind: 'bag' };
       else if (e.code === 'KeyB' && sim.game?.kind === 'bag') sim.game = null;
       if (e.code === 'KeyH' && !sim.game && sim.dialog < 0) use(sim, 'plaster') || sim.toast('包袱里没有金疮药（云游道人那里有卖）');

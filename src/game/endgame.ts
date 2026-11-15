@@ -7,9 +7,9 @@ import type { Sim } from './sim';
 import type { Fighter } from './types';
 import { QUESTS } from './quests';
 import { GIANTS, giantOf, makeGiant, rearmGiant } from './giants';
-import { FOE_KINDS } from './foes';
+import { FOE_KINDS, PIRATE } from './foes';
 import { ROOMS, type Room } from './interiors';
-import { STELE, TOWER, ABYSS } from './endLayout';
+import { STELE, TOWER, ABYSS, JIAO_POOL } from './endLayout';
 import { bag, earn } from './play';
 import { owned } from './jianghu';
 import { save, type Progress } from './progress';
@@ -62,8 +62,11 @@ export interface EndState {
   /** its named bosses (one body each) */
   bosses: number[];
   tianmo: number;
+  jiao: number;
+  pirates: number[];
+  jianhun: number;
 }
-export const newEnd = (): EndState => ({ ch: null, tower: null, pool: [], bosses: [], tianmo: -1 });
+export const newEnd = (): EndState => ({ ch: null, tower: null, pool: [], bosses: [], tianmo: -1, jiao: -1, pirates: [], jianhun: -1 });
 
 // ================================================================ the sequel's giant and the tower's men
 const TOWER_BOSSES: [string, string, number][] = [
@@ -102,6 +105,55 @@ export function makeEndgame(s: Sim) {
   makeGiant(s, g, 'tianmo');
   g.yaw = 0;
   E.tianmo = g.id;
+  // 剑冢深处: the ghost of the sword tomb, 剑冢守灵 · 断剑魂, by the broken stone sword, back each day (like 苦寒)
+  {
+    const R = ROOMS.find((r) => r.realm === 'swordtomb');
+    if (R) {
+      const k = FOE_KINDS[3]; // the shadow blades' moves: a step through the dark, a fan of flying swords
+      const f = (s as any).make('sect', k.house, '剑冢守灵 · 断剑魂', 'boss-jianhun.glb', 30, R.ox, R.oz) as Fighter;
+      const a = f as any;
+      a.foeKind = k;
+      a.elite = true;
+      a.jianhun = true;
+      a.roomId = R.id;
+      a.mode = 'tower'; // fights whoever is in its room
+      f.maxHp = f.hp = Math.round(f.maxHp * 3.6);
+      f.home = [R.ox, R.oz];
+      f.pos[1] = s.floorAt(R.ox, R.oz);
+      f.respawn = undefined;
+      E.jianhun = f.id;
+      if ((s.progress.done as any)?.jianhunDay === s.clock.day) {
+        f.hp = 0;
+        a.benched = true;
+      }
+    }
+  }
+  // 水战: 覆舟河蛟 in its pool and six 水寇 round it on the shallows (out once 伪帝 has fallen)
+  {
+    const [px, pz] = JIAO_POOL;
+    const j = (s as any).make('sect', null, '覆舟河蛟', 'giant-tianlang.glb', 30, px, pz) as Fighter;
+    j.maxHp = Math.round((180 + 30 * 55) * 10);
+    j.home = [px, pz];
+    (j as any).boss = true;
+    (j as any).jiao = true;
+    makeGiant(s, j, 'jiao');
+    E.jiao = j.id;
+    const kind = PIRATE;
+    for (let k = 0; k < 6; k++) {
+      const a = (k / 6) * Math.PI * 2 + 0.3, x = px + Math.cos(a) * 22, z = pz + Math.sin(a) * 22;
+      const f = (s as any).make('sect', kind.house, kind.name, kind.model, 24 + (k % 3), x, z) as Fighter;
+      f.home = [x, z];
+      const a2 = f as any;
+      a2.foeKind = kind;
+      a2.waterborne = true;
+      f.maxHp = f.hp = Math.round(f.maxHp * 0.85);
+      E.pirates.push(f.id);
+    }
+    if (!storyDone(s.progress)) for (const id of [j.id, ...E.pirates]) {
+      s.fighters[id].hp = 0;
+      (s.fighters[id] as any).benched = true;
+    }
+  }
   // 二周目: every outlaw stronger, every round more
   const ng = ngOf(s.progress);
   if (ng > 0)
@@ -120,9 +172,9 @@ export const TIERS = [
   { name: '噩梦', hp: 2.8, dmg: 1.7, cd: 0.6, coins: 800, par: 200 },
 ];
 /** the giants a stele can call: each once you have met it in the story */
-export const CH_GIANTS = ['leibiao', 'tianlang', 'tongren', 'fadi', 'tianmo'];
+export const CH_GIANTS = ['leibiao', 'tianlang', 'tongren', 'fadi', 'jiao', 'tianmo'];
 /** what each giant's 噩梦 first clear gives (jianghu.ts GEAR prize pieces) */
-const CH_PRIZE: Record<string, string> = { leibiao: 'w5', tianlang: 'c4', tongren: 'a5', fadi: 'w6', tianmo: 'c5' };
+const CH_PRIZE: Record<string, string> = { leibiao: 'w5', tianlang: 'c4', tongren: 'a5', fadi: 'w6', tianmo: 'c5', jiao: 'c7' };
 const giantBody = (s: Sim, key: string) => s.fighters.find((f) => (f as any).giant?.key === key) ?? null;
 const D = (P: Progress) => (P.done ??= {}) as Record<string, number>;
 /** the best time on a giant at a tier (seconds), 0 if never */
@@ -131,6 +183,7 @@ export const bestTime = (P: Progress, key: string, tier: number) => D(P)[`ch:${k
 export function canChallenge(s: Sim, key: string) {
   const P = s.progress;
   if (key === 'tianmo') return tianmoBeaten(P);
+  if (key === 'jiao') return !!P.done?.['jiao'];
   return storyDone(P);
 }
 
@@ -382,6 +435,37 @@ function stepTower(s: Sim, dt: number) {
 
 // ================================================================ the hooks the sim calls
 export function stepEndgame(s: Sim, dt: number) {
+  // 剑冢守灵: paid once a day, back the next
+  if (s.end.jianhun >= 0) {
+    const m = s.fighters[s.end.jianhun] as any, D2 = (s.progress.done ??= {}) as Record<string, number>;
+    if (m.hp <= 0 && !m.benched && D2.jianhunDay !== s.clock.day) {
+      D2.jianhunDay = s.clock.day;
+      m.benched = true;
+      s.progress.coins = (s.progress.coins ?? 0) + 200;
+      const B = bag(s.progress);
+      B.xuan = (B.xuan ?? 0) + 3;
+      if (!D2.jianhunBeat) {
+        D2.jianhunBeat = 1;
+        if (!owned(s.progress).includes('w8')) owned(s.progress).push('w8');
+        s.pushNote({ title: '剑冢深处', text: '断剑魂的甲胄一片片散开，落进剑丛里，只剩一缕青烟绕着那柄断开的巨石剑转了三圈。\n\n烟散的地方插着一柄还亮着的残剑：「断剑魂 · 残锋」。你还得了两百文、三块玄铁。\n\n明天，它会从剑丛里重新站起来。' });
+      } else s.toast('断剑魂又散了：两百文、三块玄铁。');
+      save(s.progress);
+    }
+    if (m.benched && D2.jianhunDay !== s.clock.day) {
+      m.benched = false;
+      (s as any).revive(m);
+    }
+  }
+  // the river comes alive the moment 伪帝 falls (not only on the next load)
+  const E = s.end;
+  if (E.jiao >= 0 && (s.fighters[E.jiao] as any).benched && !s.end.ch && !s.end.tower && storyDone(s.progress) && !(s.fighters[E.jiao] as any).wasUp) {
+    (s.fighters[E.jiao] as any).wasUp = true;
+    for (const id of [E.jiao, ...E.pirates]) {
+      const f = s.fighters[id];
+      (f as any).benched = false;
+      (s as any).revive(f);
+    }
+  }
   if (s.end.ch) stepChallenge(s);
   if (s.end.tower) stepTower(s, dt);
 }
@@ -391,6 +475,16 @@ export function onEndKill(s: Sim, def: Fighter) {
   if ((def as any).tianmo && !s.progress.done?.['tianmo']) {
     D(s.progress)['tianmo'] = 1;
     save(s.progress);
+  }
+  // the 蛟 the first time: its pearl, and a name
+  if ((def as any).jiao && !s.progress.done?.['jiao'] && !s.end.ch) {
+    const P = s.progress;
+    D(P)['jiao'] = 1;
+    if (!owned(P).includes('c7')) owned(P).push('c7');
+    const titles = (P.titles ??= []);
+    if (!titles.includes('斩蛟')) titles.push('斩蛟');
+    s.pushNote({ title: '斩蛟', text: '河蛟沉下去的地方冒起一串气泡，浮上来一颗拳头大的青珠子，捏在手里是温的。\n\n得到「蛟珠」（戴上它，在水里走得和岸上一样快）和名号「斩蛟」。往后它也能在巨灵碑上挑战了。' });
+    save(P);
   }
 }
 /** the player fell */

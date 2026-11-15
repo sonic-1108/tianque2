@@ -1,4 +1,5 @@
 // The land: terrain coloured by height and paths, scattered trees, the village in the middle and the seven camps.
+import { WaterFx } from './WaterFx';
 import { Endgame } from './Endgame';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { GLTFLoader, MeshoptDecoder } from 'three-stdlib';
@@ -352,6 +353,7 @@ export function World({ sim }: { sim: Sim }) {
         <Tianque />
         <Gudao />
         <Endgame />
+        <WaterFx sim={sim} />
         <Places />
         <Dens />
         <Animals sim={sim} />

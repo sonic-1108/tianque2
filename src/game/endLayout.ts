@@ -41,5 +41,8 @@ export const ABYSS = (() => {
   return { x, z, rot: Math.atan2(-ux, -uz), door: [x - ux * 3.2, z - uz * 3.2] as [number, number], doorYaw: Math.atan2(-ux, -uz) };
 })();
 
+/** 水战: the wide deep pool below the fisherman where 覆舟河蛟 lives, its 水寇 on the sand round it */
+export const JIAO_POOL: [number, number] = [208, -187];
+
 /** the rooms these open into (interiors.ts places them on their own grid, far from the houses') */
 export const END_ROOMS_AT = { trial: [6200, 6200] as [number, number], abyss: [6300, 6200] as [number, number] };

@@ -23,6 +23,9 @@ export const FOE_KINDS: FoeKind[] = [
   { name: '奸商', model: 'foe-merchant.glb', house: 'jiaoyi', ranged: true, color: '#4ade80', skills: ['rolex_throw', 'make_it_rain'] },
   { name: '妖道', model: 'foe-taoist.glb', house: 'dixian', ranged: false, color: '#86efac', skills: ['drain_surplus', 'earth_spring', 'qingfeng'] },
 ];
+/** 水战: river pirates with harpoons, at home in the water (kept out of FOE_KINDS: the dens pick their kinds from it).
+ * Until their own Tripo body (foe-pirate.glb) comes they wear the bandit's. */
+export const PIRATE: FoeKind = { name: '水寇', model: 'foe-bandit.glb', house: 'anqi', ranged: true, color: '#38bdf8', skills: ['pin_dart', 'boomerang', 'swallow_flip'] };
 
 export interface Den {
   x: number;

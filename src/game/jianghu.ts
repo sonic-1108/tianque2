@@ -67,6 +67,8 @@ export interface Gear {
   spd?: number;
   mp?: number;
   leech?: number;
+  /** moves through water as on land */
+  swim?: boolean;
   /** only won (the ring's prize), never forged */
   prize?: string;
 }
@@ -89,6 +91,8 @@ export const GEAR: Gear[] = [
   { id: 'a5', slot: 'armor', name: '镇阙铜甲', desc: '受伤 -30%，气血 +25%（噩梦铜人）', coins: 0, mats: {}, lvl: 1, def: 0.3, hp: 0.25, prize: 'giant' },
   { id: 'c4', slot: 'charm', name: '天狼牙坠', desc: '跑得快两成，内力回得快三成（噩梦天狼）', coins: 0, mats: {}, lvl: 1, spd: 0.2, mp: 0.3, prize: 'giant' },
   { id: 'c5', slot: 'charm', name: '天魔心', desc: '伤害 +15%，伤敌回八分血（噩梦天魔）', coins: 0, mats: {}, lvl: 1, dmg: 0.15, leech: 0.08, prize: 'giant' },
+  { id: 'w8', slot: 'weapon', name: '断剑魂 · 残锋', desc: '伤害 +38%，跑得快半成（剑冢守灵）', coins: 0, mats: {}, lvl: 1, dmg: 0.38, spd: 0.05, prize: 'giant' },
+  { id: 'c7', slot: 'charm', name: '蛟珠', desc: '在水里走得和岸上一样快，气血 +10%（覆舟河蛟）', coins: 0, mats: {}, lvl: 1, hp: 0.1, swim: true, prize: 'giant' },
   { id: 'c6', slot: 'charm', name: '塔顶铃', desc: '气血 +15%，内力回得快一半（试炼塔二十层）', coins: 0, mats: {}, lvl: 1, hp: 0.15, mp: 0.5, prize: 'tower' },
 ];
 export const gearById = (id: string) => GEAR.find((g) => g.id === id);
@@ -96,11 +100,12 @@ export const owned = (P: Progress) => (P.gear ??= []);
 export const equipped = (P: Progress) => (P.equip ??= {});
 /** everything you wear, added up */
 export function gearOf(P: Progress) {
-  const out = { dmg: 0, def: 0, hp: 0, spd: 0, mp: 0, leech: 0 };
+  const out = { dmg: 0, def: 0, hp: 0, spd: 0, mp: 0, leech: 0, swim: false };
   for (const id of Object.values(P.equip ?? {})) {
     const g = id ? gearById(id) : undefined;
     if (!g) continue;
     out.dmg += g.dmg ?? 0;
+    if (g.swim) out.swim = true;
     out.def += g.def ?? 0;
     out.hp += g.hp ?? 0;
     out.spd += g.spd ?? 0;

@@ -32,6 +32,7 @@ import { SKILLS } from './skills';
 import './moves2';
 import { kitAfter, kitGuard, kitHidden, kitSpeed, kitStep, kitSwing } from './kit';
 import { NPCS, QUESTS, fromStory, type NpcRole } from './quests';
+import { controlRemote, hostKill, makeCoopSlots } from '../net/coop';
 import { END_TOUCH, doEndTouch, endTouch, makeEndgame, newEnd, onEndKill, onPlayerDown, roomOpen, startTower, endTower, stepEndgame } from './endgame';
 import { ALL_FOLK, ROOMS, ROOM_Y, roomAt, roomSpawn, roomExit, roomRealm } from './interiors';
 import { pushOutOfRealm, realmFloor } from './realms';
@@ -168,6 +169,8 @@ export class Sim {
   game: any = null;
   /** after 伪帝: 巨人挑战, the trial tower (endgame.ts) */
   end = newEnd();
+  /** 联机 as a guest: the world here is the host's, drawn from their snapshots; no blow lands here (net/coop.ts) */
+  netGuest = false;
   policy: { id: string; until: number } | null = null;
   spar: { wave: number; t: number; ids: number[] } | null = null;
   riding = -1;
@@ -363,6 +366,8 @@ export class Sim {
     }
     // after 伪帝: the trial tower's men, 天魔本相 in its cave, 二周目's stronger outlaws (last: no one else's number moves)
     makeEndgame(this);
+    // 联机: the bodies guests will walk (net/coop.ts), last of all
+    makeCoopSlots(this);
     // an escort under way when the game was closed starts again from its start
     const q0 = this.quest();
     if (q0?.escort && this.progress.quest.state === 'active') startEscort(this, q0.escort);
@@ -481,6 +486,7 @@ export class Sim {
     f.yaw = Math.atan2(-(x - f.pos[0]), -(z - f.pos[2]));
   }
   power(f: Fighter) {
+    if ((f as any).remote) return (f as any).remotePower ?? 1; // a guest's body hits as hard as they do at home
     if (f.team === 'player') return playerPower(f.level) * (this.progress.relics?.includes('sword') ? 1.1 : 1) * (1 + gearOf(this.progress).dmg);
     if (f.team === 'ally') return allyPower(this, f);
     return (0.25 + f.level * 0.04) * ((f as any).boss || (f as any).elite ? 1 : 0.82) * ((f as any).dmgMul ?? 1); // the men hit softer than their bosses (a few at once is the danger); the tower and 二周目 scale them
@@ -580,6 +586,7 @@ export class Sim {
 
   /** a blow lands. Returns the damage done (0 when it couldn't land) */
   hit(att: Fighter, def: Fighter, base: number, o: HitOpts = {}): number {
+    if (this.netGuest) return 0; // a guest's world only shows what the host decides
     if (def.hp <= 0 || def.st.invuln > 0 || def.act === 'burrow' || !this.isEnemy(att, def)) return 0;
     let dmg = o.noScale ? base : base * this.power(att) * (o.mult ?? att.castMult ?? 1);
     let crit = !!o.crit;
@@ -602,6 +609,7 @@ export class Sim {
     }
     if (def.st.shield > 0) dmg *= 0.35;
     if (def.id === PLAYER && !o.noScale) dmg *= 1 - gearOf(this.progress).def;
+    if ((def as any).remote && !o.noScale) dmg *= 1 - ((def as any).remoteDef ?? 0);
     // 鹤羽护 soaks what it can
     if ((def.ward ?? 0) > 0 && def.st.wardT > 0) {
       const soak = Math.min(def.ward!, dmg);
@@ -744,6 +752,12 @@ export class Sim {
       this.toast(at ? `你被${att.name}打倒了 · 4 秒后在战场边上站起来，它的伤还在` : `你被${att.name}打倒了 · 4 秒后回到村子`);
       return;
     }
+    if ((def as any).remote) {
+      // a guest's body gets up beside you a few seconds later
+      def.respawn = 6;
+      def.home = [this.player.pos[0] + 2, this.player.pos[2] + 2];
+      return;
+    }
     if (def.team === 'ally') {
       def.aggro = false;
       allyDown(this, def);
@@ -769,6 +783,7 @@ export class Sim {
       const xp = Math.max(3, Math.round((18 + def.level * 10) * ((def as any).boss ? 5 : (def as any).elite ? 3 : 1) * Math.pow(0.75, gap)));
       this.text(this.player, `经验 +${xp}`, '#a5f3fc');
       if (!(def as any).spar && !(def as any).arena && (def as any).rival === undefined) earn(this, (def as any).boss ? 60 : 2 + Math.floor(def.level / 3));
+      hostKill(this, def, xp, (def as any).boss ? 60 : 2 + Math.floor(def.level / 3));
       const ups = gainXp(P, xp);
       if (ups > 0) {
         const p = this.player;
@@ -1491,6 +1506,7 @@ export class Sim {
 
   /** disciples and masters */
   private think(f: Fighter, dt: number) {
+    if ((f as any).remote) return controlRemote(this, f);
     if ((f as any).helper !== undefined) return helperThink(this, f, dt);
     if (f.team === 'ally') return allyThink(this, f, dt);
     if ((f as any).giant) return giantThink(this, f, dt);
@@ -1634,7 +1650,7 @@ export class Sim {
     }
     if (sk?.move) sk.move(this, f, wish, dt);
     else if (canWalk) {
-      let spd = (f.team === 'player' ? RUN : NPC_RUN) * (f.st.slow > 0 ? 0.5 : 1) * (f.st.daze > 0 ? 0.5 : 1) * (f.st.rage > 0 ? RAGE.move : 1) * (f.st.weak > 0 ? 0.8 : 1) * ((f as any).spdMul ?? 1) * (groundHeight(f.pos[0], f.pos[2]) < WATER_Y - 0.5 && !ICE.on ? 0.55 : 1);
+      let spd = (f.team === 'player' ? RUN : NPC_RUN) * (f.st.slow > 0 ? 0.5 : 1) * (f.st.daze > 0 ? 0.5 : 1) * (f.st.rage > 0 ? RAGE.move : 1) * (f.st.weak > 0 ? 0.8 : 1) * ((f as any).spdMul ?? 1) * (groundHeight(f.pos[0], f.pos[2]) < WATER_Y - 0.5 && !ICE.on && !(f as any).waterborne && !(f.id === PLAYER && gearOf(this.progress).swim) ? 0.55 : 1); // wading slows you (水寇 and the 蛟珠's wearer go as fast in water)
       if (!f.aggro && f.team === 'sect' && Math.hypot(f.pos[0] - (f.home?.[0] ?? 0), f.pos[2] - (f.home?.[1] ?? 0)) < 6) spd *= 0.6; // strolling about at home
       const k = f.grounded ? 14 : 4;
       const tx = wish[0] * spd;

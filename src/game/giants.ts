@@ -51,6 +51,8 @@ export interface GiantMove {
   fx: 'slam' | 'rocks' | 'roar' | 'sweep' | 'beam' | 'ice' | 'blood' | 'gold';
   /** calls this many of its men (from its pool) */
   adds?: number;
+  /** drags whoever is within the mark toward its middle while it winds up (a whirlpool), metres a second */
+  pull?: number;
 }
 export interface GiantDef {
   key: string;
@@ -221,6 +223,37 @@ export const GIANTS: Record<string, GiantDef> = {
       { id: 'cross', name: '十字魔光', shape: 'line', at: 'self', r: 30, r2: 2, n: 4, spread: 1.5708, wind: 1.6, dmg: 0.36, knock: 10, open: 2.8, phase: 2, weight: 2, anim: 'skill_spell', fx: 'beam' },
       { id: 'leap', name: '坠星', shape: 'circle', at: 'target', r: 8, wind: 1.7, dmg: 0.45, launch: 9, rush: true, open: 3.2, phase: 3, weight: 3, anim: 'attack_3', fx: 'slam' },
       { id: 'nova', name: '天魔解体', shape: 'ring', at: 'self', r: 20, r2: 5, wind: 1.8, dmg: 0.4, knock: 16, phase: 3, weight: 2, anim: 'skill_slash', fx: 'roar' },
+    ],
+  },
+  // 水战 (owner: fights in the water): a river 蛟 in the wide deep pool below the fisherman, its 水寇 on the banks
+  jiao: {
+    key: 'jiao',
+    name: '覆舟河蛟',
+    model: 'giant-tianlang.glb', // until its own Tripo body (river-jiao.glb) comes: the wolf's, river green
+    tint: '#4f8f7a',
+    scale: 1,
+    bodyR: 4.2,
+    bodyH: 6,
+    hpMul: 1, // its life is set when it is made (endgame.ts)
+    color: '#38bdf8',
+    look: 'beast',
+    ground: 30,
+    intro: '水面忽然鼓起一个大包，一条披着青鳞的河蛟从浪里抬起头来，水从它的角上往下淌。脚下是齐腰的水，你走得慢，它游得快：看清水面上的圈，别被漩涡卷进去。',
+    phaseLines: ['（河水倒灌，浪头比人还高）', '（它把整条河都搅了起来）'],
+    adds: [{ name: '水寇', model: 'foe-bandit.glb' }],
+    helpers: [
+      { name: '渔翁 · 老钓叟', model: 'ally-militia.glb', strong: true },
+      { name: '援手 · 赵铁枪', model: 'ally-militia.glb' },
+      { name: '援手 · 孙二娘', model: 'ally-militia.glb' },
+    ],
+    moves: [
+      { id: 'jbite', name: '覆舟一咬', shape: 'cone', at: 'self', r: 10, r2: 0.7, wind: 0.95, dmg: 0.26, knock: 9, phase: 1, weight: 3, anim: 'attack_2', fx: 'sweep' },
+      { id: 'jtail', name: '甩尾掀浪', shape: 'circle', at: 'self', r: 10, wind: 1.3, dmg: 0.24, knock: 14, phase: 1, weight: 3, anim: 'attack_3', fx: 'ice' },
+      { id: 'spout', name: '水龙吐息', shape: 'line', at: 'self', r: 24, r2: 2, wind: 1.5, dmg: 0.3, knock: 10, open: 2.6, phase: 1, weight: 2, anim: 'skill_spell', fx: 'ice' },
+      { id: 'whirl', name: '漩涡', shape: 'ring', at: 'self', r: 15, r2: 4, wind: 1.6, dmg: 0.22, knock: 12, pull: 3.2, phase: 1, weight: 2, anim: 'skill_slash', fx: 'roar' },
+      { id: 'dive', name: '潜渊突袭', shape: 'circle', at: 'target', r: 6, wind: 1.4, dmg: 0.34, launch: 8, rush: true, open: 3, phase: 2, weight: 3, anim: 'attack_1', fx: 'ice' },
+      { id: 'rain', name: '暴雨', shape: 'circle', at: 'target', r: 2.8, n: 8, spread: 11, wind: 1.4, dmg: 0.2, knock: 5, adds: 2, phase: 2, weight: 2, anim: 'skill_spell', fx: 'ice' },
+      { id: 'tide', name: '怒潮三叠', shape: 'line', at: 'self', r: 28, r2: 2.2, n: 3, spread: 0.6, wind: 1.5, dmg: 0.32, knock: 14, open: 3.2, phase: 3, weight: 3, anim: 'skill_slash', fx: 'ice' },
     ],
   },
 };
@@ -503,6 +536,16 @@ function runMove(s: Sim, f: Fighter, def: GiantDef, st: GState, _t: Fighter, dt:
       f.vel = [0, 0, 0];
     }
   }
+  // a whirlpool drags you in while it winds up (fight the current: roll out)
+  if (m.pull && !mv.done)
+    for (const mk of mv.marks)
+      for (const o of foesOf(s, f)) {
+        const dx = mk.x - o.pos[0], dz = mk.z - o.pos[2], d = Math.hypot(dx, dz);
+        if (d < 0.5 || d > mk.r + 2 || o.st.invuln > 0) continue;
+        const k = Math.min(d, m.pull * dt);
+        o.pos[0] += (dx / d) * k;
+        o.pos[2] += (dz / d) * k;
+      }
   if (!mv.done && mv.t >= m.wind) {
     mv.done = true;
     // the blow lands on whoever is still in a mark (a roll's moment of grace saves you)
