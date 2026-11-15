@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_fd79c897cf7b5a7e9fb5718c66766ce0"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_2902b3e190e990dbb6a63bc7c03a8f1b"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 2059.920166015625,
+     "fy": 2059.328369140625,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 967.3421844033635,
+    "fy": 967.3421844033635,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 967.3421844033635,
+    "fy": 967.3421844033635,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 967.3421844033635,
+    "fy": 967.3421844033635,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 967.3421844033635,
+    "fy": 967.3421844033635,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 967.3421844033635,
+    "fy": 967.3421844033635,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 967.3421844033635,
+    "fy": 967.3421844033635,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 967.3421844033635,
+    "fy": 967.3421844033635,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide semi-realistic painterly game-environment view of a newly occupied, modest cozy ancient Chinese village house glowing with warm lamp light.\",\"scene\":\"A detailed semi-realistic painterly game environment depicts the interior of a modest but cozy village house in ancient China, viewed at eye level from the middle of the room. A wooden bed with a fresh quilt rests along one wall beside a mounted weapon and armour rack holding a sheathed sword and a leather coat. A wooden chest, square table with stools, clay stove with a kettle, lattice window, and several potted plants complete the freshly swept, warmly illuminated room; no people are present.\",\"subjects\":[{\"name\":\"wooden bed\",\"description\":\"A low, sturdy wooden sleeping bed prepared for a new occupant.\",\"action_or_state\":\"static, neatly made\",\"appearance\":\"dark honey-brown wood with squared legs, a thick fresh quilt in muted indigo and cream geometric patchwork, and a folded linen pillow\",\"position_or_relationship\":\"along the left wall beneath part of the weapon and armour rack\"},{\"name\":\"weapon and armour rack\",\"description\":\"A simple wall-mounted wooden rack for travel and defense equipment.\",\"action_or_state\":\"static\",\"appearance\":\"aged elm pegs holding a sheathed straight sword with a wrapped handle and a weathered brown leather coat with stitched panels\",\"position_or_relationship\":\"mounted on the back wall above and beside the bed\"},{\"name\":\"wooden chest\",\"description\":\"A compact storage chest for household goods.\",\"action_or_state\":\"closed and static\",\"appearance\":\"dark stained wood, iron corner straps, a simple curved metal latch, lightly scuffed edges\",\"position_or_relationship\":\"at the foot of the bed near the center-left floor\"},{\"name\":\"table and stools\",\"description\":\"A square wooden dining table with two low stools.\",\"action_or_state\":\"static\",\"appearance\":\"plain plank construction with worn corners, warm walnut finish, two round-legged stools tucked beneath opposite sides\",\"position_or_relationship\":\"occupying the center of the room as the main open-floor furnishing\"},{\"name\":\"clay stove\",\"description\":\"A squat clay cooking stove with a blackened opening and an iron kettle on top.\",\"action_or_state\":\"gently warming, with a faint thread of steam from the kettle\",\"appearance\":\"hand-formed ochre clay, soot-darkened rim, dull black iron kettle with an arched handle\",\"position_or_relationship\":\"against the right wall beneath the lattice window\"},{\"name\":\"potted plants\",\"description\":\"A small group of practical indoor potted plants.\",\"action_or_state\":\"static\",\"appearance\":\"leafy green herbs and a trailing vine in rough terracotta pots\",\"position_or_relationship\":\"clustered on the lattice windowsill and one pot placed on the floor beside the stove\"}],\"setting\":\"A single-room ancient Chinese village dwelling with timber-framed plaster walls, exposed wooden ceiling beams, and a clean swept plank floor. The room has the restrained, practical furnishings of a home that has just been moved into, with ample clear floor space and only essential possessions arranged neatly.\",\"composition\":\"Wide eye-level view from the middle of the room, with the square table and stools centered in the foreground. The bed and gear rack anchor the left side while the stove, window, and plants balance the right side; floorboards lead inward toward the back wall.\",\"style\":\"Semi-realistic painterly game environment art with crisp, highly detailed surface rendering and clear readable prop design. The scene is unoccupied and composed like an explorable role-playing game interior.\",\"lighting\":\"Warm amber lamp light pools across the wooden floor and creates soft shadows beneath the table and stools. Cooler muted daylight enters through the lattice window, softly outlining the kettle, plants, and wall texture without overpowering the interior glow.\",\"color_palette\":[\"warm amber\",\"honey-brown wood\",\"muted indigo\",\"weathered leather brown\",\"ochre clay\",\"soft cream plaster\",\"leafy green\",\"charcoal black\"],\"materials_and_textures\":\"Sharp wood grain is visible in the floorboards, furniture, beams, and chest, with small scratches and worn edges. The quilt is thick woven cloth, the leather coat is creased and stitched, the clay stove is rough and soot-stained, and the lattice window is translucent paper set into dark wooden framing.\",\"mood\":\"cozy, orderly, rustic, quietly practical, warmly inhabited\",\"supporting_details\":\"A small oil lamp on the table provides the main warm glow, beside a plain ceramic cup and a folded cloth. A straw broom rests discreetly near the doorframe, reinforcing the freshly swept floor. The window paper carries a faint cool-blue evening cast, while the kettle sends up a delicate ribbon of steam.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"none\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}
