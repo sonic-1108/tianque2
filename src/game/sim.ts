@@ -809,6 +809,16 @@ export class Sim {
       this.toast(`${q.title}：${Math.min(Q.count, q.goal.count)} / ${q.goal.count}`);
     }
     if (q.goal.type === 'boss' && den === q.goal.den && (def as any).boss) Q.count = 1;
+    // 镇魔四印: each giant beaten again drops its seal
+    const gk = (def as any).giant?.key;
+    if (q.goal.type === 'giants' && gk && q.goal.keys.includes(gk)) {
+      const D = (this.progress.done ??= {}) as Record<string, number>;
+      if (!D['seal:' + gk]) {
+        D['seal:' + gk] = 1;
+        const n = q.goal.keys.filter((k) => D['seal:' + k]).length;
+        this.toast(`${def.name}倒下，落下一道镇魔印 · ${n} / ${q.goal.keys.length}`);
+      }
+    }
   }
   /** goals that are states of the world (learned a move, a level), and finished counts */
   private questCheck() {
@@ -827,7 +837,9 @@ export class Sim {
       (g.type === 'rival' && !!P.done?.['rival:' + g.id]) ||
       (g.type === 'home' && this.indoor >= 0 && ROOMS[this.indoor].theme === 'home') ||
       (g.type === 'hunt' && !!P.done?.hunt) ||
-      (g.type === 'gear' && (P.gear ?? []).length >= g.n);
+      (g.type === 'gear' && (P.gear ?? []).length >= g.n) ||
+      (g.type === 'giants' && g.keys.every((k) => !!P.done?.['seal:' + k])) ||
+      (g.type === 'tianmo' && !!P.done?.['tianmo']);
     if (done) {
       Q.state = 'ready';
       if (q.auto) return this.turnInQuest();
@@ -1234,9 +1246,12 @@ export class Sim {
     f.cds = {};
     const [x, z] = (f.id === PLAYER && (f as any).giantRes) || f.home || VILLAGE_SPAWN;
     if (f.id === PLAYER) (f as any).giantRes = null;
-    f.pos = [x, groundHeight(x, z), z];
+    f.pos = [x, floorAt(x, z), z]; // (a room's floor for those who live in one: the tower, 天魔窟)
     f.vel = [0, 0, 0];
     this.setAct(f, 'idle', 0, 'idle');
+    // a giant gets up as it first stood: asleep, its first phase, nothing half thrown
+    const gs = (f as any).giant;
+    if (gs) Object.assign(gs, { phase: 1, move: null, open: 0, awake: false, cd: 2 });
     if (f.id === PLAYER) f.st.invuln = 2;
     if (f.team === 'ally') allyUp(this, f);
   }

@@ -5,6 +5,7 @@ import { FOLK, PLACES, placeOf } from './places';
 import { GD_PAV, roadPoint } from './layout';
 import { HOME } from './village';
 import { RIVALS, roadPath, type EscortSpec } from './jianghu';
+import { ABYSS } from './endLayout';
 
 export type Goal =
   | { type: 'learn' } // learn a first move (K)
@@ -23,7 +24,10 @@ export type Goal =
   // story 5: fewer dens, more kinds of thing to do
   | { type: 'patrol' } // rout a patrol of the false court
   | { type: 'post' } // raze a checkpoint
-  | { type: 'escort' }; // bring someone safely along a road (Quest.escort)
+  | { type: 'escort' } // bring someone safely along a road (Quest.escort)
+  // 后传 (endgame.ts): after 伪帝
+  | { type: 'giants'; keys: string[] } // beat each of these giants again (镇魔四印)
+  | { type: 'tianmo' }; // beat 天魔本相 in 天魔窟
 
 export type NpcRole = 'elder' | 'doctor' | 'teller';
 
@@ -54,6 +58,8 @@ export interface Quest {
   gear?: string;
   /** added in story 5 */
   v5?: boolean;
+  /** 后传, added after the story ended (older story numbers skip these) */
+  v6?: boolean;
   /** story 5 no longer asks for it (most den clearing): the line steps over it, numbers stay put */
   skip?: boolean;
   /** who to bring where (goal 'escort') */
@@ -413,6 +419,69 @@ export const QUESTS: Quest[] = (() => {
     goal: { type: 'talk', npc: 'elder' },
     xp: 300,
   });
+  // 后传 · 天魔劫 (owner: after 伪帝 there was nothing left): what 萧承乾 drew his 法相 from is loose under 天阙
+  q.push({
+    title: '后传 · 余震',
+    giver: 'elder',
+    direct: true,
+    auto: true,
+    v6: true,
+    chapter: {
+      name: '后传 · 天魔劫',
+      text: '钟响后的第七个夜里，青石村的井水泛起了黑沫。\n天阙那边地动山摇，山门后头的石台裂开一道缝，往外冒着紫黑色的烟。\n萧承乾的法相是从哪儿借来的力气？没人问过。现在，那东西自己醒了。',
+    },
+    intro: '天阙后山裂了道口子，夜夜往外冒黑烟。你去看看，别往下走。',
+    done: '石台后头的裂缝像一张嘴，往外吐着带紫光的烟。\n裂缝边上散着七块碎掉的石碑，碑上刻着同一个字：镇。\n你往下望了一眼，黑暗里有什么东西也在往上望。',
+    goal: { type: 'visit', at: [ABYSS.x, ABYSS.z], r: 12, place: '天阙后山的裂缝' },
+    xp: 400,
+  });
+  q.push({
+    title: '问僧',
+    giver: 'doctor',
+    direct: true,
+    auto: true,
+    v6: true,
+    intro: '镇魔的碑？这得问慧明。他年轻时在天阙的寺里待过。',
+    done: '天魔。阿弥陀佛……守阙人当年把它镇在天阙底下，用了七块碑、四道印。\n萧承乾挖开了一道缝，借它的力气化出法相。雷彪的血傀术、那头天狼、会动的铜人，都是从这道缝里漏出来的东西喂大的。\n要重新镇住它，得把四道印找回来：印就在它们身上。再打倒它们一次，印自然会落下来。',
+    goal: { type: 'talk', npc: 'doctor' },
+    xp: 300,
+  });
+  q.push({
+    title: '镇魔四印',
+    giver: 'doctor',
+    direct: true,
+    auto: true,
+    v6: true,
+    intro: '血傀雷彪、啸月天狼、镇阙铜人、天魔法相。它们又站起来了，比以前更凶。一个一个去，把印带回来。打不过就叫上帮手，也可以去巨灵碑先练练。',
+    done: '四道印都在了。印上的字还是热的。\n下面的事，我陪你一起去。',
+    goal: { type: 'giants', keys: ['leibiao', 'tianlang', 'tongren', 'fadi'] },
+    xp: 2400,
+  });
+  q.push({
+    title: '下天魔窟',
+    giver: 'doctor',
+    direct: true,
+    auto: true,
+    v6: true,
+    intro: '带着四道印，从天阙后山的裂缝下去（大地图上标着「魔」）。它在最底下。记住：别贪刀，看地上的圈。',
+    done: '天魔本相散成一地黑灰，四道印压在灰上，慢慢沉进石头里。\n裂缝合上的时候，你听见很远的地方，天阙的钟自己响了一声。',
+    goal: { type: 'tianmo' },
+    xp: 5000,
+  });
+  q.push({
+    title: '后传 · 尾声',
+    giver: 'elder',
+    direct: true,
+    v6: true,
+    chapter: {
+      name: '后传 · 尾声',
+      text: '天阙底下又安静了。\n慧明在裂缝合上的地方种了一棵松。\n江湖上开始有人叫你「镇魔者」。也有人说，天阙试炼塔顶上那盏灯，是给你留的。',
+    },
+    intro: '回村吧，石伯又在村口等你了。',
+    done: '又回来了。这回，该歇歇了吧？……我就知道你歇不住。',
+    goal: { type: 'talk', npc: 'elder' },
+    xp: 600,
+  });
   q.push({ title: '散人之道', giver: 'elder', intro: '你学过七家的招，一家都不属于。到了三十级，按 K 可以转职，学一家的大招。也可以一直做个散人。路怎么走，你自己定。', done: '青石村记住你了。天阙的钟，往后由你来敲。', goal: { type: 'level', level: 30 }, xp: 500 });
   // fewer dens to clear, so each story step pays more
   for (const x of q) x.xp = Math.round(x.xp * 1.6);
@@ -456,6 +525,7 @@ export function goalPos(g: Goal): [number, number] | null {
     const sm = placeOf('smithy');
     return [sm.x, sm.z];
   }
+  if (g.type === 'tianmo') return [ABYSS.x, ABYSS.z];
   return null;
 }
 /** "he walks the road out to the north, 180 to 290 steps out" */
@@ -486,6 +556,19 @@ export function questTarget(sim: { progress: { quest: { idx: number; state: stri
     const n = NPCS.find((x) => x.role === q.giver)!;
     return [n.x, n.z];
   }
+  // 镇魔四印: the nearest giant not yet beaten again
+  if (q.goal.type === 'giants' && sim.fighters) {
+    const P = sim.progress as any;
+    let best: [number, number] | null = null, bd = Infinity;
+    for (const f of sim.fighters) {
+      const k = f.giant?.key;
+      if (!k || !(q.goal as any).keys.includes(k) || P.done?.['seal:' + k]) continue;
+      const [x, z] = f.giant.denHome ?? f.home ?? [f.pos[0], f.pos[2]];
+      const d = Math.hypot(x, z);
+      if (d < bd) (bd = d), (best = [x, z]);
+    }
+    return best;
+  }
   if (q.goal.type === 'escort' && sim.jh?.escort && sim.fighters) {
     const E = sim.jh.escort, f = sim.fighters[sim.jh.escortId];
     return E.waiting ? [f.pos[0], f.pos[2]] : E.path[E.path.length - 1];
@@ -497,7 +580,7 @@ export function questTarget(sim: { progress: { quest: { idx: number; state: stri
 export function fromStory(idx: number, from: 2 | 3 | 4) {
   let k = -1;
   for (let i = 0; i < QUESTS.length; i++) {
-    if (QUESTS[i].v5 || (from <= 3 && QUESTS[i].v4) || (from === 2 && QUESTS[i].v3)) continue;
+    if (QUESTS[i].v6 || QUESTS[i].v5 || (from <= 3 && QUESTS[i].v4) || (from === 2 && QUESTS[i].v3)) continue;
     if (++k === idx) return i;
   }
   return QUESTS.length;

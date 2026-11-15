@@ -94,7 +94,7 @@ export function makeEndgame(s: Sim) {
   // 天魔本相 in its cave (asleep till you come down; a giant like the others)
   const R = ROOMS.find((r) => r.theme === 'abyss')!;
   const g = (s as any).make('sect', null, '天魔本相', 'giant-leibiao.glb', 40, R.ox, R.oz - 6) as Fighter;
-  g.maxHp = Math.round((180 + 40 * 55) * 3);
+  g.maxHp = Math.round((180 + 40 * 55) * 12); // half again 法相's: the last thing under 天阙
   g.home = [R.ox, R.oz - 6];
   (g as any).boss = true;
   (g as any).room = R.id;
