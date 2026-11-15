@@ -32,6 +32,7 @@ import { Summons } from './Summons';
 import { Calls } from './Calls';
 import { Interiors } from './Interiors';
 import { VillageDress } from './VillageDress';
+import { Telegraphs } from './Telegraphs';
 const propCache = new Map<string, Promise<THREE.Group>>();
 const propLoader = new GLTFLoader();
 propLoader.setMeshoptDecoder(typeof MeshoptDecoder === 'function' ? (MeshoptDecoder as any)() : MeshoptDecoder);
@@ -353,6 +354,7 @@ export function World({ sim }: { sim: Sim }) {
         <Dens />
         <Animals sim={sim} />
       </Outdoors>
+      <Telegraphs sim={sim} />
       <Interiors sim={sim} />
       <Calls sim={sim} />
       <PlayThings sim={sim} />

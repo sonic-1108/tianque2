@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { GLTFLoader, SkeletonUtils, MeshoptDecoder } from 'three-stdlib';
 import type { Fighter } from '../game/types';
+import { giantOf, giantOpen, giantPhase } from '../game/giants';
 import { KIT_FLY } from '../game/kit';
 import type { Sim } from '../game/sim';
 import { heroWeapons, weaponsFor } from './weapons';
@@ -352,6 +353,9 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     const saddle = f.id === 0 && sim.riding >= 0 ? 1.05 : 0;
     g.position.set(f.pos[0], f.pos[1] - (f.act === 'burrow' ? 1.3 : 0) + saddle, f.pos[2]);
     g.rotation.y = f.yaw + Math.PI;
+    // a giant (giants.ts): drawn many times life size
+    const gd = giantOf(f);
+    g.scale.setScalar(gd ? gd.scale : 1);
     // struck: a white flash and a jolt back (on render time, so they play through the hit-stop)
     const ha = (f as any).hitAt;
     if (ha !== undefined && ha !== body.lastHit) {
@@ -368,7 +372,15 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
       body.jolt *= Math.exp(-dt * 11);
     }
     const mats: THREE.MeshStandardMaterial[] | undefined = (model?.obj as any)?.userData.mats;
-    if (mats && (body.flash > 0.01 || body.flashOn)) {
+    if (mats && gd) {
+      // a giant's skin: blood under it pulsing (or bronze, or gold), a yellow glow while it stands open
+      const t = performance.now() / 1000, open = giantOpen(f) > 0, k = body.flash > 0.01 ? body.flash * body.flash * 0.6 : 0;
+      const pulse = 0.1 + giantPhase(f) * 0.03 + Math.sin(t * (giantPhase(f) * 2 + 2)) * 0.07;
+      const base = new THREE.Color(gd.color).multiplyScalar(pulse);
+      if (open) base.lerp(new THREE.Color('#ffd84a'), 0.3 + Math.sin(t * 12) * 0.12);
+      for (const m of mats) m.emissive.setRGB(base.r + k, base.g + k, base.b + k);
+      body.flash *= Math.exp(-dt * 15);
+    } else if (mats && (body.flash > 0.01 || body.flashOn)) {
       const k = body.flash > 0.01 ? body.flash * body.flash * 0.9 : 0;
       for (const m of mats) m.emissive.setRGB(k, k * 0.95, k * 0.85);
       body.flashOn = k > 0;

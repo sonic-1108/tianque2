@@ -34,6 +34,7 @@ import { kitAfter, kitGuard, kitHidden, kitSpeed, kitStep, kitSwing } from './ki
 import { NPCS, QUESTS, fromStory, type NpcRole } from './quests';
 import { ALL_FOLK, ROOMS, ROOM_Y, roomAt, roomSpawn, roomExit, roomRealm } from './interiors';
 import { pushOutOfRealm, realmFloor } from './realms';
+import { GIANT_OF_RING, bodyH, bodyR, giantRespawn, giantTakes, giantThink, helperThink, makeGiant, pushFromGiants, stepTeles, type Tele } from './giants';
 
 /** an ultimate goes off only after R is held this long (the owner's rule); letting go or a hit throws it away */
 export const ULT_CHARGE = 0.8;
@@ -103,6 +104,10 @@ export interface VCmd {
 
 export class Sim {
   fighters: Fighter[] = [];
+  /** red marks on the ground where a giant's blow is coming (giants.ts) */
+  teles: Tele[] = [];
+  /** the giant whose ground you're on (-1: none) */
+  giantFight = -1;
   proj: Projectile[] = [];
   zones: Zone[] = [];
   fx: Fx[] = [];
@@ -318,6 +323,13 @@ export class Sim {
     makeJianghu(this);
     this.snow = makeSnow(this);
     makeArenaPool(this);
+    // the ring bosses made giants (giants.ts), with their men and their helpers made last so no one else's number moves
+    for (const f of [...this.fighters]) {
+      const d = DENS[(f as any).den];
+      if (!(f as any).boss || !d) continue;
+      const key = GIANT_OF_RING[d.ring];
+      if (key) makeGiant(this, f, key);
+    }
     // an escort under way when the game was closed starts again from its start
     const q0 = this.quest();
     if (q0?.escort && this.progress.quest.state === 'active') startEscort(this, q0.escort);
@@ -405,9 +417,9 @@ export class Sim {
       if (Math.abs(o.pos[1] - f.pos[1]) > 6) continue;
       const dx = o.pos[0] - f.pos[0];
       const dz = o.pos[2] - f.pos[2];
-      const d = Math.hypot(dx, dz);
+      const d0 = Math.hypot(dx, dz), d = d0 - bodyR(o); // a giant is reached at its girth, not its middle
       if (d > bd) continue;
-      if (cone > -2 && d > 0.5 && (dx * fx + dz * fz) / d < cone) continue;
+      if (cone > -2 && d0 > 0.5 + bodyR(o) && (dx * fx + dz * fz) / d0 < cone) continue;
       best = o;
       bd = d;
     }
@@ -419,12 +431,14 @@ export class Sim {
     return this.enemiesOf(f).filter((o) => {
       const dx = o.pos[0] - f.pos[0];
       const dz = o.pos[2] - f.pos[2];
-      const d = Math.hypot(dx, dz);
-      return d <= range && Math.abs(o.pos[1] - f.pos[1]) < 3 && (d < 0.6 || (dx * fx + dz * fz) / d >= cone);
+      const d = Math.hypot(dx, dz), R = bodyR(o);
+      // a giant: its girth counts, and it's in the arc if any of its breadth is
+      const cosR = R > 0 && d > R ? Math.cos(Math.max(0, Math.acos(Math.max(-1, Math.min(1, cone))) + Math.asin(Math.min(1, R / d)))) : cone;
+      return d - R <= range && Math.abs(o.pos[1] - f.pos[1]) < 3 + bodyH(o) - 2.1 && (d < 0.6 + R || (dx * fx + dz * fz) / d >= cosR);
     });
   }
   inRadius(f: Fighter, x: number, z: number, r: number) {
-    return this.enemiesOf(f).filter((o) => Math.hypot(o.pos[0] - x, o.pos[2] - z) <= r + 0.4);
+    return this.enemiesOf(f).filter((o) => Math.hypot(o.pos[0] - x, o.pos[2] - z) <= r + 0.4 + bodyR(o));
   }
   faceTo(f: Fighter, x: number, z: number) {
     f.yaw = Math.atan2(-(x - f.pos[0]), -(z - f.pos[2]));
@@ -567,6 +581,7 @@ export class Sim {
       dmg = kitGuard(this, att, def, dmg);
       if (dmg <= 0) return 0;
     }
+    if ((def as any).giant) dmg = giantTakes(def, dmg);
     dmg = Math.max(1, Math.round(dmg));
     def.hp = Math.max(0, def.hp - dmg);
     if (def.hp <= 0) kitAfter(this, def);
@@ -610,6 +625,7 @@ export class Sim {
       this.kill(att, def, dx / d, dz / d);
       return dmg;
     }
+    if ((def as any).giant) return dmg; // a giant never reels
     // a boss stands his ground against light blows: only heavy ones (finishers, crits, big moves) stagger him
     // (雷彪, the first, still reels from anything)
     if ((def as any).boss && DENS[(def as any).den]?.ring > 0 && !heavy && !o.launch && !o.down && !o.stun) {
@@ -680,7 +696,9 @@ export class Sim {
     this.setAct(def, 'dead', 0, 'dead');
     if (def.id === PLAYER) {
       def.respawn = 4;
-      this.toast(`你被${att.name}打倒了 · 4 秒后回到村子`);
+      const at = giantRespawn(this);
+      (def as any).giantRes = at;
+      this.toast(at ? `你被${att.name}打倒了 · 4 秒后在战场边上站起来，它的伤还在` : `你被${att.name}打倒了 · 4 秒后回到村子`);
       return;
     }
     if (def.team === 'ally') {
@@ -1026,6 +1044,8 @@ export class Sim {
         if (b.grounded) b.pos[1] = Math.max(b.pos[1], floorAt(b.pos[0], b.pos[2], b.pos[1]));
       }
     }
+    pushFromGiants(this);
+    stepTeles(this, dt);
     for (const f of this.fighters) this.acts(f, dt);
     this.projectiles(dt);
     this.zoneStep(dt);
@@ -1161,7 +1181,8 @@ export class Sim {
     f.st = noStatus();
     f.run = null;
     f.cds = {};
-    const [x, z] = f.home ?? VILLAGE_SPAWN;
+    const [x, z] = (f.id === PLAYER && (f as any).giantRes) || f.home || VILLAGE_SPAWN;
+    if (f.id === PLAYER) (f as any).giantRes = null;
     f.pos = [x, groundHeight(x, z), z];
     f.vel = [0, 0, 0];
     this.setAct(f, 'idle', 0, 'idle');
@@ -1400,7 +1421,9 @@ export class Sim {
 
   /** disciples and masters */
   private think(f: Fighter, dt: number) {
+    if ((f as any).helper !== undefined) return helperThink(this, f, dt);
     if (f.team === 'ally') return allyThink(this, f, dt);
+    if ((f as any).giant) return giantThink(this, f, dt);
     if (f.hp <= 0) return;
     const p = this.player;
     // 夜幕: they've lost you
@@ -1804,8 +1827,8 @@ export class Sim {
     const seen = P ? (P.back ? ((pr as any).hitB ??= []) : pr.hit) : pr.hit;
     for (const o of this.enemiesOf(owner)) {
       if (seen.includes(o.id)) continue;
-      if (Math.hypot(o.pos[0] - pr.pos[0], o.pos[2] - pr.pos[2]) > rad + 0.2) continue;
-      if (pr.pos[1] < o.pos[1] - 0.2 || pr.pos[1] > o.pos[1] + 2.1) continue;
+      if (Math.hypot(o.pos[0] - pr.pos[0], o.pos[2] - pr.pos[2]) > rad + 0.2 + bodyR(o)) continue;
+      if (pr.pos[1] < o.pos[1] - 0.2 || pr.pos[1] > o.pos[1] + bodyH(o)) continue;
       if (o.act === 'burrow') continue;
       seen.push(o.id);
       if (o.st.invuln > 0) {

@@ -42,7 +42,7 @@ export interface Den {
 }
 /** the story's bosses: one per ring (the ring's last den), then the false emperor on 天阙 */
 const RING_BOSS: { kind: number; bossName: string; bossModel: string }[] = [
-  { kind: 0, bossName: '黑风寨主 · 雷彪', bossModel: 'boss-leibiao.glb' },
+  { kind: 0, bossName: '血傀 · 雷彪', bossModel: 'boss-leibiao.glb' },
   { kind: 6, bossName: '玄阴真人', bossModel: 'boss-xuanyin.glb' },
   { kind: 3, bossName: '影阁主 · 无面', bossModel: 'boss-wumian.glb' },
 ];

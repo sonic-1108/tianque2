@@ -228,3 +228,13 @@ button:not(:disabled):hover { border-color: var(--gold); }
 .realm-load i { display: block; width: 260px; height: 3px; background: #ffffff26; border-radius: 2px; overflow: hidden; }
 .realm-load u { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #8fd0ff, #e6f6ff); transition: width 0.2s; }
 .realm-load.done { opacity: 0; }
+
+/* a giant's bar (giants.ts): across the top, notched at its phases */
+.giant-bar { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); width: min(620px, 80vw); z-index: 20; pointer-events: none; }
+.giant-bar .gb-name { color: #fde2d0; font-size: 18px; letter-spacing: 0.2em; text-align: center; text-shadow: 0 2px 6px #000; margin-bottom: 4px; }
+.giant-bar .gb-name span { font-size: 12px; opacity: 0.75; margin-left: 6px; }
+.giant-bar .gb-name em { font-style: normal; color: #fde047; margin-left: 12px; font-size: 14px; }
+.giant-bar .gb-bar { position: relative; height: 12px; background: #1a0b0bcc; border: 1px solid #ff6b5b88; border-radius: 3px; overflow: hidden; }
+.giant-bar .gb-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #7f1010, #e0362a); transition: width 0.2s; }
+.giant-bar.open .gb-bar i { background: linear-gradient(90deg, #a16207, #fde047); }
+.giant-bar .gb-bar s { position: absolute; top: 0; bottom: 0; width: 2px; background: #000a; }

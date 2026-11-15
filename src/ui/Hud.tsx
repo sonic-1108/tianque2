@@ -10,6 +10,7 @@ import type { Sim } from '../game/sim';
 import { ULT_CHARGE } from '../game/sim';
 import { SKILLS } from '../game/skills';
 import { DENS, FOE_KINDS, bossNameOf, menNameOf } from '../game/foes';
+import { giantOpen, giantPhase } from '../game/giants';
 import { WORLD_R } from '../game/world';
 import { ROADS } from '../game/layout';
 import { PLACES } from '../game/places';
@@ -239,6 +240,26 @@ function WorldClock({ sim }: { sim: Sim }) {
   );
 }
 
+/** the giant whose ground you're on: its name, its life in three phases, 破绽 when it stands open */
+function GiantBar({ sim }: { sim: Sim }) {
+  const g = sim.fighters[sim.giantFight];
+  if (!g || g.hp <= 0) return null;
+  const open = giantOpen(g) > 0, ph = giantPhase(g);
+  return (
+    <div className={'giant-bar' + (open ? ' open' : '')}>
+      <div className="gb-name">
+        {g.name} <span>{['', '一', '二', '三'][ph]}阶</span>
+        {open && <em>破绽！伤害翻倍</em>}
+      </div>
+      <div className="gb-bar">
+        <i style={{ width: `${(g.hp / g.maxHp) * 100}%` }} />
+        <s style={{ left: '33.3%' }} />
+        <s style={{ left: '66.6%' }} />
+      </div>
+    </div>
+  );
+}
+
 export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
   void tick;
   const p = sim.player;
@@ -249,6 +270,7 @@ export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
   const free = spFree(P);
   return (
     <div className={'hud' + (look.on ? ' looking' : '')}>
+      <GiantBar sim={sim} />
       <div className="me">
         <div className="me-name">
           {p.name} <span className="lvl">Lv {P.level}</span> <span className="cls">{h ? `${h.title}` : '散人'}</span>
