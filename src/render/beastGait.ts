@@ -5,7 +5,7 @@ import type { Fighter } from '../game/types';
 // fore legs, 1_* the hind legs, Limb_0 hip or shoulder, Limb_1 the next joint down; Spine, Head, Tail chains. Each bone
 // turns about the body's own side axis (or up axis), worked out once from the rest pose, so the gait reads the same
 // whatever the bones' own frames are.
-export type Gait = { bones: Record<string, { b: THREE.Object3D; rest: THREE.Quaternion; side: THREE.Vector3; up: THREE.Vector3 }>; p: number };
+export type Gait = { bones: Record<string, { b: THREE.Object3D; rest: THREE.Quaternion; side: THREE.Vector3; up: THREE.Vector3 }>; p: number; t?: number };
 const qa = new THREE.Quaternion(), qb = new THREE.Quaternion();
 export function makeGait(obj: THREE.Object3D, turn: number): Gait | null {
   obj.updateMatrixWorld(true);
@@ -31,47 +31,92 @@ const ease = (x: number) => x * x * (3 - 2 * x);
 
 /** the hand-made gait: a trot that lengthens into a bound with speed, and a pose for each blow as it winds up */
 export function walkByHand(g: Gait, f: Fighter, speed: number, dt: number, obj: THREE.Object3D, floor: number, h: number) {
-  const run = Math.min(1, speed / 12), mv = (f as any).giant?.move as { m: { id: string; wind: number }; t: number } | null;
-  g.p += dt * (1.2 + speed * 0.32);
-  const p = g.p, amp = 0.08 + run * 0.5;
-  // diagonal pairs swing together; the far joint folds as the leg comes forward
-  const leg = (fore: boolean, side: 'Left' | 'Right', ph: number) => {
-    const n = (fore ? '0_' : '1_') + side + '_Limb_';
-    const s = Math.sin(ph), lift = Math.max(0, Math.cos(ph));
-    pose(g, n + '0', -s * amp);
-    pose(g, n + '1', (fore ? 1 : -1) * lift * amp * 1.1);
-  };
-  // a blow on its way: crouch, raise the head, lash the tail
-  let crouch = 0, head = 0, tail = 0, twist = 0;
+  // a giant ambles at a few metres a second: full stride from 7 m/s, still legs when it stands
+  const run = Math.min(1, speed / 7), moving = speed > 0.6;
+  const mv = (f as any).giant?.move as { m: { id: string; wind: number }; t: number } | null;
+  g.p += dt * (moving ? 2 + speed * 0.45 : 0);
+  g.t = (g.t ?? 0) + dt;
+  const p = g.p, t = g.t, amp = moving ? 0.22 + run * 0.5 : 0;
+  // what each blow does to the whole body
+  let crouch = 0, head = 0, headYaw = Math.sin(t * 0.45) * 0.3 * (moving ? 0.2 : 1), tail = 0, twist = 0, pitch = 0, lunge = 0, fore = 0, hind = 0;
   if (mv) {
-    const k = ease(Math.min(1, mv.t / mv.m.wind)), after = mv.t > mv.m.wind ? Math.max(0, 1 - (mv.t - mv.m.wind) * 2) : 1;
-    const id = mv.m.id;
-    if (id === 'howl') head = -0.75 * k * after; // the muzzle up to the moon
-    else if (id === 'breath' || id === 'frost') { head = 0.35 * k * after; crouch = 0.25 * k * after; }
-    else if (id === 'bite') head = (mv.t < mv.m.wind ? -0.3 * k : 0.45) * after;
-    else if (id === 'tail') { tail = Math.sin(mv.t * 9) * 1.1 * after; twist = Math.sin(mv.t * 9) * 0.25 * after; }
-    else if (id === 'pounce' || id === 'chain') crouch = (mv.t < mv.m.wind ? 0.75 * k : -0.3) * after; // gathers, then stretches out
-    else if (id === 'icicles') head = -0.4 * k * after;
+    const w = mv.m.wind, k = ease(Math.min(1, mv.t / w)), hit = mv.t >= w, after = hit ? Math.max(0, 1 - (mv.t - w) * 1.6) : 1;
+    switch (mv.m.id) {
+      case 'howl': // rears up and howls at the sky
+      case 'icicles':
+        pitch = -0.42 * k * after;
+        head = -0.9 * k * after;
+        fore = -0.5 * k * after;
+        headYaw = 0;
+        break;
+      case 'breath': // head low, the frost swept side to side
+      case 'frost':
+        head = 0.45 * k * after;
+        crouch = 0.35 * k * after;
+        pitch = 0.12 * k * after;
+        headYaw = hit ? Math.sin(mv.t * 4) * 0.35 * after : 0;
+        break;
+      case 'bite': // draws its head back, then snaps forward
+        head = (hit ? 0.55 : -0.45 * k) * after;
+        pitch = (hit ? 0.18 : -0.12 * k) * after;
+        lunge = (hit ? 0.09 : -0.03 * k) * after;
+        fore = (hit ? -0.6 : 0.2 * k) * after;
+        headYaw = 0;
+        break;
+      case 'tail': // spins round and lashes the tail
+        tail = Math.sin(mv.t * 8) * 1.2 * after;
+        twist = Math.sin(mv.t * 8) * 0.35 * after;
+        crouch = 0.2 * k * after;
+        break;
+      case 'pounce': // gathers on its haunches, then flies with every leg stretched
+      case 'chain':
+        if (!hit) {
+          crouch = 0.8 * k;
+          pitch = 0.1 * k;
+          head = 0.25 * k;
+        } else {
+          pitch = -0.2 * after;
+          fore = -0.9 * after;
+          hind = 0.9 * after;
+          lunge = 0.05 * after;
+        }
+        headYaw = 0;
+        break;
+    }
   }
+  // the legs: diagonal pairs swing together, the lower joint folding as the leg comes forward
+  const leg = (front: boolean, side: 'Left' | 'Right', ph: number) => {
+    const n = (front ? '0_' : '1_') + side + '_Limb_';
+    const sw = Math.sin(ph), lift = Math.max(0, Math.cos(ph));
+    let a0 = -sw * amp + (front ? fore : hind), a1 = (front ? 1 : -1) * lift * amp * 1.2;
+    if (!front && crouch) {
+      a0 -= crouch * 0.7;
+      a1 += crouch * 1.0;
+    }
+    if (front && crouch) a1 += crouch * 0.35;
+    pose(g, n + '0', a0);
+    pose(g, n + '1', a1);
+  };
   leg(true, 'Left', p);
   leg(false, 'Right', p + run * 0.5);
   leg(true, 'Right', p + Math.PI);
   leg(false, 'Left', p + Math.PI + run * 0.5);
-  if (crouch) {
-    // the hind legs fold under it
-    for (const sd of ['Left', 'Right']) {
-      pose(g, '1_' + sd + '_Limb_0', -crouch * 0.6);
-      pose(g, '1_' + sd + '_Limb_1', crouch * 0.9);
-    }
-  }
-  pose(g, 'Spine_1', Math.sin(p * 2) * 0.04 * (0.3 + run) - crouch * 0.12, twist);
-  pose(g, 'Spine_2', crouch * 0.1, twist * 0.6);
-  pose(g, 'Head_1', Math.sin(p * 2 + 0.6) * 0.05 * (0.4 + run) + head * 0.6);
-  pose(g, 'Head_0', head * 0.5);
-  pose(g, 'Head_2', head * 0.3);
-  pose(g, 'Tail_0', 0.15 - run * 0.35, Math.sin(p) * 0.25 + tail);
-  pose(g, 'Tail_1', 0, Math.sin(p - 0.7) * 0.2 + tail * 0.5);
-  // the body rises and falls with the stride, and sinks as it crouches
-  obj.position.y = floor + h * (Math.abs(Math.sin(p)) * 0.025 * run - crouch * 0.06);
+  // breath in the chest, the head looking about, the tail never quite still
+  const breathe = Math.sin(t * 1.7) * 0.035;
+  pose(g, 'Spine_1', breathe + Math.sin(p * 2) * 0.05 * run - crouch * 0.12, twist);
+  pose(g, 'Spine_2', -breathe * 0.6 + crouch * 0.1, twist * 0.7);
+  pose(g, 'Head_0', head * 0.45, headYaw * 0.5);
+  pose(g, 'Head_1', Math.sin(p * 2 + 0.6) * 0.06 * run + head * 0.4 + breathe, headYaw * 0.5);
+  pose(g, 'Head_2', head * 0.25);
+  pose(g, 'Tail_0', 0.2 - run * 0.4 - Math.abs(pitch) * 0.5, Math.sin(t * 1.3 + p * 0.5) * (0.25 + run * 0.15) + tail);
+  pose(g, 'Tail_1', -0.1, Math.sin(t * 1.3 + p * 0.5 - 0.8) * 0.25 + tail * 0.6);
+  // the whole body: up on its hind legs or down on its forelegs (turned about its hind or fore feet), lunging,
+  // rising and falling with the stride, sinking as it crouches. The head lies along the model's -x.
+  const pivot = pitch < 0 ? 0.15 : -0.2; // hind feet when rearing, fore feet when pitching down (model units)
+  const sc = obj.scale.x;
+  obj.rotation.z = pitch;
+  const px = pivot * sc;
+  const dx = px - px * Math.cos(pitch), dy = -px * Math.sin(pitch);
+  obj.position.x = dx - lunge * sc;
+  obj.position.y = floor + dy + h * (Math.abs(Math.sin(p)) * 0.03 * run - crouch * 0.07);
 }
-
