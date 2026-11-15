@@ -11,7 +11,7 @@ import { clockOf, newWeather, stepWeather, SEASONS, type ClockInfo, type Weather
 import { dateOf, hauntsFor, planFor, type Entry, type Plan } from './life';
 import type { Folk } from './places';
 import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } from './types';
-import { DENS, DEN_R, FOE_KINDS, bossNameOf, menNameOf } from './foes';
+import { DENS, DEN_R, FOE_KINDS, TQ_DEN, bossNameOf, menNameOf } from './foes';
 import { ICE, MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, buildingFloor, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
 import { JH_TOUCH, allyDown, allyPower, wear, startEscort, endEscort, allyThink, allyUp, doJhTouch, dropFrom, fullHp, gearOf, jhTouch, levelFor, makeArenaPool, makeJianghu, newJH, rivalBeaten, stepArena, stepRivals, stepSeasons, warm, addVillagePts, type JH } from './jianghu';
 
@@ -34,7 +34,7 @@ import { kitAfter, kitGuard, kitHidden, kitSpeed, kitStep, kitSwing } from './ki
 import { NPCS, QUESTS, fromStory, type NpcRole } from './quests';
 import { ALL_FOLK, ROOMS, ROOM_Y, roomAt, roomSpawn, roomExit, roomRealm } from './interiors';
 import { pushOutOfRealm, realmFloor } from './realms';
-import { GIANT_OF_RING, bodyH, bodyR, giantRespawn, giantTakes, giantThink, helperThink, makeGiant, pushFromGiants, stepTeles, type Tele } from './giants';
+import { GIANT_OF_RING, avatarCheck, makeAvatar, bodyH, bodyR, giantRespawn, giantTakes, giantThink, helperThink, makeGiant, pushFromGiants, stepTeles, type Tele } from './giants';
 
 /** an ultimate goes off only after R is held this long (the owner's rule); letting go or a hit throws it away */
 export const ULT_CHARGE = 0.8;
@@ -329,6 +329,7 @@ export class Sim {
       if (!(f as any).boss || !d) continue;
       const key = GIANT_OF_RING[d.ring];
       if (key) makeGiant(this, f, key);
+      if ((f as any).den === TQ_DEN) makeAvatar(this, f);
     }
     // an escort under way when the game was closed starts again from its start
     const q0 = this.quest();
@@ -583,7 +584,11 @@ export class Sim {
     }
     if ((def as any).giant) dmg = giantTakes(def, dmg);
     dmg = Math.max(1, Math.round(dmg));
+    // 萧承乾 never falls as a man: at half his life he becomes the avatar
+    if ((def as any).avatar !== undefined) dmg = Math.min(dmg, Math.max(0, def.hp - 1));
     def.hp = Math.max(0, def.hp - dmg);
+    if ((def as any).avatar !== undefined) avatarCheck(this, def);
+    if ((def as any).benched) return dmg;
     if (def.hp <= 0) kitAfter(this, def);
     if (att.st.rage > 0 && att.hp > 0) att.hp = Math.min(att.maxHp, att.hp + dmg * RAGE.lifesteal);
     if (att.id === PLAYER && att.hp > 0) {

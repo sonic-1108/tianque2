@@ -9,6 +9,7 @@
 import type { Sim } from './sim';
 import type { Fighter } from './types';
 import { groundHeight } from './world';
+import { FOE_KINDS } from './foes';
 
 export type TeleShape = 'circle' | 'ring' | 'cone' | 'line';
 export interface Tele {
@@ -39,7 +40,7 @@ export interface GiantMove {
   dmg: number; // a share of the struck one's full life
   knock?: number;
   launch?: number;
-  /** rushes along its line as the blow lands */
+  /** rushes along its line as the blow lands (a mark on the target: leaps onto it) */
   rush?: boolean;
   /** stands open this long after (破绽) */
   open?: number;
@@ -63,13 +64,20 @@ export interface GiantDef {
   ground: number; // the radius of its ground
   /** its blows scaled (the first giant is a lesson) */
   soft?: number;
+  /** its own body (else the den boss's) */
+  model?: string;
+  /** the men it calls, and the ones who come to stand with you */
+  adds?: { name: string; model: string }[];
+  helpers?: { name: string; model: string; strong?: boolean }[];
   moves: GiantMove[];
   intro: string; // the toast when you step onto its ground
   phaseLines: string[]; // shouted at phase two and three
 }
 
 /** which giant each ring's boss becomes (0: 雷彪's den, 1: 玄阴's, 2: 无面's) */
-export const GIANT_OF_RING: Record<number, string> = { 0: 'leibiao' };
+export const GIANT_OF_RING: Record<number, string> = { 0: 'leibiao', 1: 'tianlang', 2: 'tongren' };
+/** the false emperor's other shape: at half his life 萧承乾 becomes this (makeAvatar) */
+export const AVATAR_KEY = 'fadi';
 
 export const GIANTS: Record<string, GiantDef> = {
   leibiao: {
@@ -93,6 +101,91 @@ export const GIANTS: Record<string, GiantDef> = {
       { id: 'roar', name: '血吼', shape: 'ring', at: 'self', r: 14, r2: 4, wind: 1.4, dmg: 0.2, knock: 16, phase: 2, weight: 2, anim: 'skill_slash', fx: 'roar', adds: 3 },
       { id: 'pools', name: '血池', shape: 'circle', at: 'target', r: 3.4, n: 4, spread: 9, wind: 1.9, dmg: 0.26, launch: 5, phase: 2, weight: 2, anim: 'attack_3', fx: 'blood' },
       { id: 'quake', name: '地裂三连', shape: 'line', at: 'self', r: 22, r2: 1.8, n: 3, spread: 0.55, wind: 1.3, dmg: 0.3, launch: 8, open: 3.2, phase: 3, weight: 3, anim: 'attack_3', fx: 'slam' },
+    ],
+  },
+  tianlang: {
+    key: 'tianlang',
+    name: '啸月天狼',
+    model: 's-wolf.glb',
+    scale: 1,
+    bodyR: 3.6,
+    bodyH: 6.5,
+    hpMul: 4.5,
+    color: '#8fd8ff',
+    look: 'beast',
+    ground: 38,
+    intro: '林子里的雪一下子停了。一头比房子还高的白狼从玄阴真人身后走出来，额头上贴着一道符，眼睛像两盏冰灯。玄阴真人笑了：「天阙封了它三百年，今天放出来，就先拿你喂它。」',
+    phaseLines: ['（天狼仰头长啸，林子里的狼一齐应和）', '（额头的符烧了起来，天狼彻底狂了）'],
+    adds: [{ name: '玄阴真人', model: 'boss-xuanyin.glb' }, { name: '玄阴弟子', model: 'foe-taoist.glb' }],
+    moves: [
+      { id: 'pounce', name: '扑杀', shape: 'circle', at: 'target', r: 4.5, wind: 1.1, dmg: 0.3, launch: 7, rush: true, open: 2, phase: 1, weight: 3, anim: 'attack_1', fx: 'slam' },
+      { id: 'bite', name: '撕咬', shape: 'cone', at: 'self', r: 8, r2: 0.7, wind: 0.9, dmg: 0.25, knock: 8, phase: 1, weight: 3, anim: 'attack_2', fx: 'sweep' },
+      { id: 'tail', name: '甩尾', shape: 'circle', at: 'self', r: 9, wind: 1.3, dmg: 0.24, knock: 13, phase: 1, weight: 2, anim: 'attack_3', fx: 'sweep' },
+      { id: 'breath', name: '冰息', shape: 'cone', at: 'self', r: 17, r2: 0.5, wind: 1.5, dmg: 0.3, knock: 6, open: 2.6, phase: 1, weight: 2, anim: 'skill_spell', fx: 'ice' },
+      { id: 'howl', name: '啸月', shape: 'ring', at: 'self', r: 15, r2: 5, wind: 1.4, dmg: 0.2, knock: 14, adds: 3, phase: 2, weight: 2, anim: 'skill_slash', fx: 'roar' },
+      { id: 'icicles', name: '冰锥雨', shape: 'circle', at: 'target', r: 2.6, n: 7, spread: 10, wind: 1.4, dmg: 0.2, knock: 4, phase: 2, weight: 2, anim: 'skill_spell', fx: 'ice' },
+      { id: 'chain', name: '天狼连扑', shape: 'line', at: 'self', r: 24, r2: 3, wind: 1.0, dmg: 0.32, knock: 12, rush: true, open: 2.4, phase: 3, weight: 3, anim: 'attack_1', fx: 'ice' },
+      { id: 'frost', name: '寒域', shape: 'circle', at: 'self', r: 11, wind: 1.8, dmg: 0.4, launch: 7, phase: 3, weight: 2, anim: 'skill_slash', fx: 'ice' },
+    ],
+  },
+  tongren: {
+    key: 'tongren',
+    name: '镇阙铜人',
+    model: 'guard.glb',
+    scale: 5.2,
+    bodyR: 3.3,
+    bodyH: 9.6,
+    hpMul: 5.5,
+    color: '#ffb347',
+    look: 'bronze',
+    ground: 38,
+    intro: '无面的寨子里站着一尊五层楼高的青铜机关人，胸口嵌着天阙机关一脉的铜印。无面拔刀挡在你身前：「它是冲我们两个来的。」',
+    phaseLines: ['（机括轰鸣，铜人眼中亮起红光）', '（铜印碎裂，铜人彻底失控）'],
+    adds: [{ name: '铜甲机关兵', model: 'guard.glb' }],
+    helpers: [
+      { name: '影阁主 · 无面', model: 'boss-wumian.glb', strong: true },
+      { name: '援手 · 赵铁枪', model: 'ally-militia.glb' },
+      { name: '援手 · 孙二娘', model: 'ally-militia.glb' },
+    ],
+    moves: [
+      { id: 'fist', name: '铜拳震地', shape: 'circle', at: 'front', r: 6, wind: 1.2, dmg: 0.3, launch: 7, knock: 6, open: 2.4, phase: 1, weight: 3, anim: 'attack_3', fx: 'slam' },
+      { id: 'spin', name: '旋身横扫', shape: 'circle', at: 'self', r: 10, wind: 1.5, dmg: 0.28, knock: 14, phase: 1, weight: 2, anim: 'attack_2', fx: 'sweep' },
+      { id: 'volley', name: '机关连弩', shape: 'circle', at: 'target', r: 2.4, n: 6, spread: 8, wind: 1.4, dmg: 0.18, knock: 4, phase: 1, weight: 2, anim: 'skill_spell', fx: 'rocks' },
+      { id: 'beam', name: '镇岳光柱', shape: 'line', at: 'self', r: 28, r2: 2.2, wind: 1.6, dmg: 0.4, knock: 10, open: 3, phase: 1, weight: 2, anim: 'skill_spell', fx: 'beam' },
+      { id: 'bell', name: '铜钟震', shape: 'ring', at: 'self', r: 17, r2: 6, wind: 1.4, dmg: 0.25, knock: 16, phase: 2, weight: 2, anim: 'skill_slash', fx: 'roar', adds: 3 },
+      { id: 'beam2', name: '双光柱', shape: 'line', at: 'self', r: 28, r2: 2, n: 2, spread: 0.8, wind: 1.6, dmg: 0.35, knock: 10, phase: 2, weight: 2, anim: 'skill_spell', fx: 'beam' },
+      { id: 'drop', name: '千斤坠', shape: 'circle', at: 'target', r: 7, wind: 1.8, dmg: 0.45, launch: 9, rush: true, open: 3.4, phase: 3, weight: 3, anim: 'attack_3', fx: 'slam' },
+      { id: 'storm', name: '机关暴走', shape: 'circle', at: 'target', r: 2.6, n: 8, spread: 11, wind: 1.2, dmg: 0.2, knock: 5, phase: 3, weight: 2, anim: 'skill_spell', fx: 'rocks' },
+    ],
+  },
+  fadi: {
+    key: 'fadi',
+    name: '天魔法相 · 萧承乾',
+    model: 'emperor.glb',
+    scale: 5.8,
+    bodyR: 3.5,
+    bodyH: 10.5,
+    hpMul: 1, // its life is set from his (makeAvatar)
+    color: '#ffd24a',
+    look: 'gold',
+    ground: 44,
+    intro: '萧承乾仰天长啸，金光从他七窍里涌出来，化成一尊十丈高的金色法相，头顶悬着天阙的钟。',
+    phaseLines: ['朕即天阙！', '七家的东西，朕全都要！'],
+    adds: [{ name: '金甲卫', model: 'guard.glb' }],
+    helpers: [
+      { name: '影阁主 · 无面', model: 'boss-wumian.glb', strong: true },
+      { name: '援手 · 赵铁枪', model: 'ally-militia.glb' },
+      { name: '援手 · 孙二娘', model: 'ally-militia.glb' },
+    ],
+    moves: [
+      { id: 'sword', name: '天子剑', shape: 'cone', at: 'self', r: 12, r2: 0.9, wind: 1.1, dmg: 0.3, knock: 10, phase: 1, weight: 3, anim: 'attack_2', fx: 'gold' },
+      { id: 'dragon', name: '龙吟', shape: 'ring', at: 'self', r: 16, r2: 5, wind: 1.3, dmg: 0.26, knock: 14, phase: 1, weight: 2, anim: 'skill_spell', fx: 'roar' },
+      { id: 'thunder', name: '九霄雷罚', shape: 'circle', at: 'target', r: 2.8, n: 6, spread: 9, wind: 1.5, dmg: 0.24, knock: 5, phase: 1, weight: 2, anim: 'skill_spell', fx: 'gold' },
+      { id: 'rush', name: '御龙冲', shape: 'line', at: 'self', r: 24, r2: 3, wind: 1.3, dmg: 0.35, knock: 14, rush: true, open: 2.5, phase: 1, weight: 2, anim: 'attack_1', fx: 'gold' },
+      { id: 'coil', name: '金龙绕殿', shape: 'circle', at: 'target', r: 2.6, n: 9, spread: 12, wind: 1.3, dmg: 0.22, knock: 5, phase: 2, weight: 2, anim: 'skill_spell', fx: 'gold', adds: 2 },
+      { id: 'awe', name: '天威', shape: 'circle', at: 'self', r: 10, wind: 1.9, dmg: 0.5, launch: 9, open: 3.4, phase: 2, weight: 2, anim: 'skill_slash', fx: 'roar' },
+      { id: 'swords', name: '万剑归宗', shape: 'line', at: 'self', r: 26, r2: 1.6, n: 5, spread: 0.55, wind: 1.4, dmg: 0.32, launch: 6, phase: 3, weight: 3, anim: 'skill_spell', fx: 'gold' },
+      { id: 'fall', name: '天降', shape: 'circle', at: 'target', r: 7, wind: 1.6, dmg: 0.45, launch: 9, rush: true, open: 3, phase: 3, weight: 2, anim: 'attack_3', fx: 'slam' },
     ],
   },
 };
@@ -121,24 +214,33 @@ export function makeGiant(s: Sim, f: Fighter, key: string) {
   const def = GIANTS[key];
   (f as any).giant = { key, phase: 1, move: null, cd: 2, open: 0, awake: false, helpers: [], adds: [], roarT: 0 } as GState;
   f.name = def.name;
+  if (def.model) f.model = def.model;
   f.maxHp = f.hp = Math.round(f.maxHp * def.hpMul);
   // its men for the later phases, benched till called
   const st = G(f);
   for (let k = 0; k < 4; k++) {
-    const a = (s as any).make('sect', null, '血傀喽啰', 'foe-bandit.glb', Math.max(1, f.level - 2), f.pos[0], f.pos[2]);
+    const list = def.adds ?? [{ name: '血傀喽啰', model: 'foe-bandit.glb' }];
+    const ad = list[Math.min(k, list.length - 1)];
+    const a = (s as any).make('sect', null, ad.name, ad.model, Math.max(1, f.level - 2), f.pos[0], f.pos[2]);
     a.hp = 0;
     (a as any).benched = true;
     (a as any).pooled = true;
     (a as any).den = (f as any).den;
+    (a as any).foeKind = FOE_KINDS.find((k) => k.model === ad.model) ?? FOE_KINDS[0];
     st.adds.push(a.id);
   }
   // three 援手 who come when you step onto its ground
-  const names = ['援手 · 赵铁枪', '援手 · 孙二娘', '援手 · 石大胆'];
-  for (let k = 0; k < 3; k++) {
-    const h = (s as any).make('ally', null, names[k], 'ally-militia.glb', f.level, f.pos[0], f.pos[2]);
+  const hs = def.helpers ?? [
+    { name: '援手 · 赵铁枪', model: 'ally-militia.glb' },
+    { name: '援手 · 孙二娘', model: 'ally-militia.glb' },
+    { name: '援手 · 石大胆', model: 'ally-militia.glb' },
+  ];
+  for (const hd of hs) {
+    const h = (s as any).make('ally', null, hd.name, hd.model, f.level, f.pos[0], f.pos[2]);
     h.hp = 0;
     (h as any).benched = true;
     (h as any).helper = f.id;
+    (h as any).strong = !!hd.strong;
     st.helpers.push(h.id);
   }
 }
@@ -299,7 +401,7 @@ function startMove(s: Sim, f: Fighter, def: GiantDef, st: GState, m: GiantMove, 
     }
   }
   st.move = { m, t: 0, marks, done: false };
-  if (m.rush) st.move.rushTo = [f.pos[0] + fx * (m.r - 2), f.pos[2] + fz * (m.r - 2)];
+  if (m.rush) st.move.rushTo = m.at === 'target' ? [marks[0].x, marks[0].z] : [f.pos[0] + fx * (m.r - 2), f.pos[2] + fz * (m.r - 2)];
   s.setAct(f, 'cast', m.wind + 0.6, m.anim);
   s.text(f, m.name, def.color);
 }
@@ -390,13 +492,14 @@ function callHelpers(s: Sim, f: Fighter) {
     const x = p.pos[0] + Math.sin(a) * 3, z = p.pos[2] + Math.cos(a) * 3;
     h.pos = [x, groundHeight(x, z), z];
     h.level = Math.max(h.level, s.progress.level);
-    h.maxHp = 120 + s.progress.level * 60;
+    h.maxHp = (120 + s.progress.level * 60) * ((h as any).strong ? 2.5 : 1);
     h.hp = h.maxHp;
     (h as any).benched = false;
     h.respawn = undefined;
     s.setAct(h, 'idle', 0, 'idle');
   });
-  s.toast('三位援手赶到：「我们来帮你！」');
+  const def = giantOf(f)!;
+  s.toast(def.helpers?.[0]?.strong ? `${def.helpers[0].name.split(' · ')[1]}和两位援手站到了你身边。` : '三位援手赶到：「我们来帮你！」');
 }
 function bench(h: Fighter | undefined) {
   if (!h) return;
@@ -493,4 +596,38 @@ export function giantRespawn(s: Sim): [number, number] | null {
   const p = s.player, dx = p.pos[0] - hx, dz = p.pos[2] - hz, d = Math.hypot(dx, dz) || 1;
   const r = def.ground - 6;
   return [hx + (dx / d) * r, hz + (dz / d) * r];
+}
+
+/** 萧承乾's other shape: a giant made now, benched; at half his life he goes and it comes (avatarCheck) */
+export function makeAvatar(s: Sim, man: Fighter) {
+  const g = (s as any).make('sect', null, '天魔法相', 'emperor.glb', man.level, man.pos[0], man.pos[2]) as Fighter;
+  g.maxHp = man.maxHp;
+  (g as any).den = (man as any).den;
+  g.home = man.home ? [...man.home] as [number, number] : [man.pos[0], man.pos[2]];
+  makeGiant(s, g, AVATAR_KEY);
+  g.maxHp = g.hp = Math.round(man.maxHp * 2.6);
+  (g as any).boss = true;
+  g.hp = 0;
+  (g as any).benched = true;
+  (man as any).avatar = g.id;
+}
+/** after every blow on him: at half his life the man becomes the giant */
+export function avatarCheck(s: Sim, man: Fighter) {
+  const id = (man as any).avatar;
+  if (id === undefined || man.hp <= 0 || man.hp > man.maxHp * 0.5) return;
+  const g = s.fighters[id];
+  if (!(g as any).benched) return;
+  (g as any).benched = false;
+  g.hp = g.maxHp;
+  g.pos = [man.pos[0], man.pos[1], man.pos[2]];
+  g.yaw = man.yaw;
+  g.respawn = undefined;
+  s.setAct(g, 'idle', 0, 'idle');
+  // the man is gone into it (no kill: the giant carries the boss's death)
+  man.hp = 0;
+  (man as any).benched = true;
+  man.respawn = undefined;
+  s.vfx('ring', [g.pos[0], g.pos[1] + 0.2, g.pos[2]], 14, '#ffd24a', 1, 0.3, 1.6);
+  s.shake(1, g.pos[0], g.pos[2]);
+  s.slowmo = Math.max(s.slowmo, 1.2);
 }

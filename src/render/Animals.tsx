@@ -19,7 +19,7 @@ interface Kit {
   turn: number;
 }
 const kits = new Map<string, Promise<Kit>>();
-function kitOf(s: AnimalSpec): Promise<Kit> {
+export function kitOf(s: AnimalSpec): Promise<Kit> {
   let p = kits.get(s.file);
   if (!p) {
     p = loader.loadAsync(BASE + s.file).then((g) => {

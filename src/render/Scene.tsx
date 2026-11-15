@@ -6,6 +6,8 @@ import type { Sim } from '../game/sim';
 import { groundHeight, inBuilding } from '../game/world';
 import { ROOMS, ROOM_Y, roomRealm } from '../game/interiors';
 import { realmFloor, realmGap } from '../game/realms';
+import { giantOf } from '../game/giants';
+import { GiantBeasts } from './GiantBeasts';
 import { readInput, takeMouse, took, heldKey } from '../input';
 import { World } from './World';
 import { Rig } from './Rig';
@@ -203,9 +205,10 @@ export function Scene({ sim, version }: { sim: Sim; version: number }) {
     <>
       <Loop sim={sim} />
       <World sim={sim} />
-      {sim.fighters.map((f) => (
+      {sim.fighters.filter((f) => giantOf(f)?.look !== 'beast').map((f) => (
         <Rig key={`${f.id}:${f.model}`} sim={sim} id={f.id} />
       ))}
+      <GiantBeasts sim={sim} />
       <HouseFx sim={sim} />
       <Juice sim={sim} />
       <Post sim={sim} />
