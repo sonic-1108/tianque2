@@ -1,0 +1,211 @@
+{
+ "contextFrames": [
+  {
+   "imageAsset": {
+    "assetId": "asset_90303157e28b3345856cd7e7aa9e0180"
+   },
+   "depth": {
+    "depthAsset": {
+     "assetId": "asset_0a9ea0061dcfa04ae22039c37efe7624"
+    }
+   },
+   "camera": {
+    "extrinsics": {
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "coordinateSystem": "rub"
+    },
+    "intrinsics": {
+     "fx": 1672.8482666015625,
+     "fy": 1672.36767578125,
+     "cx": 1360.0,
+     "cy": 768.0,
+     "width": 2720,
+     "height": 1536
+    }
+   }
+  }
+ ],
+ "targetCameras": [
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 785.5725308586569,
+    "fy": 785.5725308586569,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 785.5725308586569,
+    "fy": 785.5725308586569,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.2007517527228661,
+     0.0,
+     -0.28670321550114714
+    ],
+    "quaternion": [
+     0.0,
+     -0.3007057995042731,
+     0.0,
+     0.9537169507482269
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 785.5725308586569,
+    "fy": 785.5725308586569,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     -0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 785.5725308586569,
+    "fy": 785.5725308586569,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.3288924172750679,
+     0.0,
+     -0.11970705016398409
+    ],
+    "quaternion": [
+     0.0,
+     -0.573576436351046,
+     0.0,
+     0.8191520442889918
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 785.5725308586569,
+    "fy": 785.5725308586569,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -0.35
+    ],
+    "quaternion": [
+     -0.3420201433256687,
+     0.0,
+     0.0,
+     0.9396926207859084
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 785.5725308586569,
+    "fy": 785.5725308586569,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  },
+  {
+   "extrinsics": {
+    "position": [
+     0.0,
+     0.0,
+     -2.0
+    ],
+    "quaternion": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "coordinateSystem": "rub"
+   },
+   "intrinsics": {
+    "fx": 785.5725308586569,
+    "fy": 785.5725308586569,
+    "cx": 640.0,
+    "cy": 360.0,
+    "width": 1280,
+    "height": 720
+   }
+  }
+ ],
+ "prompt": "{\"short_caption\":\"A wide eye-level painterly game environment view of an empty two-storey Chinese teahouse, glowing with lantern light amid tea tables and a storyteller's stage.\",\"scene\":\"An empty, two-storey teahouse stands inside an ancient Chinese market town, rendered as a highly detailed semi-realistic painterly game environment. Low wooden tea tables fill the main floor, each arranged with ceramic teapots and small cups, while a small raised storyteller's stage holds a simple table, an opened folding fan, and a wooden clapper. An upper balcony gallery wraps around the room beneath hanging lanterns, calligraphy scrolls, carved lattice windows, and warm lamplight.\",\"subjects\":[{\"name\":\"storyteller's stage\",\"description\":\"A small dark-wood raised platform prepared for a traditional spoken performance.\",\"action_or_state\":\"empty and ready for use\",\"appearance\":\"two shallow wooden steps lead to a low rectangular table holding an ivory paper folding fan and a dark wooden clapper\",\"position_or_relationship\":\"centered against the far wall, beyond the tea tables\"},{\"name\":\"tea tables\",\"description\":\"A scattered arrangement of low square wooden tables with accompanying stools.\",\"action_or_state\":\"static, set for absent guests\",\"appearance\":\"aged reddish-brown wood, porcelain teapots, tiny blue-and-white tea cups, and faint tea rings on several tabletops\",\"position_or_relationship\":\"spread across the main floor between the foreground and storyteller's stage\"},{\"name\":\"tea counter\",\"description\":\"A long service counter stocked for brewing and serving tea.\",\"action_or_state\":\"static, with a kettle warming on the stove\",\"appearance\":\"dark wood counter with labeled-looking but unreadable ceramic tea canisters, bamboo scoops, and a hammered copper kettle on a small charcoal stove\",\"position_or_relationship\":\"along the right wall beneath the balcony gallery\"},{\"name\":\"balcony gallery\",\"description\":\"A second-storey interior gallery with a carved wooden railing and viewing tables.\",\"action_or_state\":\"empty\",\"appearance\":\"weathered dark timber posts, red-brown railings, shadowed upper tables, and rows of hanging lanterns below the eaves\",\"position_or_relationship\":\"wrapping around the upper perimeter above the main tea room\"}],\"setting\":\"A spacious traditional Chinese teahouse in an ancient market town, enclosed by timber framing, plaster walls, and lattice windows overlooking hints of tiled rooftops outside. The room is quiet and entirely unoccupied, with an open central floor beneath the upper gallery.\",\"composition\":\"Wide eye-level view from the middle of the room, with tea tables forming layered foreground and middle-ground depth toward the centered stage. The balcony railing creates a strong horizontal frame overhead, while side windows and the service counter balance the scene.\",\"style\":\"Highly detailed semi-realistic painterly game environment art. Crisp material definition, carefully painted architectural wear, and believable depth give the setting the atmosphere of an exploration-game interior.\",\"lighting\":\"Warm amber lamplight spills from hanging paper lanterns and small oil lamps, casting soft pools of light over the tables and golden reflections across the copper kettle. Cooler muted daylight filters through the lattice windows, deepening the shadows beneath the balcony.\",\"color_palette\":[\"warm amber\",\"dark walnut brown\",\"aged red lacquer\",\"smoky charcoal gray\",\"muted jade green\",\"cream plaster\",\"copper orange\",\"porcelain blue\"],\"materials_and_textures\":\"Visible textures include deeply grained and worn timber, chipped red lacquer, woven paper lantern shades, matte plaster walls, glazed porcelain, hammered copper, and translucent lattice-window paper. Floorboards show scuffs, shallow scratches, and polished paths of use.\",\"mood\":\"quiet, warm, historic, inviting, contemplative\",\"supporting_details\":\"Paper lanterns hang at staggered heights from heavy ceiling beams, with subtle tassels beneath them. Calligraphy scrolls decorate the walls beside the stage and counter, their ink marks decorative but unreadable. Steam curls from the copper kettle, and the open lattice windows reveal a sliver of tiled roofs and hazy market-town light beyond.\",\"text_and_ocr\":{\"verbatim_strings\":[],\"visual_description\":\"Calligraphy scrolls contain decorative, non-legible ink brush marks only; no readable text is present.\"},\"artifacts_and_overlays\":\"none\"}",
+ "enhancePrompt": false,
+ "returnDepth": true
+}
