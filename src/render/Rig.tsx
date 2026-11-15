@@ -38,6 +38,8 @@ export const BODY_AS: Record<string, string> = {
   'hero-duzong.glb': 'ranger.glb', 'hero-gongshou.glb': 'ranger.glb',
   'hero-jiguan.glb': 'trader.glb',
 };
+/** bodies sculpted with their own weapon in hand: no house weapons on top */
+const OWN_WEAPON = new Set(['giant-leibiao.glb']);
 // a borrowed house clip carries the house's own facing, so these bodies play only borrowed clips and need no turn
 const facesX = (m: string) => isTownsfolk(m);
 const TOWN_PLAN: Record<string, Spec> = { idle: { match: ['idle'], loop: true }, run: { match: ['walk'], loop: true } };
@@ -265,6 +267,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
         const glow = new THREE.Color(f.team === 'player' ? '#ff3b1f' : '#7dd3fc');
         const w: ReturnType<typeof heroWeapons> & {} = heroWeapons(f.model) ?? weaponsFor(BODY_AS[f.model] ?? f.model, glow);
         if ((f as any).folk !== undefined) w.right = w.left = w.staff = undefined as any; // villagers go unarmed
+        if (OWN_WEAPON.has(f.model)) w.right = w.left = w.staff = undefined as any; // the body holds its own (雷彪's bone club)
         const held: THREE.Object3D[] = [];
         if (w.right && bones.righthand) {
           w.right.rotation.set(0, 0, w.reverse ? -Math.PI / 2 : Math.PI / 2);

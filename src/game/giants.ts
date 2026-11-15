@@ -279,6 +279,19 @@ export function giantThink(s: Sim, f: Fighter, dt: number) {
   const def = giantOf(f)!, st = G(f), a = f as any;
   a.wish = [0, 0];
   if (f.hp <= 0) return;
+  // the ground answers every stride: a thud, a shake, dust from under the foot
+  if (def.look !== 'beast') {
+    const lp = (st as any).lp as number[] | undefined;
+    if (lp) (st as any).walked = ((st as any).walked ?? 0) + Math.hypot(f.pos[0] - lp[0], f.pos[2] - lp[2]);
+    (st as any).lp = [f.pos[0], f.pos[2]];
+    if ((st as any).walked > def.bodyR * 1.3) {
+      (st as any).walked = 0;
+      const side = ((st as any).foot = -((st as any).foot ?? 1)), r = def.bodyR * 0.35;
+      const x = f.pos[0] + Math.cos(f.yaw) * side * r, z = f.pos[2] - Math.sin(f.yaw) * side * r;
+      s.shake(0.22, x, z);
+      s.vfx('dustPuff', [x, groundHeight(x, z) + 0.1, z], 14, 1.1, 2.6, 1, '#b9a07a');
+    }
+  }
   const [hx, hz] = f.home ?? [f.pos[0], f.pos[2]];
   // asleep until you come onto its ground; leave it and it goes home and heals
   if (!near(s, f, def)) {
