@@ -132,7 +132,7 @@ export const GIANTS: Record<string, GiantDef> = {
   tongren: {
     key: 'tongren',
     name: '镇阙铜人',
-    model: 'guard.glb',
+    model: 'giant-tongren.glb',
     scale: 5.2,
     bodyR: 3.3,
     bodyH: 9.6,

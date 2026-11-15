@@ -24,7 +24,7 @@ const isTownsfolk = (m: string) => m.startsWith('npc-');
 /** Tripo bodies for everyone who fights and isn't one of the seven houses (owner: only the houses wear the houses'
  *  looks): each fights the way a house does, borrowing that house's clips, plan and weapons; they face +x too */
 export const BODY_AS: Record<string, string> = {
-  'foe-bandit.glb': 'berserker.glb', 'boss-leibiao.glb': 'berserker.glb', 'giant-leibiao.glb': 'berserker.glb', 'comp-shimeng.glb': 'berserker.glb',
+  'foe-bandit.glb': 'berserker.glb', 'boss-leibiao.glb': 'berserker.glb', 'giant-leibiao.glb': 'berserker.glb', 'giant-tongren.glb': 'guard.glb', 'boss-kuhan.glb': 'monk.glb', 'comp-shimeng.glb': 'berserker.glb',
   'foe-thief.glb': 'ranger.glb', 'comp-feiyan.glb': 'ranger.glb',
   'foe-monk.glb': 'monk.glb', 'comp-liaochen.glb': 'monk.glb',
   'foe-assassin.glb': 'shadowblade.glb', 'boss-wumian.glb': 'shadowblade.glb', 'comp-mohan.glb': 'shadowblade.glb', 'ally-militia.glb': 'shadowblade.glb',
@@ -39,7 +39,11 @@ export const BODY_AS: Record<string, string> = {
   'hero-jiguan.glb': 'trader.glb',
 };
 /** bodies sculpted with their own weapon in hand: no house weapons on top */
-const OWN_WEAPON = new Set(['giant-leibiao.glb']);
+/** bodies whose painted metal reads too dark in the world (no reflections to light it): less metal, more colour */
+const LOOK_TUNE: Record<string, { metal: number; bright: number; rough?: number }> = {
+  'giant-tongren.glb': { metal: 0.25, bright: 1.7, rough: 0.7 },
+};
+const OWN_WEAPON = new Set(['giant-leibiao.glb', 'giant-tongren.glb']); // 铜人 fights with its bronze fists
 // a borrowed house clip carries the house's own facing, so these bodies play only borrowed clips and need no turn
 const facesX = (m: string) => isTownsfolk(m);
 const TOWN_PLAN: Record<string, Spec> = { idle: { match: ['idle'], loop: true }, run: { match: ['walk'], loop: true } };
@@ -305,6 +309,12 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
           if (!o.isMesh || !(o.material as any)?.isMeshStandardMaterial || o.userData.weapon) return;
           const mat = (o.material as THREE.MeshStandardMaterial).clone();
           mat.emissive = new THREE.Color('#000000');
+          const tune = LOOK_TUNE[f.model];
+          if (tune) {
+            mat.metalness = tune.metal;
+            mat.color.multiplyScalar(tune.bright);
+            mat.roughness = Math.min(mat.roughness, tune.rough ?? 1);
+          }
           applyCharacterShading(mat, f.team === 'player', (BODY_AS[f.model] ?? f.model) === 'monk.glb');
           o.material = mat;
           ((obj as any).userData.mats ||= []).push(mat);

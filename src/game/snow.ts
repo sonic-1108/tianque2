@@ -52,7 +52,7 @@ export interface SnowState {
 export function makeSnow(s: Sim) {
   const S = s as any;
   const kind = FOE_KINDS[2]; // 野和尚's clips and moves
-  const f = S.make('sect', kind.house, '冰窟狂僧 · 苦寒', kind.model, 28, MONK_AT[0], MONK_AT[1]) as Fighter;
+  const f = S.make('sect', kind.house, '冰窟狂僧 · 苦寒', 'boss-kuhan.glb', 28, MONK_AT[0], MONK_AT[1]) as Fighter;
   const a = f as any;
   a.foeKind = kind;
   a.elite = true;
