@@ -6,7 +6,7 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import type { Sim } from '../game/sim';
-import { ICE_CAVE, LOTUS, SNOW_CAMP, SNOW_FIRES, SUMMIT, onSnow } from '../game/snow';
+import { GLOW_LOTUS, ICE_CAVE, LOTUS, SNOW_CAMP, SNOW_FIRES, SUMMIT, glowLotusNow, onSnow } from '../game/snow';
 import { SNOW_Y, groundHeight } from '../game/world';
 import { Builder, Built } from './build';
 
@@ -154,6 +154,33 @@ export function Snow({ sim }: { sim: Sim }) {
       root.add(g);
       return g;
     });
+    // 夜光雪莲: a bigger flower lit from inside, a halo and a faint column of light you can see from far off at night
+    const glow = (() => {
+      const g = new THREE.Group();
+      const pet = new THREE.MeshStandardMaterial({ color: '#eaf6ff', emissive: '#9fd4ff', emissiveIntensity: 1.6, roughness: 0.4, side: THREE.DoubleSide, toneMapped: false });
+      for (let ring = 0; ring < 3; ring++)
+        for (let k = 0; k < 9; k++) {
+          const m = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6).scale(0.55, 0.18, 1.4).translate(0, 0, 0.18), pet);
+          m.rotation.set(-0.35 - ring * 0.42, (k / 9) * Math.PI * 2 + ring * 0.35, 0, 'YXZ');
+          m.position.y = 0.14 + ring * 0.05;
+          g.add(m);
+        }
+      const core = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), new THREE.MeshBasicMaterial({ color: '#fff7d6', toneMapped: false }));
+      core.position.y = 0.22;
+      g.add(core);
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#a8dcff', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.9 }));
+      halo.scale.setScalar(3.2);
+      halo.position.y = 0.4;
+      g.add(halo);
+      const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.6, 26, 12, 1, true).translate(0, 13, 0), new THREE.MeshBasicMaterial({ color: '#9fd4ff', transparent: true, opacity: 0.12, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false }));
+      g.add(beam);
+      const light = new THREE.PointLight('#bfe3ff', 6, 14, 2);
+      light.position.y = 0.8;
+      g.add(light);
+      g.visible = false;
+      root.add(g);
+      return g;
+    })();
     // prayer flags on a line from the summit pole down to a stake
     const [sx, sz] = SUMMIT, sy = groundHeight(sx, sz);
     const flags: THREE.Mesh[] = [];
@@ -178,7 +205,7 @@ export function Snow({ sim }: { sim: Sim }) {
     const flakes = new THREE.Points(sg, new THREE.PointsMaterial({ map: glowTex, color: '#ffffff', size: 0.16, transparent: true, depthWrite: false, opacity: 0 }));
     flakes.frustumCulled = false;
     root.add(flakes);
-    return { parts: b.build(), root, flames, lotus, flags, flakes, pos };
+    return { parts: b.build(), root, flames, lotus, glow, flags, flakes, pos };
   }, []);
   const light = useRef<THREE.PointLight>(null);
   const tick = useRef(0);
@@ -210,8 +237,18 @@ export function Snow({ sim }: { sim: Sim }) {
     if ((tick.current -= dt) <= 0) {
       tick.current = 0.5;
       S.lotus.forEach((g, i) => (g.visible = sim.snow.lotusBack[i] <= sim.worldT));
+      const gl = glowLotusNow(sim);
+      S.glow.visible = gl >= 0;
+      if (gl >= 0) {
+        const [gx, gz] = GLOW_LOTUS[gl];
+        S.glow.position.set(gx, groundHeight(gx, gz), gz);
+      }
     }
     S.lotus.forEach((g, i) => (g.rotation.y = Math.sin(t * 0.7 + i) * 0.2));
+    if (S.glow.visible) {
+      S.glow.rotation.y = t * 0.3;
+      (S.glow.children[S.glow.children.length - 3] as THREE.Sprite).material.opacity = 0.7 + Math.sin(t * 2.2) * 0.2;
+    }
     S.flags.forEach((m, k) => (m.rotation.x = Math.sin(t * 6 + k * 0.8) * 0.45));
     // flakes: drift down round the player while they're up on the snow
     const up = onSnow(p[1] + 6) ? Math.min(1, (p[1] - (SNOW_Y - 20)) / 15) : 0;

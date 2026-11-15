@@ -1,5 +1,6 @@
 // The little games and panels of 玩法 (game/play.ts): the notice board, the bag, fishing, lantern riddles, the
 // imperial exam, the cases at the drum, the morning court, dice and pot throwing. Space or F plays; Esc leaves.
+import { SteleBoard } from './Endgame';
 import { GATES, lit, travel } from '../game/gates';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Sim } from '../game/sim';
@@ -108,6 +109,8 @@ export function Games({ sim, onClose }: { sim: Sim; onClose: () => void }) {
       return <Touhu sim={sim} onClose={close} />;
     case 'gates':
       return <GateList sim={sim} from={g.from} onClose={close} />;
+    case 'stele':
+      return <SteleBoard sim={sim} onClose={close} />;
   }
   return null;
 }

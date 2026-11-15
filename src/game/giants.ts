@@ -8,7 +8,7 @@
 // Telegraphs live in sim.teles (drawn by render/Telegraphs.tsx); the HUD shows its bar (ui/Hud GiantBar).
 import type { Sim } from './sim';
 import type { Fighter } from './types';
-import { groundHeight } from './world';
+
 import { FOE_KINDS } from './foes';
 
 export type TeleShape = 'circle' | 'ring' | 'cone' | 'line';
@@ -66,6 +66,8 @@ export interface GiantDef {
   soft?: number;
   /** its own body (else the den boss's) */
   model?: string;
+  /** a colour multiplied into its skin (a body borrowed from another giant, made its own) */
+  tint?: string;
   /** the men it calls, and the ones who come to stand with you */
   adds?: { name: string; model: string }[];
   helpers?: { name: string; model: string; strong?: boolean }[];
@@ -189,7 +191,40 @@ export const GIANTS: Record<string, GiantDef> = {
       { id: 'fall', name: '天降', shape: 'circle', at: 'target', r: 7, wind: 1.6, dmg: 0.45, launch: 9, rush: true, open: 3, phase: 3, weight: 2, anim: 'attack_3', fx: 'slam' },
     ],
   },
+  // 后传: what 萧承乾 drew his 法相 from, sealed under 天阙 for a thousand years and loose now the bell has rung
+  tianmo: {
+    key: 'tianmo',
+    name: '天魔本相',
+    model: 'giant-leibiao.glb', // until its own Tripo body comes: the blood giant's, burned black and violet
+    tint: '#4c3a66',
+    scale: 6,
+    bodyR: 3.8,
+    bodyH: 11,
+    hpMul: 1, // its life is set when it is made (endgame.ts)
+    color: '#b86bff',
+    look: 'blood',
+    ground: 26,
+    intro: '石台上的封印一道道崩开，黑烟从地缝里涌出来，聚成一尊顶着洞顶的魔影：天魔本相。它看不见脚下的红圈以外的东西，但你看得见：躲开，等它露出破绽。',
+    phaseLines: ['千年……千年了！', '那个小皇帝只借走了我一根指头。'],
+    adds: [{ name: '魔影', model: 'foe-assassin.glb' }, { name: '魔影', model: 'foe-taoist.glb' }],
+    helpers: [
+      { name: '游方僧 · 了尘', model: 'comp-liaochen.glb', strong: true },
+      { name: '断刀客 · 石猛', model: 'comp-shimeng.glb' },
+      { name: '燕子镖 · 飞燕', model: 'comp-feiyan.glb' },
+    ],
+    moves: [
+      { id: 'claw', name: '魔爪横扫', shape: 'cone', at: 'self', r: 12, r2: 1.0, wind: 1.0, dmg: 0.28, knock: 11, phase: 1, weight: 3, anim: 'attack_2', fx: 'sweep' },
+      { id: 'stomp', name: '魔踏', shape: 'circle', at: 'front', r: 7, wind: 1.2, dmg: 0.32, launch: 8, knock: 6, open: 2.6, phase: 1, weight: 3, anim: 'attack_3', fx: 'slam' },
+      { id: 'meteor', name: '天外陨火', shape: 'circle', at: 'target', r: 2.8, n: 7, spread: 10, wind: 1.5, dmg: 0.24, knock: 5, phase: 1, weight: 2, anim: 'skill_spell', fx: 'rocks' },
+      { id: 'chains', name: '锁魂链', shape: 'line', at: 'self', r: 24, r2: 1.4, n: 6, spread: 1.05, wind: 1.4, dmg: 0.26, knock: 8, phase: 2, weight: 2, anim: 'skill_spell', fx: 'beam' },
+      { id: 'shades', name: '万魔朝宗', shape: 'ring', at: 'self', r: 15, r2: 5, wind: 1.4, dmg: 0.22, knock: 14, adds: 3, phase: 2, weight: 2, anim: 'skill_slash', fx: 'roar' },
+      { id: 'cross', name: '十字魔光', shape: 'line', at: 'self', r: 30, r2: 2, n: 4, spread: 1.5708, wind: 1.6, dmg: 0.36, knock: 10, open: 2.8, phase: 2, weight: 2, anim: 'skill_spell', fx: 'beam' },
+      { id: 'leap', name: '坠星', shape: 'circle', at: 'target', r: 8, wind: 1.7, dmg: 0.45, launch: 9, rush: true, open: 3.2, phase: 3, weight: 3, anim: 'attack_3', fx: 'slam' },
+      { id: 'nova', name: '天魔解体', shape: 'ring', at: 'self', r: 20, r2: 5, wind: 1.8, dmg: 0.4, knock: 16, phase: 3, weight: 2, anim: 'skill_slash', fx: 'roar' },
+    ],
+  },
 };
+(globalThis as any).__T2_GIANTS = GIANTS; // headless tests pose giants by move
 
 // ---- what other code asks of a body
 export const giantOf = (f: Fighter | undefined | null): GiantDef | undefined => ((f as any)?.giant ? GIANTS[(f as any).giant.key] : undefined);
@@ -207,8 +242,37 @@ interface GState {
   helpers: number[];
   adds: number[];
   roarT: number;
+  /** its life as first made (challenges and the tower scale from it) */
+  baseHp?: number;
 }
 const G = (f: Fighter) => (f as any).giant as GState;
+
+/** called up afresh (巨人挑战, the trial tower): full life times hpMul, its blows times dmgMul, its rests times cdMul,
+ * standing at home asleep; a room it's put in is the only place it fights (the tower, 天魔窟) */
+export function rearmGiant(s: Sim, g: Fighter, o: { hpMul?: number; dmgMul?: number; cdMul?: number; home?: [number, number]; room?: number }) {
+  const st = G(g);
+  if (!st) return;
+  st.baseHp ??= g.maxHp;
+  g.maxHp = g.hp = Math.round(st.baseHp * (o.hpMul ?? 1));
+  Object.assign(st, { phase: 1, move: null, cd: 2.5, open: 0, awake: false, roarT: 0 });
+  const a = g as any;
+  a.tierDmg = o.dmgMul ?? 1;
+  a.tierCd = o.cdMul ?? 1;
+  if (o.home) g.home = [...o.home] as [number, number];
+  a.room = o.room;
+  a.benched = false;
+  g.respawn = undefined;
+  const [x, z] = g.home ?? [g.pos[0], g.pos[2]];
+  g.pos = [x, s.floorAt(x, z), z];
+  g.vel = [0, 0, 0];
+  s.teles = s.teles.filter((m) => m.owner !== g.id);
+  for (const id of [...st.adds, ...st.helpers]) {
+    const m = s.fighters[id];
+    m.hp = 0;
+    (m as any).benched = true;
+  }
+  s.setAct(g, 'idle', 0, 'idle');
+}
 
 /** makes a den's boss into a giant (called once when the den is made) */
 export function makeGiant(s: Sim, f: Fighter, key: string) {
@@ -219,6 +283,7 @@ export function makeGiant(s: Sim, f: Fighter, key: string) {
   f.maxHp = f.hp = Math.round(f.maxHp * def.hpMul);
   // its men for the later phases, benched till called
   const st = G(f);
+  st.baseHp = f.maxHp;
   for (let k = 0; k < 4; k++) {
     const list = def.adds ?? [{ name: '血傀喽啰', model: 'foe-bandit.glb' }];
     const ad = list[Math.min(k, list.length - 1)];
@@ -252,7 +317,10 @@ const near = (s: Sim, f: Fighter, def: GiantDef) => {
   if (p.hp <= 0) return !!(p as any).giantRes && s.giantFight === f.id;
   // it wakes when you step onto its ground; once awake it lets you go only well beyond it (a blow can throw you out)
   const r = (f as any).giant?.awake ? def.ground + 18 : def.ground;
-  return s.indoor < 0 && Math.hypot(p.pos[0] - hx, p.pos[2] - hz) < r;
+  // one put in a room (the trial tower, 天魔窟) fights only there; the rest only out on the land
+  const room = (f as any).room;
+  if (room !== undefined ? s.indoor !== room : s.indoor >= 0) return false;
+  return Math.hypot(p.pos[0] - hx, p.pos[2] - hz) < r;
 };
 function foesOf(s: Sim, f: Fighter) {
   return s.fighters.filter((o) => (o.team === 'player' || o.team === 'ally') && o.hp > 0 && !(o as any).benched && !(o as any).away);
@@ -289,7 +357,7 @@ export function giantThink(s: Sim, f: Fighter, dt: number) {
       const side = ((st as any).foot = -((st as any).foot ?? 1)), r = def.bodyR * 0.35;
       const x = f.pos[0] + Math.cos(f.yaw) * side * r, z = f.pos[2] - Math.sin(f.yaw) * side * r;
       s.shake(0.22, x, z);
-      s.vfx('dustPuff', [x, groundHeight(x, z) + 0.1, z], 14, 1.1, 2.6, 1, '#b9a07a');
+      s.vfx('dustPuff', [x, s.floorAt(x, z) + 0.1, z], 14, 1.1, 2.6, 1, '#b9a07a');
     }
   }
   const [hx, hz] = f.home ?? [f.pos[0], f.pos[2]];
@@ -423,6 +491,18 @@ function startMove(s: Sim, f: Fighter, def: GiantDef, st: GState, m: GiantMove, 
 function runMove(s: Sim, f: Fighter, def: GiantDef, st: GState, _t: Fighter, dt: number) {
   const mv = st.move!, m = mv.m;
   mv.t += dt;
+  // a rush travels the last moments of its wind-up (it used to blink onto its mark as the blow fell): a charge runs
+  // its line, a leap flies onto the mark (the render lifts it in an arc; render/giantMotion rushTime agrees)
+  if (m.rush && mv.rushTo && !mv.done) {
+    const R = m.at === 'target' ? 0.7 : 0.55;
+    if (mv.t >= m.wind - R) {
+      const from = ((mv as any).from ??= [f.pos[0], f.pos[2]]) as number[];
+      const x = Math.min(1, (mv.t - (m.wind - R)) / R), e = m.at === 'target' ? x : x * x * (3 - 2 * x);
+      const px = from[0] + (mv.rushTo[0] - from[0]) * e, pz = from[1] + (mv.rushTo[1] - from[1]) * e;
+      f.pos = [px, s.floorAt(px, pz), pz];
+      f.vel = [0, 0, 0];
+    }
+  }
   if (!mv.done && mv.t >= m.wind) {
     mv.done = true;
     // the blow lands on whoever is still in a mark (a roll's moment of grace saves you)
@@ -435,14 +515,15 @@ function runMove(s: Sim, f: Fighter, def: GiantDef, st: GState, _t: Fighter, dt:
           s.text(o, '闪', '#e5e7eb');
           continue;
         }
-        const share = (o.team === 'player' ? m.dmg : m.dmg * 0.6) * (def.soft ?? 1);
+        // a share of the victim's life (the player's pool doubled when healing stopped coming free: blows take three quarters of what they did)
+        const share = (o.team === 'player' ? m.dmg * 0.75 : m.dmg * 0.6) * (def.soft ?? 1) * ((f as any).tierDmg ?? 1);
         s.hit(f, o, o.maxHp * share, { noScale: true, knock: m.knock, launch: m.launch, down: m.launch ? 0.9 : undefined, heavy: true, fromX: mk.shape === 'circle' ? mk.x : f.pos[0], fromZ: mk.shape === 'circle' ? mk.z : f.pos[2], color: def.color });
       }
       landFx(s, f, def, m, mk);
     }
     if (m.rush && mv.rushTo) {
       const [x, z] = mv.rushTo;
-      f.pos = [x, groundHeight(x, z), z];
+      f.pos = [x, s.floorAt(x, z), z];
     }
     if (m.adds) callAdds(s, f, m.adds);
     if (m.open) {
@@ -454,12 +535,12 @@ function runMove(s: Sim, f: Fighter, def: GiantDef, st: GState, _t: Fighter, dt:
   if (mv.t >= m.wind + 0.5) {
     s.teles = s.teles.filter((x) => !mv.marks.includes(x));
     st.move = null;
-    st.cd = (st.phase === 3 ? 0.7 : st.phase === 2 ? 1.0 : 1.4) + Math.random() * 0.6;
+    st.cd = ((st.phase === 3 ? 0.7 : st.phase === 2 ? 1.0 : 1.4) + Math.random() * 0.6) * ((f as any).tierCd ?? 1);
   }
 }
 
 function landFx(s: Sim, f: Fighter, def: GiantDef, m: GiantMove, mk: Tele) {
-  const y = groundHeight(mk.x, mk.z) + 0.15;
+  const y = s.floorAt(mk.x, mk.z) + 0.15;
   s.shake(m.fx === 'roar' || m.fx === 'slam' ? 0.8 : 0.5, mk.x, mk.z);
   if (mk.shape === 'circle') {
     s.vfx('ring', [mk.x, y, mk.z], mk.r * 1.2, def.color, 0.9, 0.15, 0.6);
@@ -472,7 +553,7 @@ function landFx(s: Sim, f: Fighter, def: GiantDef, m: GiantMove, mk: Tele) {
     const fx = -Math.sin(mk.yaw), fz = -Math.cos(mk.yaw);
     for (let k = 1; k <= 6; k++) {
       const u = (k / 6) * mk.r;
-      s.vfx('sparkBurst', [mk.x + fx * u, groundHeight(mk.x + fx * u, mk.z + fz * u) + 0.3, mk.z + fz * u], 10, def.color, 5, 0.1, 'up', 0.7);
+      s.vfx('sparkBurst', [mk.x + fx * u, s.floorAt(mk.x + fx * u, mk.z + fz * u) + 0.3, mk.z + fz * u], 10, def.color, 5, 0.1, 'up', 0.7);
     }
   }
 }
@@ -486,7 +567,7 @@ function callAdds(s: Sim, f: Fighter, n: number) {
     if (a.hp > 0) continue;
     const ang = Math.random() * Math.PI * 2, r = giantOf(f)!.bodyR + 4;
     const x = f.pos[0] + Math.cos(ang) * r, z = f.pos[2] + Math.sin(ang) * r;
-    a.pos = [x, groundHeight(x, z), z];
+    a.pos = [x, s.floorAt(x, z), z];
     a.hp = a.maxHp;
     a.home = [x, z];
     (a as any).benched = false;
@@ -504,7 +585,7 @@ function callHelpers(s: Sim, f: Fighter) {
     const h = s.fighters[id];
     const a = p.yaw + Math.PI + (k - 1) * 0.7;
     const x = p.pos[0] + Math.sin(a) * 3, z = p.pos[2] + Math.cos(a) * 3;
-    h.pos = [x, groundHeight(x, z), z];
+    h.pos = [x, s.floorAt(x, z), z];
     h.level = Math.max(h.level, s.progress.level);
     h.maxHp = (120 + s.progress.level * 60) * ((h as any).strong ? 2.5 : 1);
     h.hp = h.maxHp;

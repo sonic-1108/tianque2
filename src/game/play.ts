@@ -12,7 +12,7 @@ import { BOARDS, DRUM, ctWorld, CT_POS } from './court';
 import { FOE_KINDS } from './foes';
 import { POLICY_DREAD, shiftDread, warPrice } from './conflict';
 import { fullHp } from './jianghu';
-import { LOTUS, lotusNear, pickLotus } from './snow';
+import { GLOW_LOTUS, LOTUS, glowLotusNow, lotusNear, pickGlowLotus, pickLotus } from './snow';
 import { GATES, GATE_R, gateAt, lit } from './gates';
 
 export { ITEMS, SHOPS, BUYERS, WANTS };
@@ -41,8 +41,7 @@ export function giveXp(s: Sim, n: number) {
   s.text(p, `经验 +${n}`, '#a5f3fc');
   if (gainXp(P, n) > 0) {
     p.level = P.level;
-    p.maxHp = fullHp(P);
-    p.hp = p.maxHp;
+    p.maxHp = fullHp(P); // no free refill on a level
     s.toast(`升级！${P.level} 级 · 按 K 加点`);
   }
 }
@@ -68,26 +67,29 @@ export function buy(s: Sim, id: string): boolean {
     return false;
   }
   P.coins = purse(P) - cost;
-  const p = s.player;
-  if (it.kind === 'food') {
-    const k = id === 'noodle' ? 0.6 : id === 'mooncake' || id === 'feast' ? 1 : id === 'tofu' ? 0.3 : 0.2;
-    if (id === 'feast') s.buffs.regen = 180;
-    if (id === 'ginger') {
-      s.snow.warmUntil = s.worldT + 240;
-      s.snow.cold = Math.max(0, s.snow.cold - 40);
-    }
-    p.hp = Math.min(p.maxHp, p.hp + p.maxHp * k);
-    if (id === 'ginger') s.toast('一碗滚烫的姜汤下肚，从喉咙暖到脚底：好一阵子不怕冷。');
-    else s.toast(id === 'tea' ? `喝了一壶${it.name}。说书先生正讲到：${TEA_TALES[Math.floor(Math.random() * TEA_TALES.length)]}` : `吃了${it.name}，浑身暖和。`);
-  } else if (it.kind === 'service') {
+  if (it.kind === 'service') {
     s.buffs.dmg = 180;
     s.toast('屠铁塔把你的兵器磨得雪亮：三分钟内伤害提高一成半');
   } else {
+    // food too goes in the bag now (owner: life comes back only from what you carry, healers and moves): eat it when you need it
     bag(P)[id] = (bag(P)[id] ?? 0) + 1;
-    s.toast(it.kind === 'tool' ? `买了${it.name}。${it.desc}` : `买了${it.name}，放进包袱（B 打开）`);
+    s.toast(it.kind === 'tool' ? `买了${it.name}。${it.desc}` : it.kind === 'food' ? `买了${it.name}，包好放进包袱（B 打开，饿了伤了再吃）` : `买了${it.name}，放进包袱（B 打开）`);
   }
   save(P);
   return true;
+}
+/** what each food gives back, of your full life */
+const FOOD_HEAL: Record<string, number> = { noodle: 0.6, mooncake: 1, feast: 1, tofu: 0.3, tea: 0.2, ginger: 0.2 };
+function eat(s: Sim, id: string) {
+  const it = ITEMS[id], p = s.player;
+  if (id === 'feast') s.buffs.regen = 180;
+  if (id === 'ginger') {
+    s.snow.warmUntil = s.worldT + 240;
+    s.snow.cold = Math.max(0, s.snow.cold - 40);
+  }
+  p.hp = Math.min(p.maxHp, p.hp + p.maxHp * (FOOD_HEAL[id] ?? 0.2));
+  if (id === 'ginger') s.toast('一碗滚烫的姜汤下肚，从喉咙暖到脚底：好一阵子不怕冷。');
+  else s.toast(id === 'tea' ? `喝了一壶${it.name}。说书先生正讲到：${TEA_TALES[Math.floor(Math.random() * TEA_TALES.length)]}` : `吃了${it.name}，浑身暖和。`);
 }
 const TEA_TALES = [
   '“那守阙人一剑西来，七家的旗子齐齐倒了一半……”',
@@ -120,14 +122,27 @@ export function use(s: Sim, id: string): boolean {
       giveXp(s, 60 + P.level * 12);
       s.toast('读完《江湖杂记》，长了见识。');
       break;
+    case 'glowlotus': {
+      const D = (P.done ??= {}) as Record<string, number>;
+      D.glowMax = Math.min(5, (D.glowMax ?? 0) + 1);
+      p.maxHp = fullHp(P);
+      p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.6);
+      s.snow.cold = 0;
+      s.toast(D.glowMax < 5 ? `夜光雪莲化成一股凉气走遍全身：气血上限多了三分（${D.glowMax} / 5）` : '夜光雪莲化成一股凉气：气血回了不少，可上限已经长到头了。');
+      break;
+    }
     default:
+      if (ITEMS[id]?.kind === 'food') {
+        eat(s, id);
+        break;
+      }
       return false;
   }
   B[id]--;
   save(P);
   return true;
 }
-export const usable = (id: string) => ['peach', 'tanghulu', 'wine', 'plaster', 'book'].includes(id);
+export const usable = (id: string) => ['peach', 'tanghulu', 'wine', 'plaster', 'book', 'glowlotus'].includes(id) || ITEMS[id]?.kind === 'food';
 /** sells everything of these kinds in the bag to a buyer (at half price) */
 export function sell(s: Sim, kinds: ItemKind[]): number {
   const P = s.progress, B = bag(P);
@@ -185,7 +200,7 @@ export function makeHerbs(): Herb[] {
 }
 export { BOARDS, DRUM };
 
-export type Touch = { kind: 'hen' | 'herb' | 'horse' | 'board' | 'drum' | 'dismount' | 'deed' | 'bed' | 'rack' | 'firefly' | 'hunt' | 'lotus' | 'gate'; id: number; label: string };
+export type Touch = { kind: 'hen' | 'herb' | 'horse' | 'board' | 'drum' | 'dismount' | 'deed' | 'bed' | 'rack' | 'firefly' | 'hunt' | 'lotus' | 'glow' | 'gate'; id: number; label: string };
 /** what's within reach to do something with (when nobody is there to talk to and no door) */
 export function touchable(s: Sim): Touch | null {
   const p = s.player.pos;
@@ -210,6 +225,8 @@ export function touchable(s: Sim): Touch | null {
   // 雪岭's lotus, and the gate you stand on
   const lo = lotusNear(s);
   if (lo >= 0) offer({ kind: 'lotus', id: lo, label: '采雪莲' }, Math.hypot(LOTUS[lo][0] - p[0], LOTUS[lo][1] - p[2]), 2.2);
+  const gl = glowLotusNow(s);
+  if (gl >= 0) offer({ kind: 'glow', id: gl, label: '摘夜光雪莲' }, Math.hypot(GLOW_LOTUS[gl][0] - p[0], GLOW_LOTUS[gl][1] - p[2]), 2.6);
   const g = gateAt(s);
   if (g) offer({ kind: 'gate', id: GATES.indexOf(g), label: lit(s, g) ? '传送阵' : '传送阵（未亮）' }, Math.hypot(g.x - p[0], g.z - p[2]) * 0.5, GATE_R + 0.6);
   return best;
@@ -254,6 +271,10 @@ export function doTouch(s: Sim, t: Touch) {
     }
     case 'board':
       s.game = { kind: 'board', court: t.id === 1 };
+      return;
+    case 'glow':
+      pickGlowLotus(s);
+      save(P);
       return;
     case 'lotus':
       pickLotus(s, t.id);
@@ -364,7 +385,6 @@ export function stepSpar(s: Sim, dt: number) {
   // lose: you're nearly down, or you walked off
   if (p.hp < p.maxHp * 0.15 || Math.hypot(p.pos[0] - CT_POS[0], p.pos[2] - CT_POS[1]) > 110) {
     for (const id of alive) s.fighters[id].hp = 0;
-    p.hp = Math.max(p.hp, p.maxHp * 0.3);
     s.toast('霍铮：“好了，到此为止。回去再练练。”');
     s.spar = null;
     return;

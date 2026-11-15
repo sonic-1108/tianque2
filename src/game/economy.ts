@@ -47,6 +47,7 @@ export const ITEMS: Record<string, Item> = {
   tofu: { id: 'tofu', name: '豆花', price: 4, kind: 'food', desc: '嫩，回三成气血' },
   feast: { id: 'feast', name: '一桌酒席', price: 30, kind: 'food', desc: '回满气血，三分钟里慢慢回血' },
   herb: { id: 'herb', name: '血参', price: 24, kind: 'catch', desc: '野外长的红参，御医收' },
+  glowlotus: { id: 'glowlotus', name: '夜光雪莲', price: 400, kind: 'keep', desc: '雪岭上夜里才开的那一朵。吃下回六成气血，气血上限永久多三分（最多吃五朵见效）' },
   lotus: { id: 'lotus', name: '天山雪莲', price: 70, kind: 'catch', desc: '雪岭高处才有，能续断骨；孙伯、御医和雪岭营地都收' },
   ginger: { id: 'ginger', name: '姜汤', price: 6, kind: 'food', desc: '雪岭营地的，一碗下肚好一阵不怕冷，回两成气血' },
   hen: { id: 'hen', name: '芦花鸡', price: 0, kind: 'catch', desc: '王婆婆跑丢的那只' },

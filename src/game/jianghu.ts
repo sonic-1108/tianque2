@@ -82,6 +82,14 @@ export const GEAR: Gear[] = [
   { id: 'c1', slot: 'charm', name: '疾风靴', desc: '跑得快一成', coins: 80, mats: { hide: 4 }, lvl: 4, spd: 0.1 },
   { id: 'c2', slot: 'charm', name: '回气玉佩', desc: '内力回得快一半', coins: 150, mats: { iron: 2, xuan: 1 }, lvl: 10, mp: 0.5 },
   { id: 'c3', slot: 'charm', name: '饮血护腕', desc: '伤敌时回一成的血', coins: 220, mats: { hide: 4, xuan: 2 }, lvl: 18, leech: 0.1 },
+  // after 伪帝: won from the giants at 噩梦 (巨人挑战) and from the trial tower, never forged
+  { id: 'w5', slot: 'weapon', name: '血傀骨杵', desc: '伤害 +42%，伤敌回半成血（噩梦雷彪）', coins: 0, mats: {}, lvl: 1, dmg: 0.42, leech: 0.05, prize: 'giant' },
+  { id: 'w6', slot: 'weapon', name: '天子剑 · 残', desc: '伤害 +48%（噩梦法相）', coins: 0, mats: {}, lvl: 1, dmg: 0.48, prize: 'giant' },
+  { id: 'w7', slot: 'weapon', name: '镇塔剑', desc: '伤害 +40%，跑得快一成（试炼塔三十层）', coins: 0, mats: {}, lvl: 1, dmg: 0.4, spd: 0.1, prize: 'tower' },
+  { id: 'a5', slot: 'armor', name: '镇阙铜甲', desc: '受伤 -30%，气血 +25%（噩梦铜人）', coins: 0, mats: {}, lvl: 1, def: 0.3, hp: 0.25, prize: 'giant' },
+  { id: 'c4', slot: 'charm', name: '天狼牙坠', desc: '跑得快两成，内力回得快三成（噩梦天狼）', coins: 0, mats: {}, lvl: 1, spd: 0.2, mp: 0.3, prize: 'giant' },
+  { id: 'c5', slot: 'charm', name: '天魔心', desc: '伤害 +15%，伤敌回八分血（噩梦天魔）', coins: 0, mats: {}, lvl: 1, dmg: 0.15, leech: 0.08, prize: 'giant' },
+  { id: 'c6', slot: 'charm', name: '塔顶铃', desc: '气血 +15%，内力回得快一半（试炼塔二十层）', coins: 0, mats: {}, lvl: 1, hp: 0.15, mp: 0.5, prize: 'tower' },
 ];
 export const gearById = (id: string) => GEAR.find((g) => g.id === id);
 export const owned = (P: Progress) => (P.gear ??= []);
@@ -101,7 +109,7 @@ export function gearOf(P: Progress) {
   }
   return out;
 }
-export const fullHp = (P: Progress) => Math.round(playerMaxHp(P.level) * (1 + gearOf(P).hp));
+export const fullHp = (P: Progress) => Math.round(playerMaxHp(P.level) * (1 + gearOf(P).hp + 0.03 * Math.min(5, (P.done?.glowMax as number) ?? 0)));
 /** why 张大锤 won't make it now (null: he will) */
 export function forgeBlock(s: Sim, g: Gear): string | null {
   const P = s.progress, B = bag(P);
@@ -579,7 +587,6 @@ export function stepArena(s: Sim, dt: number) {
       cur.hp = 0;
       (cur as any).benched = true;
     }
-    p.hp = Math.max(p.hp, p.maxHp * 0.3);
     s.toast(`包金刚：“胜负已分！你守了 ${A.round - 1 < 0 ? 0 : A.round - (cur && cur.hp > 0 ? 1 : 0)} 阵，下季再来！”`);
     done(s.progress)[seasonKey(s)] = 1;
     save(s.progress);

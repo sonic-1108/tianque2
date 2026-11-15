@@ -1,6 +1,7 @@
 // The big map: 2 km square, laid out by the owner's Gemini maps (src/game/mapdata.ts): mountains and snow in the west,
 // rivers and plains in the east, the village in the middle; noise adds the ridges and cliffs. Height is a pure function, so the sim, the renderer and the camera
 // all agree on where the ground is. Slopes steeper than MAX_SLOPE can't be walked up (the mountains are walls).
+import { STELE, TOWER } from './endLayout';
 import { DENS, DEN_R } from './foes';
 import { ROADS, nearTq, TQ_POS, TQ_ROT, TQ_TOP, tqWorld, TQ_Y, VILLAGE_R, WORLD_R, TQ_ROAD, GD_ARCH_R, GD_PAV, GD_PAV_R, onGudao, roadFrame, roadPoint } from './layout';
 import { mapBig, mapRough, mapSnow, mapWater } from './mapsample';
@@ -382,6 +383,9 @@ export const BUILDINGS: Building[] = (() => {
   for (const d of DRESS_SOLIDS) out.push({ x: d.x, z: d.z, rot: d.rot, hx: d.hx, hz: d.hz, h: d.h, model: '', scale: 1, posts: d.posts });
   // the house for sale (jianghu.ts, drawn by render/Home.tsx)
   out.push({ x: HOME.x, z: HOME.z, rot: HOME.rot, hx: HOME_W / 2, hz: HOME_D / 2, h: 4.8, model: '', scale: 1 });
+  // after 伪帝 (endLayout.ts): the trial tower's walls (its platform is a step) and 巨灵碑
+  out.push({ x: TOWER.x, z: TOWER.z, rot: TOWER.rot, hx: 5.2, hz: 5.2, h: TOWER.h, model: '', scale: 1 });
+  out.push({ x: STELE.x, z: STELE.z, rot: STELE.rot, hx: 1.7, hz: 1.1, h: 7.6, model: '', scale: 1 });
   // the notice boards: their two legs block
   for (const [x, z] of BOARDS) out.push({ x, z, rot: Math.atan2(-x, -z), hx: 1.3, hz: 0.2, h: 2.7, model: '', scale: 1, posts: [[-1.1, 0, 0.18], [1.1, 0, 0.18]] });
   // 永安城 · 朝廷 (court.ts): the wall, the gate (open between its piers), the hall, the towers, the street outside

@@ -77,9 +77,9 @@ export function walkByHand(g: Gait, f: Fighter, speed: number, dt: number, obj: 
         twist = Math.sin(mv.t * 8) * 0.35 * after;
         crouch = 0.2 * k * after;
         break;
-      case 'pounce': // gathers on its haunches, then flies with every leg stretched
-      case 'chain':
-        if (!hit) {
+      case 'pounce': // gathers on its haunches, then flies with every leg stretched (the sim carries it over the
+      case 'chain': // last 0.7 / 0.55 s of the wind-up: giants.ts runMove)
+        if (mv.t < w - (mv.m.id === 'pounce' ? 0.7 : 0.55)) {
           crouch = 0.8 * k;
           pitch = 0.1 * k;
           head = 0.25 * k;
@@ -139,5 +139,8 @@ export function walkByHand(g: Gait, f: Fighter, speed: number, dt: number, obj: 
   const px = pivot * sc;
   const dx = px - px * Math.cos(pitch), dy = -px * Math.sin(pitch);
   obj.position.x = dx - lunge * sc;
-  obj.position.y = floor + dy + h * (Math.abs(Math.sin(p)) * 0.03 * run - crouch * 0.07);
+  // the pounce's arc onto its mark
+  let arc = 0;
+  if (mv && mv.m.id === 'pounce' && mv.t < mv.m.wind && mv.t > mv.m.wind - 0.7) arc = Math.sin(((mv.t - (mv.m.wind - 0.7)) / 0.7) * Math.PI) * 0.45;
+  obj.position.y = floor + dy + h * (Math.abs(Math.sin(p)) * 0.03 * run - crouch * 0.07 + arc);
 }

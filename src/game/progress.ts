@@ -163,6 +163,8 @@ export function gainXp(p: Progress, n: number) {
   return ups;
 }
 
-export const playerMaxHp = (level: number) => 500 + level * 45;
+// owner: the life pool was too thin, and nothing heals you by itself any more (only healers, things you use, moves, food
+// and medicine), so it is twice what it was
+export const playerMaxHp = (level: number) => 1000 + level * 90;
 export const playerPower = (level: number) => 1 + (level - 1) * 0.06;
 export { HEROES };

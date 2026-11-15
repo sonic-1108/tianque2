@@ -32,6 +32,7 @@ import { SKILLS } from './skills';
 import './moves2';
 import { kitAfter, kitGuard, kitHidden, kitSpeed, kitStep, kitSwing } from './kit';
 import { NPCS, QUESTS, fromStory, type NpcRole } from './quests';
+import { END_TOUCH, doEndTouch, endTouch, makeEndgame, newEnd, onEndKill, onPlayerDown, roomOpen, startTower, endTower, stepEndgame } from './endgame';
 import { ALL_FOLK, ROOMS, ROOM_Y, roomAt, roomSpawn, roomExit, roomRealm } from './interiors';
 import { pushOutOfRealm, realmFloor } from './realms';
 import { GIANT_OF_RING, avatarCheck, makeAvatar, bodyH, bodyR, giantRespawn, giantTakes, giantThink, helperThink, makeGiant, pushFromGiants, stepTeles, type Tele } from './giants';
@@ -165,6 +166,8 @@ export class Sim {
    *  bouts, the horse you're on, the herbs in the wild, what's in reach to touch, words floating over things */
   buffs = { speed: 0, dmg: 0, regen: 0 };
   game: any = null;
+  /** after 伪帝: 巨人挑战, the trial tower (endgame.ts) */
+  end = newEnd();
   policy: { id: string; until: number } | null = null;
   spar: { wave: number; t: number; ids: number[] } | null = null;
   riding = -1;
@@ -188,13 +191,38 @@ export class Sim {
   fadeT = 0;
   /** go in at the door you stand at, or out of the room you're in */
   useDoor() {
-    const p = this.player;
     if (this.door >= 0) {
-      const r = ROOMS[this.door];
+      this.enterRoom(this.door);
+      return;
+    } else if (this.door === -2 && this.indoor >= 0) {
+      this.leaveRoom();
+      return;
+    }
+  }
+  /** straight to a spot out on the land (a challenge's edge), with a fade */
+  teleport(x: number, z: number) {
+    if (this.indoor >= 0) this.leaveRoom();
+    const p = this.player;
+    p.pos = [x, groundHeight(x, z) + 0.1, z];
+    p.vel = [0, 0, 0];
+    p.grounded = true;
+    this.fadeT = 1.1;
+  }
+  /** into a room by its number (its door, or a challenge in 天魔窟) */
+  enterRoom(id: number) {
+    const p = this.player;
+    {
+      const r = ROOMS[id];
+      if (!r) return;
       if (r.theme === 'home' && !this.progress.home) {
         this.toast('门锁着。门口的木牌上写着：空宅出售，三百文。');
         return;
       }
+      if (!roomOpen(this, r)) {
+        this.toast(r.theme === 'trial' ? '塔门紧闭，门上刻着：「天阙钟鸣之日，此门方开。」' : '石缝里吹出一股阴风，深不见底。还不是下去的时候。');
+        return;
+      }
+      if (this.indoor >= 0) this.leaveRoom();
       const [x, z] = roomSpawn(r);
       const R = roomRealm(r);
       p.pos = [x, R ? realmFloor(R, x, z) : ROOM_Y, z];
@@ -206,10 +234,8 @@ export class Sim {
         (this.progress.done as any)['realm:' + R.id] = 1;
         this.pushNote({ title: `秘境 · ${R.name}`, text: R.intro });
       }
-    } else if (this.door === -2 && this.indoor >= 0) {
-      this.leaveRoom();
-      return;
-    } else return;
+      if (r.theme === 'trial') startTower(this);
+    }
     p.vel = [0, 0, 0];
     p.grounded = true;
     this.fadeT = 0.45;
@@ -219,6 +245,7 @@ export class Sim {
   leaveRoom() {
     if (this.indoor < 0) return;
     const p = this.player, r = ROOMS[this.indoor];
+    if (r.theme === 'trial' && this.end.tower) endTower(this, 'left');
     const fx = Math.sin(r.doorYaw), fz = Math.cos(r.doorYaw); // the way out of the door
     const x = r.door[0] + fx * 0.8, z = r.door[1] + fz * 0.8;
     p.pos = [x, groundHeight(x, z), z];
@@ -334,6 +361,8 @@ export class Sim {
       if (key) makeGiant(this, f, key);
       if ((f as any).den === TQ_DEN) makeAvatar(this, f);
     }
+    // after 伪帝: the trial tower's men, 天魔本相 in its cave, 二周目's stronger outlaws (last: no one else's number moves)
+    makeEndgame(this);
     // an escort under way when the game was closed starts again from its start
     const q0 = this.quest();
     if (q0?.escort && this.progress.quest.state === 'active') startEscort(this, q0.escort);
@@ -396,6 +425,10 @@ export class Sim {
   get player() {
     return this.fighters[PLAYER];
   }
+  /** what a body stands on here (terrain, a roof, a room's floor, a 秘境's splat floor) */
+  floorAt(x: number, z: number, y?: number) {
+    return floorAt(x, z, y);
+  }
 
   // ------------------------------------------------------------------ helpers the skills use
   fwd(f: Fighter): [number, number] {
@@ -450,7 +483,7 @@ export class Sim {
   power(f: Fighter) {
     if (f.team === 'player') return playerPower(f.level) * (this.progress.relics?.includes('sword') ? 1.1 : 1) * (1 + gearOf(this.progress).dmg);
     if (f.team === 'ally') return allyPower(this, f);
-    return (0.25 + f.level * 0.04) * ((f as any).boss || (f as any).elite ? 1 : 0.82); // the men hit softer than their bosses // bandits hit softer than you: a few at once is the danger
+    return (0.25 + f.level * 0.04) * ((f as any).boss || (f as any).elite ? 1 : 0.82) * ((f as any).dmgMul ?? 1); // the men hit softer than their bosses (a few at once is the danger); the tower and 二周目 scale them
   }
   setAct(f: Fighter, act: Fighter['act'], dur: number, anim?: string) {
     f.act = act;
@@ -704,7 +737,9 @@ export class Sim {
     this.setAct(def, 'dead', 0, 'dead');
     if (def.id === PLAYER) {
       def.respawn = 4;
-      const at = giantRespawn(this);
+      const inTower = !!this.end.tower;
+      onPlayerDown(this);
+      const at = inTower ? null : giantRespawn(this);
       (def as any).giantRes = at;
       this.toast(at ? `你被${att.name}打倒了 · 4 秒后在战场边上站起来，它的伤还在` : `你被${att.name}打倒了 · 4 秒后回到村子`);
       return;
@@ -726,6 +761,7 @@ export class Sim {
         if (DENS[(def as any).den]?.ring !== undefined) addVillagePts(this, 4);
       }
       if ((def as any).rival !== undefined) rivalBeaten(this, def);
+      onEndKill(this, def);
       if (!(def as any).spar && !(def as any).arena) dropFrom(this, def);
       for (const a of this.allyList) if ((a as any).comp) warm(this, a, 1);
       // a foe far below you is worth little
@@ -737,8 +773,7 @@ export class Sim {
       if (ups > 0) {
         const p = this.player;
         p.level = P.level;
-        p.maxHp = fullHp(P);
-        p.hp = p.maxHp;
+        p.maxHp = fullHp(P); // a bigger pool, but no free refill
         this.toast(`升级！${P.level} 级 · 技能点 +${ups * 2}，按 K 加点`);
         this.emit({ k: 'level', x: p.pos[0], y: p.pos[1], z: p.pos[2], id: PLAYER });
         if (P.level % 5 === 0) this.chron(`你的功夫练到了 ${P.level} 级。`);
@@ -1083,7 +1118,8 @@ export class Sim {
       stepArena(this, dt);
       stepRivals(this, dt);
       stepSeasons(this, dt);
-      this.touch = (this.near < 0 || (this.fighters[this.near] as any).comp) && this.door === -1 && this.dialog < 0 ? (touchable(this) ?? jhTouch(this)) : null;
+      stepEndgame(this, dt);
+      this.touch = (this.near < 0 || (this.fighters[this.near] as any).comp) && this.door === -1 && this.dialog < 0 ? (touchable(this) ?? jhTouch(this) ?? (endTouch(this) as any)) : null;
       for (const b of this.bubbles) b.t -= dt;
       if (this.bubbles.length) this.bubbles = this.bubbles.filter((b) => b.t > 0);
     }
@@ -1181,7 +1217,7 @@ export class Sim {
     for (const k of Object.keys(f.cds)) f.cds[k] = Math.max(0, f.cds[k] - dt);
     if (s.wardT <= 0) f.ward = 0;
     if (f.hp > 0) f.mp = Math.min(f.maxMp, f.mp + dt * (f.team === 'player' ? 7 * (1 + gearOf(this.progress).mp) : 5));
-    if (f.hp > 0 && f.team === 'player' && !this.enemiesOf(f).some((o) => o.aggro && this.dist(o, f) < 25)) f.hp = Math.min(f.maxHp, f.hp + f.maxHp * 0.02 * dt); // out of a fight: heal up
+    // (no healing up out of a fight: owner, life comes back only from healers, things you use, moves, food and medicine)
     if (f.hp > 0 && f.act === 'dead') this.setAct(f, 'idle', 0, 'idle'); // never alive and lying dead
     if (f.respawn !== undefined && f.hp <= 0) {
       f.respawn -= dt;
@@ -1226,6 +1262,7 @@ export class Sim {
     else if (inp.interact && this.near < 0 && this.door !== -1 && this.dialog < 0) this.useDoor();
     else if (inp.interact && this.near < 0 && this.touch && this.dialog < 0 && !this.game) {
       if (JH_TOUCH.includes(this.touch.kind)) doJhTouch(this, this.touch);
+      else if (END_TOUCH.includes(this.touch.kind)) doEndTouch(this, this.touch);
       else doTouch(this, this.touch);
     }
     else if (inp.interact && this.near >= 0) {
@@ -1484,6 +1521,7 @@ export class Sim {
     const mode = (f as any).mode;
     if (mode === 'raid') f.aggro = p.hp > 0 && this.indoor < 0 && d < 22;
     else if (mode === 'hunt') f.aggro = p.hp > 0 && this.indoor < 0 && d < 160;
+    else if (mode === 'tower') f.aggro = p.hp > 0 && this.indoor === (f as any).roomId;
     else if (mode === 'rival') {
       if (p.hp <= 0 || pInVillage || this.indoor >= 0 || d > 42) f.aggro = false;
       else if (d < 13) f.aggro = true;
@@ -1513,7 +1551,8 @@ export class Sim {
     let tg = p;
     {
       // in a room you're out of their reach; a splat room (秘境) is a place of its own, and whoever is in it can come for you
-      let bd = f.aggro && (p.hp <= 0 || (this.indoor >= 0 && !ROOMS[this.indoor].realm)) ? Infinity : d;
+      const fightRoom = this.indoor >= 0 && (ROOMS[this.indoor].realm || (f as any).roomId === this.indoor);
+      let bd = f.aggro && (p.hp <= 0 || (this.indoor >= 0 && !fightRoom)) ? Infinity : d;
       for (const al of this.allyList) {
         const da = this.dist(f, al);
         if (da < bd - 1.5) {

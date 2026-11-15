@@ -1,5 +1,7 @@
 // The whole map (M): the land, the seven roads, 青石村, every den with its level (grey once cleared), the
 // waystations and story places, 天阙, where the quest wants you and where you are. Click or M / Esc to close.
+import { storyDone, sequelAt, tianmoBeaten } from '../game/endgame';
+import { TOWER, STELE, ABYSS } from '../game/endLayout';
 import { GATES, lit } from '../game/gates';
 import { ICE_CAVE, SNOW_CAMP, SUMMIT } from '../game/snow';
 import { ROOMS } from '../game/interiors';
@@ -115,6 +117,9 @@ export function BigMap({ sim, onClose }: { sim: Sim; onClose: () => void }) {
         [...ARENA_AT(), '擂', '擂台'] as [number, number, string, string],
       ];
       if (firefliesOut(sim)) for (const [gx, gz] of GLADES) marks.push([gx, gz, '萤', '萤火虫']);
+      // after 伪帝: the trial tower and 巨灵碑 (天魔窟 once the sequel leads there)
+      if (storyDone(sim.progress)) marks.push([TOWER.x, TOWER.z, '塔', '天阙试炼塔'], [STELE.x, STELE.z, '碑', '巨灵碑']);
+      if (sequelAt(sim.progress) >= 4 || tianmoBeaten(sim.progress)) marks.push([ABYSS.x, ABYSS.z, '魔', '天魔窟']);
       // 雪岭: its camp, the summit, the ice cave
       marks.push([SNOW_CAMP.x, SNOW_CAMP.z + 14, '营', '雪岭营地'], [SUMMIT[0], SUMMIT[1], '顶', '雪岭之巅'], [ICE_CAVE.x, ICE_CAVE.z, '窟', '寒寺遗窟']);
       // 传送阵: lit ones bright, the rest grey

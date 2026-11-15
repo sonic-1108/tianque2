@@ -3,6 +3,7 @@
 // drawn only while you are in it. A room is a floor, four walls and its furniture: all of them block like buildings
 // (world.ts adds them to BUILDINGS), so the camera stops at the walls and a bench is a step. Pure data: no imports
 // from world.ts (it imports this).
+import { TOWER, ABYSS, END_ROOMS_AT } from './endLayout';
 import { ROADS } from './layout';
 import { HOME } from './village';
 import { TEAHOUSE, fit } from './props';
@@ -54,7 +55,7 @@ export interface Furn {
   z: number;
   ry?: number;
 }
-export type RoomTheme = 'elder' | 'hunter' | 'weaver' | 'herbalist' | 'carpenter' | 'scholar' | 'elders' | 'tavern' | 'inn' | 'shrine' | 'teahouse' | 'throne' | 'home' | 'realm';
+export type RoomTheme = 'elder' | 'hunter' | 'weaver' | 'herbalist' | 'carpenter' | 'scholar' | 'elders' | 'tavern' | 'inn' | 'shrine' | 'teahouse' | 'throne' | 'home' | 'realm' | 'trial' | 'abyss';
 export interface Room {
   id: number;
   name: string;
@@ -83,6 +84,24 @@ const BASE_X = 3300, BASE_Z = 3300;
 const LAYOUT: Record<RoomTheme, { w: number; d: number; furn: Furn[]; floor?: 'plank' | 'stone'; wall?: 'wall' | 'plank' }> = {
   // a 秘境: sized from its grid when it's added
   realm: { w: 1, d: 1, furn: [] },
+  // 天阙试炼塔: one floor of the trial tower, a stone hall ringed by columns, fire in the corners (endgame.ts fills it)
+  trial: {
+    w: 40, d: 40, floor: 'stone',
+    furn: [
+      ...[0, 1, 2, 3, 4, 5, 6, 7].map((k) => ({ k: 'pillar' as const, x: Math.round(Math.cos((k / 8) * Math.PI * 2 + 0.39) * 14 * 10) / 10, z: Math.round(Math.sin((k / 8) * Math.PI * 2 + 0.39) * 14 * 10) / 10 })),
+      ...[[-17, -17], [17, -17], [-17, 15], [17, 15]].map(([x, z]) => ({ k: 'cauldron' as const, x, z })),
+      { k: 'lamp', x: -6, z: -18.6 }, { k: 'lamp', x: 6, z: -18.6 }, { k: 'altar', x: 0, z: -18.4 },
+    ],
+  },
+  // 天魔窟: the cave under 天阙 where the 天魔 was sealed; broken columns, the seal's altar, fire pits
+  abyss: {
+    w: 48, d: 48, floor: 'stone',
+    furn: [
+      ...[0, 1, 2, 3, 4, 5].map((k) => ({ k: 'pillar' as const, x: Math.round(Math.cos((k / 6) * Math.PI * 2) * 19 * 10) / 10, z: Math.round(Math.sin((k / 6) * Math.PI * 2) * 19 * 10) / 10 })),
+      ...[[-21, -21], [21, -21], [-21, 19], [21, 19], [0, -21]].map(([x, z]) => ({ k: 'cauldron' as const, x, z })),
+      { k: 'statue', x: -8, z: -22.4 }, { k: 'statue', x: 8, z: -22.4 }, { k: 'altar', x: 0, z: -22.6 },
+    ],
+  },
   // 石伯: a desk under the old map of 天阙, a cradle kept all these years, a chest, a bed behind a screen
   elder: {
     w: 9, d: 8,
@@ -208,7 +227,7 @@ const LAYOUT: Record<RoomTheme, { w: number; d: number; furn: Furn[]; floor?: 'p
 const HOUSE_THEMES: RoomTheme[] = ['hunter', 'weaver', 'herbalist', 'carpenter', 'scholar', 'elders'];
 const HOUSE_NAMES: Record<RoomTheme, string> = {
   elder: '石伯家', hunter: '猎户韩家', weaver: '织娘柳家', herbalist: '药农孙家', carpenter: '木匠鲁家', scholar: '书生顾家', elders: '王家老两口',
-  tavern: '杏花酒肆', inn: '驿站', shrine: '土地庙', teahouse: '清风茶楼', throne: '金銮殿', home: '你的家', realm: '秘境',
+  tavern: '杏花酒肆', inn: '驿站', shrine: '土地庙', teahouse: '清风茶楼', throne: '金銮殿', home: '你的家', realm: '秘境', trial: '天阙试炼塔', abyss: '天魔窟',
 };
 function villageHouses() {
   const out: { x: number; z: number; rot: number }[] = [];
@@ -283,6 +302,14 @@ export const ROOMS: Room[] = (() => {
       id: out.length, name: R.name, theme: 'realm', ox: R.ox + (g.x0 * R.scale + w / 2), oz: R.oz + (g.z0 * R.scale + d / 2), w, d, h: g.ceil * R.scale,
       door: R.door, doorYaw: R.doorYaw, furn: [], floor: 'stone', wall: 'wall', realm: R.id,
     });
+  }
+  // after 伪帝: the trial tower's floor and the 天魔's cave, last so no other room's number moves
+  for (const [theme, name, door, doorYaw, h] of [
+    ['trial', '天阙试炼塔', TOWER.door, TOWER.doorYaw, 16],
+    ['abyss', '天魔窟', ABYSS.door, ABYSS.doorYaw, 22],
+  ] as const) {
+    const L = LAYOUT[theme], [ox, oz] = END_ROOMS_AT[theme];
+    out.push({ id: out.length, name, theme, ox, oz, w: L.w, d: L.d, h, door: [...door] as [number, number], doorYaw, furn: L.furn, floor: 'stone', wall: 'wall' });
   }
   return out;
 })();

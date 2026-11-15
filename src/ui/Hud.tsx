@@ -1,5 +1,6 @@
 // On-screen: health and inner strength, level and experience, the six-slot bar with cooldowns, the target, messages,
 // a minimap. Reads the sim ten times a second.
+import { EndBar } from './Endgame';
 import { look } from '../render/Scene';
 import { GATES, lit } from '../game/gates';
 import { CT_POS } from '../game/court';
@@ -277,6 +278,7 @@ export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
         </>
       )}
       <GiantBar sim={sim} />
+      <EndBar sim={sim} />
       <div className="me">
         <div className="me-name">
           {p.name} <span className="lvl">Lv {P.level}</span> <span className="cls">{h ? `${h.title}` : '散人'}</span>

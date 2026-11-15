@@ -6,6 +6,7 @@ import { useFrame } from '@react-three/fiber';
 import { GLTFLoader, SkeletonUtils, MeshoptDecoder } from 'three-stdlib';
 import type { Fighter } from '../game/types';
 import { giantOf, giantOpen, giantPhase } from '../game/giants';
+import { giantPose, GIANT_CLIPS, GIANT_SOURCES } from './giantMotion';
 import { garment, ward, wornKey } from '../game/wardrobe';
 import { TQ_DYE } from './characterShading';
 import { dressBody, swayCloak } from './outfit';
@@ -254,7 +255,10 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
 
   useEffect(() => {
     let alive = true;
-    const extra = BODY_AS[f.model] ? [BODY_AS[f.model], ...(CLIP_SOURCE[BODY_AS[f.model]] ?? [])] : CLIP_SOURCE[f.model] ?? [];
+    const humanGiant = !!giantOf(f) && giantOf(f)!.look !== 'beast';
+    const base = BODY_AS[f.model] ? [BODY_AS[f.model], ...(CLIP_SOURCE[BODY_AS[f.model]] ?? [])] : CLIP_SOURCE[f.model] ?? [];
+    // a giant borrows from the whole house library (slams, pounds, roars, throws, leaps: giantMotion.ts)
+    const extra = [...new Set([...base, ...(humanGiant ? GIANT_SOURCES : [])])].filter((x) => x !== f.model);
     Promise.all([loadModel(f.model), ...extra.map(loadModel)])
       .then(([m, ...more]) => {
         if (!alive) return;
@@ -309,6 +313,8 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
           if (!o.isMesh || !(o.material as any)?.isMeshStandardMaterial || o.userData.weapon) return;
           const mat = (o.material as THREE.MeshStandardMaterial).clone();
           mat.emissive = new THREE.Color('#000000');
+          const tint = giantOf(f)?.tint;
+          if (tint) mat.color.multiply(new THREE.Color(tint));
           const tune = LOOK_TUNE[f.model];
           if (tune) {
             mat.metalness = tune.metal;
@@ -320,7 +326,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
           ((obj as any).userData.mats ||= []).push(mat);
         });
         ((globalThis as any).__T2_OBJ ??= {})[f.id] = obj; // headless tests read bone positions
-        setModel({ obj, clips: buildClips(raw, planOf(f.model)), scale: m.scale, floor: m.floor });
+        setModel({ obj, clips: buildClips(raw, humanGiant ? { ...planOf(f.model), ...(GIANT_CLIPS as Record<string, Spec>) } : planOf(f.model)), scale: m.scale, floor: m.floor });
       })
       .catch((e) => console.warn('[tq2] model', f.model, e));
     return () => {
@@ -358,7 +364,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
   }, [model, glide]);
   const lastAct = useRef<{ act: string; anim: string; t: number }>({ act: '', anim: '', t: 0 });
   const pose = useRef<THREE.Group>(null);
-  const body = useMemo(() => ({ spin: 0, lean: 0, lev: 0, lastHit: -1, jolt: 0, flash: 0, flashOn: false }), []);
+  const body = useMemo(() => ({ spin: 0, lean: 0, lev: 0, lastHit: -1, jolt: 0, flash: 0, flashOn: false, openT: 0, gpId: null as object | null, yaw: 0, turn: 0 }), []);
 
   useFrame((_, dt) => {
     const g = group.current;
@@ -445,7 +451,19 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     if (f.id === 0 && sim.riding >= 0 && (key === 'run' || key === 'walk')) key = 'idle';
     if (!actions[key]) key = /^(skill|kr_|aq_|fy_|yr_|tz_|jy_|dx_)/.test(key) ? 'skill_slash' : key === 'channel' ? 'skill_spell' : 'idle';
     if (!actions[key]) key = 'idle';
-    const restarted = f.act !== lastAct.current.act || f.anim !== lastAct.current.anim || f.actT < lastAct.current.t - 0.01;
+    // a giant's blows on the sim's clock, its 破绽 crouch, a heavy walk that steps as it turns (giantMotion.ts)
+    const humanGiant = !!gd && gd.look !== 'beast';
+    body.openT = humanGiant && giantOpen(f) > 0 ? body.openT + dt : 0;
+    const gp = humanGiant ? giantPose(f, body.openT) : null;
+    if (humanGiant) {
+      const dy = Math.abs(((f.yaw - body.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+      body.yaw = f.yaw;
+      body.turn += (Math.min(2, dy / Math.max(dt, 1e-3)) - body.turn) * Math.min(1, dt * 5);
+      if (gp && actions[gp.key]) key = gp.key;
+      else if ((key === 'run' || key === 'walk' || (key === 'idle' && body.turn > 0.6)) && actions.g_walk) key = 'g_walk';
+    }
+    const restarted = f.act !== lastAct.current.act || f.anim !== lastAct.current.anim || f.actT < lastAct.current.t - 0.01 || (!!gp && gp.id !== body.gpId);
+    body.gpId = gp?.id ?? null;
     lastAct.current = { act: f.act, anim: f.anim, t: f.actT };
     if (key !== cur.current || (restarted && !planOf(f.model)[key]?.loop)) {
       const next = actions[key];
@@ -461,6 +479,16 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
         if (prev && prev !== next) next.crossFadeFrom(prev, key === 'dead' || key === 'hit' ? 0.06 : 0.12, false);
       }
       cur.current = key;
+    }
+    if (gp && key === gp.key) {
+      // held on the sim's clock: the blow lands when its mark ends
+      const a = actions[key];
+      a.setEffectiveTimeScale(0);
+      a.time = gp.u * a.getClip().duration;
+    } else if (key === 'g_walk' && gd) {
+      // a man's walk covers about 1.45 m a second; a giant's stride is its scale times longer
+      const sp = Math.hypot(f.vel[0], f.vel[2]);
+      actions.g_walk.setEffectiveTimeScale(Math.max(0.35, Math.min(1.5, sp > 0.3 ? sp / (1.45 * gd.scale) : 0.45)));
     }
     if (key === 'run') {
       const sp = Math.hypot(f.vel[0], f.vel[2]);
@@ -492,11 +520,14 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
       if (f.anim === 'kr_charge') lean = 0.32;
       else if (f.anim === 'dx_fold') lean = 0.34;
       else if (f.act === 'hit') lean = -0.12;
+      if (gp) lean = gp.lean;
       body.lean += (lean - body.lean) * Math.min(1, dt * 10);
       const lev = f.anim === 'fy_ult' ? 0.45 + Math.sin(performance.now() * 0.003) * 0.05 : kf ? kf.h * kUp + Math.sin(performance.now() * 0.004) * 0.08 * kUp : 0;
       body.lev += (lev - body.lev) * Math.min(1, dt * 6);
-      ps.rotation.set(body.lean + flip - body.jolt * 0.28, body.spin, 0, 'YXZ');
-      ps.position.y = PIVOT + body.lev;
+      // a giant: its sweep's turn, its leap's arc (in body heights of the 1.8 m model), a tremble as it strains at the top
+      const gSpin = gp ? gp.spin : 0, gLift = gp ? gp.lift * TARGET_H : 0, strain = gp ? gp.strain : 0;
+      ps.rotation.set(body.lean + flip - body.jolt * (gd ? 0.1 : 0.28), body.spin + gSpin, 0, 'YXZ');
+      ps.position.set((Math.random() - 0.5) * 0.025 * strain, PIVOT + body.lev + gLift, (Math.random() - 0.5) * 0.025 * strain);
     }
     // the glider: blend the arms up onto the straps, open the canopy above the fists
     const gliding = f.act === 'glide' && f.hp > 0;

@@ -6,7 +6,6 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import type { Sim } from '../game/sim';
 import type { Tele } from '../game/giants';
-import { groundHeight } from '../game/world';
 
 const VS = `uniform float uS; varying vec2 vP; void main(){ vP = position.xy * uS; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
 // uShape 0 disc, 1 ring, 2 fan, 3 strip; vP in metres in the mark's own frame (y forward)
@@ -78,7 +77,7 @@ export function Telegraphs({ sim }: { sim: Sim }) {
       u.uS.value = size; // the shader works in metres
       // the plane's own y is the mark's forward: face it along (-sin yaw, -cos yaw)
       m.rotation.set(-Math.PI / 2, t.yaw, 0);
-      m.position.set(t.x, groundHeight(t.x, t.z) + 0.12, t.z);
+      m.position.set(t.x, sim.floorAt(t.x, t.z) + 0.12, t.z);
     });
   });
   return <primitive object={pool.group} />;

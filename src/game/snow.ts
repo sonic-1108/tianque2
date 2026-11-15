@@ -26,6 +26,27 @@ export const LOTUS: [number, number][] = [
 ];
 /** the highest ground you can walk to */
 export const SUMMIT: [number, number] = [-692, -794];
+/** 夜光雪莲 (the rumour made true): one flower that opens only at night, a different high spot each night */
+export const GLOW_LOTUS: [number, number][] = [
+  [-700, -808], [-846, -872], [-596, -818], [-760, -770], [-668, -760], [-820, -800],
+];
+export const isNight = (hour: number) => hour >= 20 || hour < 4;
+/** tonight's spot, or -1 by day or once picked tonight */
+export function glowLotusNow(s: Sim): number {
+  if (!isNight(s.clock.hour)) return -1;
+  // a night belongs to the day it began on (after midnight still counts as the evening before)
+  const night = Math.floor((s.worldT - (s.clock.hour < 4 ? DAY_S * 0.5 : 0)) / DAY_S);
+  if ((s.progress.done as any)?.['glow:' + night]) return -1;
+  return ((night % GLOW_LOTUS.length) + GLOW_LOTUS.length) % GLOW_LOTUS.length;
+}
+export function pickGlowLotus(s: Sim) {
+  const night = Math.floor((s.worldT - (s.clock.hour < 4 ? DAY_S * 0.5 : 0)) / DAY_S);
+  ((s.progress.done ??= {}) as any)['glow:' + night] = 1;
+  const B = (s.progress.bag ??= {}) as any;
+  B.glowlotus = (B.glowlotus ?? 0) + 1;
+  s.toast('摘下一朵夜光雪莲：花心里像含着一盏小灯，捧在手里是凉的。（B 打开包袱，吃下它）');
+  s.vfx('ring', [s.player.pos[0], s.player.pos[1] + 0.2, s.player.pos[2]], 3, '#bfe3ff', 0.7, 0.12, 0.8);
+}
 /** the old temple's ice cave (its place lives in layout.ts), and where its monk stands */
 export { ICE_CAVE };
 /** the monk sits in the hall of 寒寺遗窟 before the frozen Buddha when the cave's inside exists (realms.ts), else by its mouth */
