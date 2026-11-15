@@ -283,3 +283,17 @@ button:not(:disabled):hover { border-color: var(--gold); }
 .ice-bar .ib-bar i { display: block; height: 100%; background: linear-gradient(90deg, #7fd3ff, #ffffff); transition: width 0.08s; }
 .ice-bar .ib-melt { font-size: 12px; opacity: 0.7; margin-top: 4px; }
 @keyframes iceShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+/* 衣装 (C) */
+.ward-open { text-align: center; margin: 2px 0 8px; }
+.ward-open button { padding: 5px 14px; font-family: serif; background: #5a3a1e; color: #f6e8c8; border: 1px solid #3a2410; border-radius: 4px; cursor: pointer; }
+.ward-tabs { display: flex; justify-content: center; gap: 8px; margin: 6px 0 10px; }
+.ward-tabs button { padding: 4px 18px; font-family: serif; font-size: 15px; background: #e6d6b0; color: #5a3a1e; border: 1px solid #a8864e; border-radius: 4px; cursor: pointer; }
+.ward-tabs button.on { background: #8a3a12; color: #ffe9a8; border-color: #5a2a10; }
+.ward-slot { margin-bottom: 10px; display: flex; flex-direction: column; gap: 4px; }
+.ward-head { font-weight: 700; color: #6a2a10; display: flex; align-items: center; gap: 8px; }
+.ward-off { padding: 1px 10px; font-family: serif; font-size: 12px; background: #e6d6b0; color: #5a3a1e; border: 1px solid #a8864e; border-radius: 4px; cursor: pointer; }
+.ward-none { padding-left: 4px; }
+.ward-item { display: flex; align-items: center; gap: 10px; }
+.ward-swatch { width: 26px; height: 26px; border-radius: 4px; border: 1px solid #8a6a3a; flex: none; }
+.bag-item.worn { border-color: #8a3a12; box-shadow: inset 0 0 0 1px #8a3a12; }
+.bag-item button:disabled { opacity: 0.55; cursor: default; }

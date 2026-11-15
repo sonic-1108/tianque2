@@ -6,6 +6,7 @@ import { save } from '../game/progress';
 import { ALL_FOLK } from '../game/interiors';
 import { worldRemark } from '../game/life';
 import { BUYERS, ITEMS, SHOPS, bag, buy, done, give, nextCase, priceOf, purse, sell, startSpar, wantOf } from '../game/play';
+import { WARD_SHOPS } from '../game/wardrobe';
 import type { Sim as SimT } from '../game/sim';
 import { GIFTS, RIVALS, arenaState, comps, giftTo, setMode, startArena, type Comp } from '../game/jianghu';
 
@@ -82,6 +83,7 @@ function actionsFor(sim: SimT, name: string, changed: () => void, startGame: () 
     out.push({ label: D.debate === c.day ? '朝议（今日已议）' : morning ? '参与朝议' : '朝议（早朝在卯时到午时）', hot: morning && D.debate !== c.day, off: !morning || D.debate === c.day, go: play('debate') });
   }
   if (name === '铁匠 · 张大锤') out.push({ label: '打造兵器甲胄', hot: true, go: play('forge') });
+  if (WARD_SHOPS[name]) out.push({ label: '看衣裳', hot: true, go: play('ward', { shop: name }) });
   if (name === '擂台官 · 包金刚') {
     const st = arenaState(sim);
     out.push({ label: sim.jh.arena ? '打擂中……' : st === 'open' ? '上台打擂（五阵）' : st === 'done' ? '打擂（本季打过了）' : '打擂（每季第二天辰时到戌时）', hot: st === 'open', off: st !== 'open' || !!sim.jh.arena || !!sim.spar, go: () => (startArena(sim), startGame()) });

@@ -1,7 +1,7 @@
 // The whole game world, stepped once per frame: the player, the bandits in their dens, projectiles, zones on
 // the ground and the little effects the renderer draws. Pure logic: no React, no three.js.
 import { makeSnow, snowSpeed, stepSnow, type SnowState } from './snow';
-import { stepGates } from './gates';
+import { gateAt, stepGates } from './gates';
 import { ROAD_N, roadPoint } from './layout';
 import { makeAnimals, stepAnimals, type Animal } from './animals';
 import { CT_POS } from './court';
@@ -1215,6 +1215,8 @@ export class Sim {
       if (!t || t.hp <= 0 || (t as any).away || this.dist(t, pl) > 6) this.dialog = -1;
       else this.near = this.dialog;
     }
+    // standing on a 传送阵, F is the gate's, however many folk crowd round it (step off the ring to talk to them)
+    if (this.dialog < 0 && pl.hp > 0 && gateAt(this)) this.near = -1;
     this.talkT = this.dialog >= 0 ? (this.dialog === this.talkWith ? this.talkT + dt : 0) : 0;
     this.talkWith = this.dialog;
     // a door the player stands at: a room's way in (outside) or its way out (inside)
