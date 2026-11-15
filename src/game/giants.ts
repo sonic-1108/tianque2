@@ -107,7 +107,7 @@ export const GIANTS: Record<string, GiantDef> = {
   tianlang: {
     key: 'tianlang',
     name: '啸月天狼',
-    model: 's-wolf.glb',
+    model: 'giant-tianlang.glb',
     scale: 1,
     bodyR: 3.6,
     bodyH: 6.5,

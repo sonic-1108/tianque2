@@ -10,12 +10,13 @@ import type { Fighter } from '../game/types';
 import { ANIMALS } from '../game/animals';
 import { giantOf, giantOpen, giantPhase } from '../game/giants';
 import { kitOf } from './Animals';
+import { makeGait, walkByHand, type Gait } from './beastGait';
 
 function Beast({ sim, f }: { sim: Sim; f: Fighter }) {
   const def = giantOf(f)!;
-  const spec = ANIMALS.wolf;
+  const spec = useMemo(() => (def.model && def.model !== ANIMALS.wolf.file ? { ...ANIMALS.wolf, file: def.model } : ANIMALS.wolf), [def]);
   const group = useRef<THREE.Group>(null);
-  const [body, setBody] = useState<{ obj: THREE.Object3D; mixer: THREE.AnimationMixer; walk: THREE.AnimationAction | null; scale: number; floor: number; turn: number; mats: THREE.MeshStandardMaterial[] } | null>(null);
+  const [body, setBody] = useState<{ obj: THREE.Object3D; mixer: THREE.AnimationMixer; walk: THREE.AnimationAction | null; gait: Gait | null; scale: number; floor: number; turn: number; mats: THREE.MeshStandardMaterial[] } | null>(null);
   useEffect(() => {
     let alive = true;
     kitOf(spec).then((kit) => {
@@ -30,8 +31,9 @@ function Beast({ sim, f }: { sim: Sim; f: Fighter }) {
       const mixer = new THREE.AnimationMixer(obj);
       const walk = kit.clip ? mixer.clipAction(kit.clip) : null;
       walk?.play();
+      const gait = walk ? null : makeGait(obj, kit.turn);
       const k = def.bodyH / spec.h;
-      setBody({ obj, mixer, walk, scale: kit.scale * k, floor: kit.floor * k, turn: kit.turn, mats });
+      setBody({ obj, mixer, walk, gait, scale: kit.scale * k, floor: kit.floor * k, turn: kit.turn, mats });
     });
     return () => {
       alive = false;
@@ -51,6 +53,7 @@ function Beast({ sim, f }: { sim: Sim; f: Fighter }) {
     live.speed += (Math.min(sp, 30) - live.speed) * Math.min(1, dt * 6);
     if (body.walk) body.walk.setEffectiveTimeScale(f.act === 'cast' ? 2.6 : Math.max(0.35, live.speed / 4));
     body.mixer.update(dt);
+    if (body.gait) walkByHand(body.gait, f, live.speed, dt, body.obj, body.floor, def.bodyH);
     const t = performance.now() / 1000, ph = giantPhase(f);
     const c = new THREE.Color(def.color).multiplyScalar(0.06 + ph * 0.025 + Math.sin(t * (ph * 2 + 2)) * 0.04);
     if (giantOpen(f) > 0) c.lerp(new THREE.Color('#ffd84a'), 0.35 + Math.sin(t * 12) * 0.12);
