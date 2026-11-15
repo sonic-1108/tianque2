@@ -261,6 +261,25 @@ function GiantBar({ sim }: { sim: Sim }) {
   );
 }
 
+/** 冰封: the prompt and how close the ice is to breaking */
+function IceBar({ sim }: { sim: Sim }) {
+  const fr = (sim.player as any).frozen;
+  if (!fr) return null;
+  return (
+    <div className="ice-bar">
+      <div className="ib-title">冰封！快速交替按 A、D 挣脱</div>
+      <div className="ib-keys">
+        <b className={fr.last < 0 ? 'on' : ''}>A</b>
+        <b className={fr.last > 0 ? 'on' : ''}>D</b>
+      </div>
+      <div className="ib-bar">
+        <i style={{ width: `${Math.min(100, (fr.got / fr.need) * 100)}%` }} />
+      </div>
+      <div className="ib-melt">{Math.max(0, fr.t).toFixed(1)} 秒后自己化开</div>
+    </div>
+  );
+}
+
 export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
   void tick;
   const p = sim.player;
@@ -279,6 +298,7 @@ export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
       )}
       <GiantBar sim={sim} />
       <EndBar sim={sim} />
+      <IceBar sim={sim} />
       <div className="me">
         <div className="me-name">
           {p.name} <span className="lvl">Lv {P.level}</span> <span className="cls">{h ? `${h.title}` : '散人'}</span>

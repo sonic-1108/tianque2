@@ -29,6 +29,24 @@ function stripTex() {
 }
 const addMat = (map?: THREE.Texture, vc = false) =>
   new THREE.MeshBasicMaterial({ map, vertexColors: vc, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, toneMapped: false });
+/** the same shape drawn with ordinary blending under the glow, so a cut still shows against snow or a sunlit field
+ * (light added onto a bright ground all but vanishes) */
+const bodyMat = (map?: THREE.Texture, vc = false) =>
+  new THREE.MeshBasicMaterial({ map, vertexColors: vc, transparent: true, depthWrite: false, blending: THREE.NormalBlending, side: THREE.DoubleSide, fog: false, toneMapped: false });
+/** a sweep that draws itself across from one edge (aV, 0..1 along the arc), its leading edge white-hot */
+function revealing(m: THREE.MeshBasicMaterial, lead: number) {
+  const u = { uReveal: { value: 1 } };
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uReveal = u.uReveal;
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aV;\nvarying float vV;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvV = aV;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float uReveal;\nvarying float vV;')
+      .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\nif (vV > uReveal) discard;')
+      .replace('#include <dithering_fragment>', `#include <dithering_fragment>\nfloat lead = smoothstep(uReveal - 0.18, uReveal, vV) * step(uReveal, 0.999);\ngl_FragColor.rgb += lead * ${lead.toFixed(2)};`);
+  };
+  (m as any).userData.reveal = u.uReveal;
+  return m;
+}
 
 interface Item {
   mesh: THREE.Mesh;
@@ -71,7 +89,7 @@ export const lookOf = (house?: string): HouseLook => HOUSE_LOOK[house ?? ''] ?? 
 /** a flat crescent fan, bright toward the rim (sharp: how thin that bright band is), the leading edge brightest */
 function fanGeometry(r: number, spread: number, sharp = 2.2, inner = 0.25, even = false) {
   const seg = 32, rings = 6;
-  const pos: number[] = [], colr: number[] = [], idx: number[] = [];
+  const pos: number[] = [], colr: number[] = [], idx: number[] = [], along: number[] = [];
   for (let i = 0; i <= rings; i++) {
     const u = i / rings, rr = r * (inner + (1 - inner) * u);
     for (let j = 0; j <= seg; j++) {
@@ -79,7 +97,8 @@ function fanGeometry(r: number, spread: number, sharp = 2.2, inner = 0.25, even 
       const edge = Math.sin(Math.PI * Math.min(1, v * 1.04));
       const b = Math.pow(u, sharp) * (even ? 1 : 0.35 + 0.65 * v) * edge;
       pos.push(Math.sin(a) * rr, 0, -Math.cos(a) * rr);
-      colr.push(b, b, b);
+      colr.push(1, 1, 1, b);
+      along.push(v);
     }
   }
   for (let i = 0; i < rings; i++)
@@ -89,7 +108,8 @@ function fanGeometry(r: number, spread: number, sharp = 2.2, inner = 0.25, even 
     }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(colr, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(colr, 4));
+  g.setAttribute('aV', new THREE.Float32BufferAttribute(along, 1));
   g.setIndex(idx);
   return g;
 }
@@ -105,7 +125,12 @@ export class KitFX {
   constructor() {
     const item = (mesh: THREE.Mesh): Item => ({ mesh, life: 0, max: 1, spin: 0, grow: 0, base: 1, wait: 0 });
     for (let k = 0; k < 28; k++) {
-      const m = new THREE.Mesh(new THREE.BufferGeometry(), addMat(undefined, true));
+      const m = new THREE.Mesh(new THREE.BufferGeometry(), revealing(addMat(undefined, true), 1.4));
+      const body = new THREE.Mesh(m.geometry, revealing(bodyMat(undefined, true), 0.5));
+      body.renderOrder = 5;
+      body.frustumCulled = false;
+      body.name = 'body';
+      m.add(body);
       m.visible = false;
       m.frustumCulled = false;
       m.renderOrder = 6;
@@ -118,6 +143,15 @@ export class KitFX {
       // a second, upright strip so the beam reads from the side too (the gradient runs up it)
       const up = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateZ(Math.PI / 2).rotateY(Math.PI / 2).translate(0, 0, -0.5), m.material);
       m.add(up);
+      // and the ordinary-blended body under both, so it shows in daylight
+      const bm = bodyMat(stripTex());
+      const body = new THREE.Mesh(g, bm);
+      body.name = 'body';
+      body.renderOrder = 5;
+      const body2 = new THREE.Mesh(up.geometry, bm);
+      body2.renderOrder = 5;
+      m.add(body, body2);
+      body.frustumCulled = body2.frustumCulled = false;
       m.visible = false;
       m.frustumCulled = up.frustumCulled = false;
       m.renderOrder = 6;
@@ -126,6 +160,11 @@ export class KitFX {
     }
     for (let k = 0; k < 20; k++) {
       const m = new THREE.Mesh(new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2), addMat(sigilTex()));
+      const body = new THREE.Mesh(m.geometry, bodyMat(sigilTex()));
+      body.name = 'body';
+      body.renderOrder = 4;
+      body.position.y = -0.01;
+      m.add(body);
       m.visible = false;
       m.renderOrder = 5;
       this.root.add(m);
@@ -148,12 +187,19 @@ export class KitFX {
     const it = this.take(this.arcs);
     it.mesh.geometry.dispose();
     it.mesh.geometry = fanGeometry(r, Math.max(0.1, Math.min(Math.PI, spread)), o.sharp, o.inner, o.even);
-    (it.mesh.material as THREE.MeshBasicMaterial).color.set(color).multiplyScalar(o.bright ?? 1.6);
+    const body = it.mesh.getObjectByName('body') as THREE.Mesh;
+    body.geometry = it.mesh.geometry;
+    (it.mesh.material as THREE.MeshBasicMaterial).color.set(color).multiplyScalar((o.bright ?? 1.6) * 1.35);
     (it.mesh.material as THREE.MeshBasicMaterial).opacity = 0;
+    (body.material as THREE.MeshBasicMaterial).color.set(color).lerp(new THREE.Color('#ffffff'), 0.15);
+    (body.material as THREE.MeshBasicMaterial).opacity = 0;
+    const rv = (it.mesh.material as any).userData.reveal, rb = (body.material as any).userData.reveal;
+    if (rv) rv.value = 0;
+    if (rb) rb.value = 0;
     it.mesh.position.copy(pos);
     it.mesh.rotation.set(tilt, yaw, o.roll ?? 0, 'YXZ');
-    it.base = 0.7;
-    it.grow = o.grow ?? 0.3;
+    it.base = 0.85;
+    it.grow = o.grow ?? 0.35;
     it.mesh.scale.setScalar(it.base);
     it.wait = o.wait ?? 0;
     it.mesh.visible = it.wait <= 0;
@@ -206,8 +252,10 @@ export class KitFX {
     const d = this.v.copy(to).sub(from), L = d.length() || 0.1;
     it.mesh.position.copy(from);
     it.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), d.normalize());
-    it.mesh.scale.set(w, w, L);
-    (it.mesh.material as THREE.MeshBasicMaterial).color.set(color).multiplyScalar(bright);
+    it.mesh.scale.set(w * 1.15, w * 1.15, L);
+    (it.mesh.material as THREE.MeshBasicMaterial).color.set(color).multiplyScalar(bright * 1.3);
+    const sb = it.mesh.getObjectByName('body') as THREE.Mesh;
+    (sb.material as THREE.MeshBasicMaterial).color.set(color);
     it.wait = wait;
     it.mesh.visible = wait <= 0;
     it.life = it.max = life;
@@ -274,7 +322,13 @@ export class KitFX {
     it.mesh.position.set(pos.x, pos.y + 0.07, pos.z);
     it.mesh.scale.setScalar(r * 0.5);
     it.mesh.rotation.y = Math.random() * 6;
-    mat.color.set(color).multiplyScalar(1.4);
+    mat.color.set(color).multiplyScalar(1.8);
+    const sbm = (it.mesh.getObjectByName('body') as THREE.Mesh).material as THREE.MeshBasicMaterial;
+    if (sbm.map !== tex) {
+      sbm.map = tex;
+      sbm.needsUpdate = true;
+    }
+    sbm.color.set(color);
     it.mesh.visible = true;
     it.wait = 0;
     it.life = it.max = life;
@@ -293,15 +347,25 @@ export class KitFX {
         it.life -= dt;
         const u = 1 - it.life / it.max;
         it.mesh.scale.setScalar(it.base + it.grow * Math.min(1, u * 3));
-        (it.mesh.material as THREE.MeshBasicMaterial).opacity = Math.max(0, it.life / it.max) ** 0.7;
+        const op = Math.max(0, it.life / it.max) ** 0.7;
+        (it.mesh.material as THREE.MeshBasicMaterial).opacity = op;
+        // the cut draws itself across in its first third, then fades
+        const rev = Math.min(1, u / 0.32);
+        const rv = (it.mesh.material as any).userData.reveal;
+        if (rv) rv.value = rev;
+        const body = it.mesh.getObjectByName('body') as THREE.Mesh;
+        (body.material as THREE.MeshBasicMaterial).opacity = op * 0.62;
+        const rb = (body.material as any).userData.reveal;
+        if (rb) rb.value = rev;
         if (it.life <= 0) it.mesh.visible = false;
       }
     for (const it of this.beams)
       if (it.life > 0 && wake(it)) {
         it.life -= dt;
         const k = Math.max(0, it.life / it.max);
-        it.mesh.scale.x = it.mesh.scale.y = it.base * (0.3 + 0.7 * k);
+        it.mesh.scale.x = it.mesh.scale.y = it.base * 1.15 * (0.3 + 0.7 * k);
         (it.mesh.material as THREE.MeshBasicMaterial).opacity = k;
+        ((it.mesh.getObjectByName('body') as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = k * 0.55;
         if (it.life <= 0) it.mesh.visible = false;
       }
     for (const it of this.tips)
@@ -318,7 +382,9 @@ export class KitFX {
         const u = 1 - it.life / it.max;
         it.mesh.rotation.y += it.spin * dt;
         it.mesh.scale.setScalar(it.base * 0.5 * (0.75 + 0.25 * Math.min(1, u * 4)));
-        (it.mesh.material as THREE.MeshBasicMaterial).opacity = Math.min(1, u * 6) * Math.max(0, it.life / it.max) ** 0.6;
+        const so = Math.min(1, u * 6) * Math.max(0, it.life / it.max) ** 0.6;
+        (it.mesh.material as THREE.MeshBasicMaterial).opacity = so;
+        ((it.mesh.getObjectByName('body') as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = so * 0.5;
         if (it.life <= 0) it.mesh.visible = false;
       }
   }

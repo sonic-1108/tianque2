@@ -668,12 +668,18 @@ export class VFXSystem {
     for (const sl of this.slots) this.root.add(sl.vortex.group, sl.pillar.group);
 
     const plane = new THREE.PlaneGeometry(1, 1);
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 20; i++) {
       const mat = ringMaterialTemplate.clone();
       const mesh = new THREE.Mesh(plane, mat);
       mesh.rotation.x = -Math.PI / 2;
       mesh.visible = false;
       mesh.renderOrder = 12;
+      // the same ring with ordinary blending under the glow (sharing its uniforms), so a shockwave still shows on
+      // snow or a sunlit field, where added light all but vanishes
+      const under = new THREE.Mesh(plane, new THREE.ShaderMaterial({ uniforms: mat.uniforms, blending: THREE.NormalBlending, transparent: true, depthWrite: false, side: THREE.DoubleSide, vertexShader: ringMaterialTemplate.vertexShader, fragmentShader: ringMaterialTemplate.fragmentShader.replace('gl_FragColor = vec4(col, a);', 'gl_FragColor = vec4(mix(uColor, col, 0.4), a * 0.55);') }));
+      under.renderOrder = 11;
+      under.position.z = -0.005;
+      mesh.add(under);
       this.root.add(mesh);
       this.rings.push({ mesh, mat, life: 0, maxLife: 1, radius: 1, active: false });
     }
@@ -1045,12 +1051,13 @@ export class VFXSystem {
 
   sparkBurst(posIn: THREE.Vector3, count: number, color: THREE.ColorRepresentation, speed = 7, size = 0.09, dir?: THREE.Vector3, spread = 1) {
     const pos = origin.copy(posIn);
+    count = Math.round(count * 1.3);
     for (let i = 0; i < count; i++) {
       tmpV.set(Math.random() - 0.5, Math.random() * 0.8 - 0.1, Math.random() - 0.5).normalize();
       if (dir) tmpV.multiplyScalar(spread).add(dir).normalize();
       tmpV.multiplyScalar(speed * (0.4 + Math.random() * 0.8));
       const hot = Math.random() < 0.35;
-      this.sparks.emit(pos, tmpV, hot ? '#fff3d6' : color, size * (0.6 + Math.random() * 0.9), 0.22 + Math.random() * 0.3, { drag: 4.5, gravity: 10 });
+      this.sparks.emit(pos, tmpV, hot ? '#fff3d6' : color, size * 1.3 * (0.6 + Math.random() * 0.9), 0.26 + Math.random() * 0.34, { drag: 4.5, gravity: 10 });
     }
   }
 

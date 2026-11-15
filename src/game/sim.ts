@@ -576,6 +576,31 @@ export class Sim {
     this.zones.push(zn);
     return zn;
   }
+  /** 冰封 (天狼's frost): locked in ice, no moving or striking; the player breaks out by working A and D back and
+   * forth (each change of side a knock at the ice), anyone else (and the player, if they wait) thaws when it melts */
+  freeze(f: Fighter, secs: number) {
+    if (f.hp <= 0 || f.st.invuln > 0 || (f as any).frozen || bodyR(f) > 0) return;
+    (f as any).frozen = { t: f.id === PLAYER ? secs : Math.min(secs, 3), got: 0, need: f.id === PLAYER ? 12 : 1, last: 0, at: this.time };
+    f.run = null;
+    f.vel[0] = f.vel[2] = 0;
+    this.vfx('sparkBurst', [f.pos[0], f.pos[1] + 1, f.pos[2]], 26, '#dff6ff', 5, 0.12, 'up', 1.1);
+    this.vfx('ring', [f.pos[0], f.pos[1] + 0.06, f.pos[2]], 2.2, '#9fe0ff', 0.6, 0.2, 0.7);
+    this.emit({ k: 'freeze', x: f.pos[0], y: f.pos[1] + 1, z: f.pos[2], id: f.id } as any);
+    if (f.id === PLAYER) this.toast('被冰封了！快速交替按 A、D 挣脱');
+  }
+  thaw(f: Fighter, broke: boolean) {
+    const fr = (f as any).frozen;
+    if (!fr) return;
+    (f as any).frozen = null;
+    (f as any).thawAt = this.time;
+    (f as any).thawBroke = broke;
+    this.vfx('sparkBurst', [f.pos[0], f.pos[1] + 1, f.pos[2]], broke ? 44 : 20, '#e8f8ff', broke ? 8 : 3, 0.14, 'up', 1.4);
+    this.emit({ k: 'thaw', x: f.pos[0], y: f.pos[1] + 1, z: f.pos[2], id: f.id } as any);
+    if (broke) {
+      f.st.invuln = Math.max(f.st.invuln, 0.5);
+      if (f.id === PLAYER) this.text(f, '破冰！', '#bfe8ff');
+    }
+  }
   heal(f: Fighter, n: number) {
     if (f.hp <= 0) return;
     const h = Math.min(f.maxHp - f.hp, n);
@@ -966,7 +991,7 @@ export class Sim {
 
   // ------------------------------------------------------------------ actions
   free(f: Fighter) {
-    if (f.hp <= 0 || f.st.stun > 0 || f.st.daze > 0 || f.st.exhaust > 0) return false;
+    if (f.hp <= 0 || f.st.stun > 0 || f.st.daze > 0 || f.st.exhaust > 0 || (f as any).frozen) return false;
     if (f.act === 'idle' || f.act === 'run' || f.act === 'jump') return true;
     // the end of a swing can be cut into
     return f.act === 'attack' && f.hitDone && f.actT > f.actDur * 0.6;
@@ -1222,6 +1247,12 @@ export class Sim {
 
   private timers(f: Fighter, dt: number) {
     const s = f.st;
+    const fr = (f as any).frozen;
+    if (fr) {
+      fr.t -= dt;
+      f.vel[0] = f.vel[2] = 0;
+      if (fr.t <= 0 || f.hp <= 0) this.thaw(f, false);
+    }
     // 金钟罩 breaks: half a second to catch breath
     if (s.shield > 0 && s.shield <= dt && f.hp > 0) {
       s.exhaust = 0.5;
@@ -1274,6 +1305,20 @@ export class Sim {
   /** the player's keys */
   private control(f: Fighter, inp: InputState) {
     if (f.hp <= 0) return;
+    const fr = (f as any).frozen;
+    if (fr) {
+      // locked in ice: A and D in turn knock it loose
+      (f as any).wish = [0, 0];
+      const side = Math.sign(inp.move[0]);
+      if (side !== 0 && side !== fr.last) {
+        fr.last = side;
+        fr.got++;
+        (f as any).iceKnock = this.time;
+        this.vfx('sparkBurst', [f.pos[0] + side * 0.4, f.pos[1] + 1 + Math.random() * 0.6, f.pos[2]], 8, '#e8f8ff', 4, 0.08, undefined, 1);
+        if (fr.got >= fr.need) this.thaw(f, true);
+      }
+      return;
+    }
     if (this.riding >= 0) inp = { ...inp, attack: false, dodge: false, ultHeld: false, skills: inp.skills.map(() => false) };
     const cy = inp.camYaw;
     const fx = -Math.sin(cy);
@@ -1506,6 +1551,10 @@ export class Sim {
 
   /** disciples and masters */
   private think(f: Fighter, dt: number) {
+    if ((f as any).frozen) {
+      (f as any).wish = [0, 0];
+      return;
+    }
     if ((f as any).remote) return controlRemote(this, f);
     if ((f as any).helper !== undefined) return helperThink(this, f, dt);
     if (f.team === 'ally') return allyThink(this, f, dt);

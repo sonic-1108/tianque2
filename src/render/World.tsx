@@ -1,4 +1,5 @@
 // The land: terrain coloured by height and paths, scattered trees, the village in the middle and the seven camps.
+import { Frozen } from './Frozen';
 import { WaterFx } from './WaterFx';
 import { Endgame } from './Endgame';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -354,6 +355,7 @@ export function World({ sim }: { sim: Sim }) {
         <Gudao />
         <Endgame />
         <WaterFx sim={sim} />
+        <Frozen sim={sim} />
         <Places />
         <Dens />
         <Animals sim={sim} />

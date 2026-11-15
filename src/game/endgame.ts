@@ -8,7 +8,7 @@ import type { Fighter } from './types';
 import { QUESTS } from './quests';
 import { GIANTS, giantOf, makeGiant, rearmGiant } from './giants';
 import { FOE_KINDS, PIRATE } from './foes';
-import { ROOMS, type Room } from './interiors';
+import { ROOMS, roomSpawn, type Room } from './interiors';
 import { STELE, TOWER, ABYSS, JIAO_POOL } from './endLayout';
 import { bag, earn } from './play';
 import { owned } from './jianghu';
@@ -110,7 +110,10 @@ export function makeEndgame(s: Sim) {
     const R = ROOMS.find((r) => r.realm === 'swordtomb');
     if (R) {
       const k = FOE_KINDS[3]; // the shadow blades' moves: a step through the dark, a fan of flying swords
-      const f = (s as any).make('sect', k.house, '剑冢守灵 · 断剑魂', 'boss-jianhun.glb', 30, R.ox, R.oz) as Fighter;
+      // across the cleft from where you come in (you enter facing -z)
+      const [sx, sz] = roomSpawn(R);
+      const hx = sx, hz = sz - 8;
+      const f = (s as any).make('sect', k.house, '剑冢守灵 · 断剑魂', 'boss-jianhun.glb', 30, hx, hz) as Fighter;
       const a = f as any;
       a.foeKind = k;
       a.elite = true;
@@ -118,8 +121,9 @@ export function makeEndgame(s: Sim) {
       a.roomId = R.id;
       a.mode = 'tower'; // fights whoever is in its room
       f.maxHp = f.hp = Math.round(f.maxHp * 3.6);
-      f.home = [R.ox, R.oz];
-      f.pos[1] = s.floorAt(R.ox, R.oz);
+      f.home = [hx, hz];
+      f.pos = [hx, s.floorAt(hx, hz), hz];
+      f.yaw = Math.PI; // facing the way in
       f.respawn = undefined;
       E.jianhun = f.id;
       if ((s.progress.done as any)?.jianhunDay === s.clock.day) {

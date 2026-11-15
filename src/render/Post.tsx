@@ -46,7 +46,8 @@ export function Post({ sim }: { sim: Sim }) {
   return (
     <EffectComposer multisampling={2}>
       <primitive object={sanitize} />
-      <Bloom mipmapBlur intensity={0.55} luminanceThreshold={0.85} luminanceSmoothing={0.25} />
+      {/* effects are drawn above white (toneMapped off), so they bloom; the threshold keeps sunlit snow from glowing */}
+      <Bloom mipmapBlur intensity={0.8} luminanceThreshold={0.9} luminanceSmoothing={0.2} />
       <ToneMapping mode={realm ? ToneMappingMode.NEUTRAL : ToneMappingMode.ACES_FILMIC} />
       <Vignette offset={0.38} darkness={0.32} />
     </EffectComposer>

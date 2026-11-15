@@ -53,6 +53,8 @@ export interface GiantMove {
   adds?: number;
   /** drags whoever is within the mark toward its middle while it winds up (a whirlpool), metres a second */
   pull?: number;
+  /** locks whoever it strikes in ice this many seconds (the player can break out sooner: A / D) */
+  freeze?: number;
 }
 export interface GiantDef {
   key: string;
@@ -70,6 +72,8 @@ export interface GiantDef {
   model?: string;
   /** a colour multiplied into its skin (a body borrowed from another giant, made its own) */
   tint?: string;
+  /** made of ice: drawn bright white-blue, lit from inside (天狼) */
+  icy?: boolean;
   /** the men it calls, and the ones who come to stand with you */
   adds?: { name: string; model: string }[];
   helpers?: { name: string; model: string; strong?: boolean }[];
@@ -112,6 +116,7 @@ export const GIANTS: Record<string, GiantDef> = {
     key: 'tianlang',
     name: '啸月天狼',
     model: 'giant-tianlang.glb',
+    icy: true,
     scale: 1,
     bodyR: 3.6,
     bodyH: 6.5,
@@ -126,11 +131,11 @@ export const GIANTS: Record<string, GiantDef> = {
       { id: 'pounce', name: '扑杀', shape: 'circle', at: 'target', r: 4.5, wind: 1.1, dmg: 0.3, launch: 7, rush: true, open: 2, phase: 1, weight: 3, anim: 'attack_1', fx: 'slam' },
       { id: 'bite', name: '撕咬', shape: 'cone', at: 'self', r: 8, r2: 0.7, wind: 0.9, dmg: 0.25, knock: 8, phase: 1, weight: 3, anim: 'attack_2', fx: 'sweep' },
       { id: 'tail', name: '甩尾', shape: 'circle', at: 'self', r: 9, wind: 1.3, dmg: 0.24, knock: 13, phase: 1, weight: 2, anim: 'attack_3', fx: 'sweep' },
-      { id: 'breath', name: '冰息', shape: 'cone', at: 'self', r: 17, r2: 0.5, wind: 1.5, dmg: 0.3, knock: 6, open: 2.6, phase: 1, weight: 2, anim: 'skill_spell', fx: 'ice' },
+      { id: 'breath', name: '冰息', shape: 'cone', at: 'self', r: 17, r2: 0.5, wind: 1.5, dmg: 0.3, knock: 6, open: 2.6, phase: 1, weight: 2, anim: 'skill_spell', fx: 'ice', freeze: 6 },
       { id: 'howl', name: '啸月', shape: 'ring', at: 'self', r: 15, r2: 5, wind: 1.4, dmg: 0.2, knock: 14, adds: 3, phase: 2, weight: 2, anim: 'skill_slash', fx: 'roar' },
-      { id: 'icicles', name: '冰锥雨', shape: 'circle', at: 'target', r: 2.6, n: 7, spread: 10, wind: 1.4, dmg: 0.2, knock: 4, phase: 2, weight: 2, anim: 'skill_spell', fx: 'ice' },
+      { id: 'icicles', name: '冰锥雨', shape: 'circle', at: 'target', r: 2.6, n: 7, spread: 10, wind: 1.4, dmg: 0.2, knock: 4, phase: 2, weight: 2, anim: 'skill_spell', fx: 'ice', freeze: 4 },
       { id: 'chain', name: '天狼连扑', shape: 'line', at: 'self', r: 24, r2: 3, wind: 1.0, dmg: 0.32, knock: 12, rush: true, open: 2.4, phase: 3, weight: 3, anim: 'attack_1', fx: 'ice' },
-      { id: 'frost', name: '寒域', shape: 'circle', at: 'self', r: 11, wind: 1.8, dmg: 0.4, launch: 7, phase: 3, weight: 2, anim: 'skill_slash', fx: 'ice' },
+      { id: 'frost', name: '寒域', shape: 'circle', at: 'self', r: 11, wind: 1.8, dmg: 0.4, phase: 3, weight: 2, anim: 'skill_slash', fx: 'ice', freeze: 7 },
     ],
   },
   tongren: {
@@ -559,6 +564,8 @@ function runMove(s: Sim, f: Fighter, def: GiantDef, st: GState, _t: Fighter, dt:
         // a share of the victim's life (the player's pool doubled when healing stopped coming free: blows take three quarters of what they did)
         const share = (o.team === 'player' ? m.dmg * 0.75 : m.dmg * 0.6) * (def.soft ?? 1) * ((f as any).tierDmg ?? 1);
         s.hit(f, o, o.maxHp * share, { noScale: true, knock: m.knock, launch: m.launch, down: m.launch ? 0.9 : undefined, heavy: true, fromX: mk.shape === 'circle' ? mk.x : f.pos[0], fromZ: mk.shape === 'circle' ? mk.z : f.pos[2], color: def.color });
+        // 天狼's frost locks whoever it catches in ice
+        if (m.freeze && o.hp > 0) s.freeze(o, m.freeze);
       }
       landFx(s, f, def, m, mk);
     }

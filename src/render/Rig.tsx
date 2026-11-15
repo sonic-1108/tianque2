@@ -500,7 +500,8 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
       const sp = Math.hypot(f.vel[0], f.vel[2]);
       actions.run?.setEffectiveTimeScale(isTownsfolk(f.model) ? Math.max(0.5, Math.min(1.8, sp / 1.4)) : Math.max(0.6, Math.min(1.6, sp / 6)));
     }
-    mixer.update(dt);
+    // locked in ice (sim.freeze): the body holds still where the frost caught it
+    mixer.update((f as any).frozen ? 0 : dt);
     // the whole-body layer 天阙 1 laid over the clips: the whirlwind's spin, somersaults, leaning into a charge,
     // the monk floating while he meditates
     const ps = pose.current;

@@ -272,3 +272,14 @@ button:not(:disabled):hover { border-color: var(--gold); }
 .online-code { font-size: 18px; color: #fde68a; text-align: center; margin: 10px 0; }
 .online-code b { font-size: 34px; letter-spacing: 0.3em; color: #fff; margin-left: 10px; }
 .online-tip { opacity: 0.5; font-size: 11px; }
+
+/* 冰封 (ui/Hud.tsx IceBar) */
+.ice-bar { position: fixed; left: 50%; top: 58%; transform: translateX(-50%); z-index: 22; pointer-events: none; text-align: center; color: #e0f4ff; text-shadow: 0 2px 8px #001a33; }
+.ice-bar .ib-title { font-size: 22px; letter-spacing: 0.12em; animation: iceShake 0.35s infinite; }
+.ice-bar .ib-keys { display: flex; gap: 18px; justify-content: center; margin: 8px 0; }
+.ice-bar .ib-keys b { width: 46px; height: 46px; line-height: 46px; font-size: 24px; border: 2px solid #9fdcff; border-radius: 8px; background: #0a2a44aa; transition: transform 0.05s, background 0.05s; }
+.ice-bar .ib-keys b.on { transform: scale(1.15); background: #5ec8ffcc; color: #002244; }
+.ice-bar .ib-bar { width: 260px; height: 10px; margin: 0 auto; background: #0a2033cc; border: 1px solid #9fdcff88; border-radius: 5px; overflow: hidden; }
+.ice-bar .ib-bar i { display: block; height: 100%; background: linear-gradient(90deg, #7fd3ff, #ffffff); transition: width 0.08s; }
+.ice-bar .ib-melt { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+@keyframes iceShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }

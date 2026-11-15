@@ -26,7 +26,16 @@ function Beast({ sim, f }: { sim: Sim; f: Fighter }) {
       obj.traverse((o: any) => {
         if (!o.isMesh) return;
         o.material = (o.material as THREE.MeshStandardMaterial).clone();
-        if (def.tint) (o.material as THREE.MeshStandardMaterial).color.multiply(new THREE.Color(def.tint));
+        const mm = o.material as THREE.MeshStandardMaterial;
+        if (def.tint) mm.color.multiply(new THREE.Color(def.tint));
+        // ice (天狼): bright white-blue, lit from inside by its own pattern, a little gloss on the frost
+        if (def.icy) {
+          mm.color.multiplyScalar(1.55);
+          mm.emissiveMap = mm.map;
+          mm.roughness = 0.38;
+          mm.metalness = 0.08;
+          mm.needsUpdate = true;
+        }
         mats.push(o.material);
       });
       const mixer = new THREE.AnimationMixer(obj);
@@ -54,10 +63,18 @@ function Beast({ sim, f }: { sim: Sim; f: Fighter }) {
     live.speed += (Math.min(sp, 30) - live.speed) * Math.min(1, dt * 6);
     if (body.walk) body.walk.setEffectiveTimeScale(f.act === 'cast' ? 2.6 : Math.max(0.35, live.speed / 4));
     body.mixer.update(dt);
-    if (body.gait) walkByHand(body.gait, f, live.speed, dt, body.obj, body.floor, def.bodyH);
+    if (body.gait) {
+      // it watches you: the head turns your way (positive is the beast's left)
+      const P = sim.player.pos, dx = P[0] - f.pos[0], dz = P[2] - f.pos[2], dl = Math.hypot(dx, dz) || 1;
+      const fx = -Math.sin(f.yaw), fz = -Math.cos(f.yaw), lx = -Math.cos(f.yaw), lz = Math.sin(f.yaw);
+      const look = Math.max(-0.8, Math.min(0.8, Math.atan2((dx * lx + dz * lz) / dl, (dx * fx + dz * fz) / dl)));
+      walkByHand(body.gait, f, live.speed, dt, body.obj, body.floor, def.bodyH, look);
+    }
     const t = performance.now() / 1000, ph = giantPhase(f);
     // a body painted with its own colours (giant-*.glb) only glows faintly, so its fur still reads white
-    const c = new THREE.Color(def.color).multiplyScalar((0.06 + ph * 0.025 + Math.sin(t * (ph * 2 + 2)) * 0.04) * (body.gait ? 0.35 : 1));
+    const c = def.icy
+      ? new THREE.Color('#bfe9ff').multiplyScalar(0.42 + ph * 0.04 + Math.sin(t * (ph * 1.5 + 1.5)) * 0.06) // frost glowing from inside
+      : new THREE.Color(def.color).multiplyScalar((0.06 + ph * 0.025 + Math.sin(t * (ph * 2 + 2)) * 0.04) * (body.gait ? 0.35 : 1));
     if (giantOpen(f) > 0) c.lerp(new THREE.Color('#ffd84a'), 0.35 + Math.sin(t * 12) * 0.12);
     for (const m of body.mats) m.emissive?.copy(c);
   });

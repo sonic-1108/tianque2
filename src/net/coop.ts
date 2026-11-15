@@ -256,7 +256,7 @@ export function hostAfterStep(s: Sim, dt: number) {
   for (const f of s.fighters) {
     const a = f as any;
     if (a.benched || a.away || (f.hp <= 0 && f.actT > 3 && f.team !== 'ally') || !near(f)) continue;
-    const row: any[] = [f.id, r1(f.pos[0]), r2(f.pos[1]), r1(f.pos[2]), r2(f.yaw), f.act, f.anim, r2(f.actT), r2(f.actDur), Math.round(f.hp), Math.round(f.maxHp), a.hitAt ?? 0, a.hitHeavy ? 1 : 0, f.run ? [f.run.id, r2(f.run.t)] : 0];
+    const row: any[] = [f.id, r1(f.pos[0]), r2(f.pos[1]), r1(f.pos[2]), r2(f.yaw), f.act, f.anim, r2(f.actT), r2(f.actDur), Math.round(f.hp), Math.round(f.maxHp), a.hitAt ?? 0, (a.hitHeavy ? 1 : 0) | (a.frozen ? 2 : 0), f.run ? [f.run.id, r2(f.run.t)] : 0];
     const g = a.giant;
     row.push(g ? [g.key, g.move ? g.move.m.id : '', g.move ? r2(g.move.t) : 0, r2(g.open), g.phase, g.awake ? 1 : 0] : 0);
     if (key || a.netDirty) row.push(f.model, f.name, f.team);
@@ -388,7 +388,13 @@ function applySnap(s: Sim, m: any) {
       f.maxHp = row[10];
     }
     a.hitAt = row[11];
-    a.hitHeavy = !!row[12];
+    a.hitHeavy = !!(row[12] & 1);
+    // locked in ice on the host: shown here, and my own body can't walk out of it
+    if (row[12] & 2) a.frozen ??= { t: 3, got: 0, need: 99, last: 0, at: s.time };
+    else if (a.frozen) {
+      a.frozen = null;
+      a.thawBroke = false;
+    }
     f.run = row[13] ? ({ ...(f.run ?? {}), id: row[13][0], t: row[13][1] } as any) : null;
     if (row[14] && a.giant) {
       const [key, mid, mt, open, phase, awake] = row[14];
