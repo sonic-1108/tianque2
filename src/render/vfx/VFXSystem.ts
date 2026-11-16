@@ -4,6 +4,7 @@ import { ShowFX } from './ShowFX';
 import { EmperorFX } from './EmperorFX';
 import * as THREE from 'three';
 import { SLOT_IDS } from './constants';
+import { iceSpikeGeometry } from '../iceHeap';
 
 /**
  * 天阙 VFX System
@@ -623,6 +624,10 @@ export class VFXSystem {
   /** the new houses' great moments (ShowFX.ts) */
   show: ShowFX;
   private meteors: MeteorFx[] = [];
+  /** 寒冰: crystal spikes that burst up out of the ground under an ice blow, and icicles falling onto their marks */
+  private iceGeo = iceSpikeGeometry();
+  private spikes: { m: THREE.Mesh; t: number; life: number; h: number; w: number; base: number; active: boolean }[] = [];
+  private icicles: { m: THREE.Mesh; t: number; dur: number; from: THREE.Vector3; to: THREE.Vector3; r: number; active: boolean }[] = [];
   private projPools: Record<string, THREE.Object3D[]> = {};
   private marks: MarkFx[] = [];
   private timers: { t: number; fn: () => void }[] = [];
@@ -676,6 +681,20 @@ export class VFXSystem {
   }
   constructor() {
     this.root.name = 'VFXSystem';
+    for (let i = 0; i < 120; i++) {
+      const m = new THREE.Mesh(this.iceGeo, new THREE.MeshStandardMaterial({ color: '#e6f8ff', emissive: '#6cc8ff', emissiveIntensity: 0.6, roughness: 0.05, metalness: 0.05, transparent: true, opacity: 0.9, flatShading: true }));
+      m.visible = false;
+      m.renderOrder = 6;
+      this.root.add(m);
+      this.spikes.push({ m, t: 0, life: 1, h: 1, w: 0.2, base: 0, active: false });
+    }
+    const icicleGeo = new THREE.ConeGeometry(0.22, 1.8, 6, 1).rotateX(Math.PI);
+    for (let i = 0; i < 16; i++) {
+      const m = new THREE.Mesh(icicleGeo, new THREE.MeshStandardMaterial({ color: '#eefaff', emissive: '#7fd0ff', emissiveIntensity: 0.7, roughness: 0.04, transparent: true, opacity: 0.92, flatShading: true }));
+      m.visible = false;
+      this.root.add(m);
+      this.icicles.push({ m, t: 0, dur: 0.4, from: new THREE.Vector3(), to: new THREE.Vector3(), r: 1, active: false });
+    }
     this.root.add(this.kit.root);
     this.show = new ShowFX(this);
     this.root.add(this.show.root);
@@ -1100,6 +1119,66 @@ export class VFXSystem {
     }
   }
 
+  /** one spike of ice bursting up at (x, y, z), leaning out from (cx, cz) */
+  private spike(x: number, y: number, z: number, h: number, w: number, lean: number, cx: number, cz: number, life: number) {
+    const s = this.spikes.find((q) => !q.active) ?? this.spikes.reduce((a, b) => (a.t / a.life > b.t / b.life ? a : b));
+    s.active = true;
+    s.t = 0;
+    s.life = life;
+    s.h = h;
+    s.w = w;
+    s.base = y;
+    s.m.visible = true;
+    s.m.position.set(x, y - 0.05, z);
+    const dx = x - cx, dz = z - cz, d = Math.hypot(dx, dz) || 1;
+    // lean out from the middle (about the level axis at right angles to the way out), a little twist of its own
+    s.m.quaternion.setFromAxisAngle(tmpV.set(dz / d, 0, -dx / d), lean).multiply(tmpQ.setFromAxisAngle(UP, Math.random() * 6));
+    s.m.scale.set(w, 0.01, w);
+    (s.m.material as THREE.MeshStandardMaterial).opacity = 0.9;
+  }
+  /** ice erupting over a disc (radius r): a ring of tall spikes leaning out at the rim, a crowd of short ones inside */
+  iceSpikes(pos: THREE.Vector3, r: number, n = 12, h = 1.2, life = 1.1) {
+    const rim = Math.ceil(n * 0.55);
+    for (let k = 0; k < n; k++) {
+      const onRim = k < rim, a = onRim ? (k / rim) * Math.PI * 2 + Math.random() * 0.3 : Math.random() * Math.PI * 2;
+      const d = onRim ? r * (0.85 + Math.random() * 0.15) : r * Math.sqrt(Math.random()) * 0.8;
+      this.spike(pos.x + Math.cos(a) * d, pos.y, pos.z + Math.sin(a) * d, h * (onRim ? 0.9 + Math.random() * 0.5 : 0.5 + Math.random() * 0.4), (0.16 + Math.random() * 0.12) * Math.max(1, h * 0.7), onRim ? 0.35 + Math.random() * 0.35 : Math.random() * 0.4, pos.x, pos.z, life * (0.85 + Math.random() * 0.3));
+    }
+    this.sparkBurst(tmpV2.set(pos.x, pos.y + 0.4, pos.z), Math.round(10 + r * 4), '#e8f8ff', 5 + r, 0.12, UP, 1.2);
+    this.dustPuff(tmpV2.set(pos.x, pos.y + 0.2, pos.z), Math.round(6 + r * 2), r * 0.6, 2.4, 0.9, '#eaf6ff');
+  }
+  /** ice erupting over a ring between r0 and r1 (the eye inside left clear) */
+  iceRing(pos: THREE.Vector3, r0: number, r1: number, n = 24, h = 1.3, life = 1.2) {
+    for (let k = 0; k < n; k++) {
+      const a = (k / n) * Math.PI * 2 + Math.random() * 0.2, d = r0 + (r1 - r0) * (0.15 + Math.random() * 0.8);
+      this.spike(pos.x + Math.cos(a) * d, pos.y, pos.z + Math.sin(a) * d, h * (0.6 + Math.random() * 0.7), 0.18 + Math.random() * 0.14, 0.2 + Math.random() * 0.5, pos.x, pos.z, life * (0.85 + Math.random() * 0.3));
+    }
+    this.ring(tmpV2.set(pos.x, pos.y + 0.05, pos.z), r1, '#dff6ff', 0.7, 0.2, 0.3);
+  }
+  /** ice erupting along a strip from → to, half width w, the spikes growing one after another away from the start */
+  iceLine(from: THREE.Vector3, to: THREE.Vector3, w = 1.2, n = 14, h = 1.3, life = 1.1) {
+    const L = from.distanceTo(to), dx = (to.x - from.x) / (L || 1), dz = (to.z - from.z) / (L || 1);
+    for (let k = 0; k < n; k++) {
+      const u = (k + Math.random() * 0.6) / n, side = (Math.random() * 2 - 1) * w;
+      const x = from.x + dx * u * L - dz * side, z = from.z + dz * u * L + dx * side, y = from.y + (to.y - from.y) * u;
+      const at = { x, y, z };
+      this.later(u * 0.18, () => this.spike(at.x, at.y, at.z, h * (0.6 + Math.random() * 0.7), 0.17 + Math.random() * 0.12, 0.25 + Math.random() * 0.4, at.x + dz * side * 2, at.z - dx * side * 2, life * (0.85 + Math.random() * 0.3)));
+    }
+  }
+  /** an icicle falling from high over the mark, landing in `dur` seconds and shattering into spikes and frost */
+  icicleFall(pos: THREE.Vector3, dur = 0.4, r = 1.5) {
+    const c = this.icicles.find((q) => !q.active) ?? this.icicles[0];
+    c.active = true;
+    c.t = 0;
+    c.dur = dur;
+    c.r = r;
+    c.to.copy(pos);
+    c.from.set(pos.x + (Math.random() - 0.5) * 2, pos.y + 13, pos.z + (Math.random() - 0.5) * 2);
+    c.m.visible = true;
+    c.m.scale.setScalar(Math.max(0.8, r * 0.6));
+    c.m.position.copy(c.from);
+  }
+
   /** motes drawn in from all round onto a point (a move gathering its strength): each starts on a shell `radius` out
    * and arrives in `travel` seconds, brightening as it comes */
   gather(posIn: THREE.Vector3, count: number, color: THREE.ColorRepresentation, radius = 1.6, travel = 0.4, size = 0.09) {
@@ -1471,6 +1550,32 @@ export class VFXSystem {
         return true;
       });
       due.forEach((f) => f());
+    }
+    for (const s of this.spikes) {
+      if (!s.active) continue;
+      s.t += dt;
+      // shoots up in a tenth of a second, stands, then sinks back into the ground going clear
+      const up = Math.min(1, s.t / 0.1), e = 1 - (1 - up) * (1 - up) * (1 - up);
+      const end = Math.max(0, (s.t - (s.life - 0.35)) / 0.35);
+      s.m.scale.set(s.w, Math.max(0.01, s.h * e * (1 - end * 0.5)), s.w);
+      s.m.position.y = s.base - 0.05 - end * s.h * 0.6;
+      (s.m.material as THREE.MeshStandardMaterial).opacity = 0.9 * (1 - end);
+      if (s.t >= s.life) {
+        s.active = false;
+        s.m.visible = false;
+      }
+    }
+    for (const c of this.icicles) {
+      if (!c.active) continue;
+      c.t += dt;
+      const u = Math.min(1, c.t / c.dur);
+      c.m.position.lerpVectors(c.from, c.to, u * u).setY(c.from.y + (c.to.y - c.from.y) * u * u + 0.9 * Math.max(0.8, c.r * 0.6));
+      if (u >= 1) {
+        c.active = false;
+        c.m.visible = false;
+        this.iceSpikes(c.to, Math.max(0.8, c.r * 0.7), 7, 0.9);
+        this.sparkBurst(tmpV2.set(c.to.x, c.to.y + 0.5, c.to.z), 22, '#f0fbff', 7, 0.12, UP, 1.4);
+      }
     }
     for (const m of this.meteors) {
       if (!m.active) continue;

@@ -48,13 +48,15 @@ export interface GiantMove {
   weight: number;
   anim: string;
   /** what it looks like landing */
-  fx: 'slam' | 'rocks' | 'roar' | 'sweep' | 'beam' | 'ice' | 'blood' | 'gold';
+  fx: 'slam' | 'rocks' | 'roar' | 'sweep' | 'beam' | 'ice' | 'water' | 'blood' | 'gold';
   /** calls this many of its men (from its pool) */
   adds?: number;
   /** drags whoever is within the mark toward its middle while it winds up (a whirlpool), metres a second */
   pull?: number;
   /** locks whoever it strikes in ice this many seconds (the player can break out sooner: A / D) */
   freeze?: number;
+  /** icicles fall onto its marks in the last moment of the warning */
+  drop?: 'icicle';
 }
 export interface GiantDef {
   key: string;
@@ -133,7 +135,7 @@ export const GIANTS: Record<string, GiantDef> = {
       { id: 'tail', name: '甩尾', shape: 'circle', at: 'self', r: 9, wind: 1.3, dmg: 0.24, knock: 13, phase: 1, weight: 2, anim: 'attack_3', fx: 'sweep' },
       { id: 'breath', name: '冰息', shape: 'cone', at: 'self', r: 17, r2: 0.5, wind: 1.5, dmg: 0.3, knock: 6, open: 2.6, phase: 1, weight: 2, anim: 'skill_spell', fx: 'ice', freeze: 6 },
       { id: 'howl', name: '啸月', shape: 'ring', at: 'self', r: 15, r2: 5, wind: 1.4, dmg: 0.2, knock: 14, adds: 3, phase: 2, weight: 2, anim: 'skill_slash', fx: 'roar' },
-      { id: 'icicles', name: '冰锥雨', shape: 'circle', at: 'target', r: 2.6, n: 7, spread: 10, wind: 1.4, dmg: 0.2, knock: 4, phase: 2, weight: 2, anim: 'skill_spell', fx: 'ice', freeze: 4 },
+      { id: 'icicles', name: '冰锥雨', shape: 'circle', at: 'target', r: 2.6, n: 7, spread: 10, wind: 1.4, dmg: 0.2, knock: 4, phase: 2, weight: 2, anim: 'skill_spell', fx: 'ice', freeze: 4, drop: 'icicle' },
       { id: 'chain', name: '天狼连扑', shape: 'line', at: 'self', r: 24, r2: 3, wind: 1.0, dmg: 0.32, knock: 12, rush: true, open: 2.4, phase: 3, weight: 3, anim: 'attack_1', fx: 'ice' },
       { id: 'frost', name: '寒域', shape: 'circle', at: 'self', r: 11, wind: 1.8, dmg: 0.4, phase: 3, weight: 2, anim: 'skill_slash', fx: 'ice', freeze: 7 },
     ],
@@ -229,6 +231,34 @@ export const GIANTS: Record<string, GiantDef> = {
       { id: 'nova', name: '天魔解体', shape: 'ring', at: 'self', r: 20, r2: 5, wind: 1.8, dmg: 0.4, knock: 16, phase: 3, weight: 2, anim: 'skill_slash', fx: 'roar' },
     ],
   },
+  // 冰窟狂僧 · 苦寒 (owner: he was weak, and fought with the 梵音 monk's moves): a man, not a giant, in the old temple's
+  // ice cave, every blow of his ice: a freezing palm, icicles from the roof, a prison of ice round him, a dash over the
+  // ice, an avalanche, lotuses of ice, and at the last 万载寒域, where the only safe place is right beside him
+  kuhan: {
+    key: 'kuhan',
+    name: '冰窟狂僧 · 苦寒',
+    model: 'boss-kuhan.glb',
+    scale: 1,
+    bodyR: 0.6,
+    bodyH: 2.0,
+    hpMul: 1, // his life is set when he is made (snow.ts)
+    color: '#9fe6ff',
+    look: 'gold',
+    ground: 18,
+    intro: '冰上坐着的老僧睁开了眼，眉毛上结着霜。「又一个想下山去敲钟的？」他一掌按在冰上，整座寒寺都裂开了。看清地上的圈：被冻住了就飞快地交替按 A、D。',
+    phaseLines: ['（苦寒的袈裟冻成了冰甲，窟顶的冰锥一根根松动了）', '（他把自己封进寒冰，又破冰而出：「三十年了，没人走得出这座寺」）'],
+    adds: [],
+    helpers: [],
+    moves: [
+      { id: 'kh_palm', name: '寒冰掌', shape: 'cone', at: 'self', r: 5, r2: 0.65, wind: 0.75, dmg: 0.13, knock: 7, phase: 1, weight: 3, anim: 'skill_slash', fx: 'ice' },
+      { id: 'kh_icicles', name: '冰锥雨', shape: 'circle', at: 'target', r: 2.2, n: 6, spread: 7, wind: 1.3, dmg: 0.13, knock: 3, freeze: 3, drop: 'icicle', phase: 1, weight: 2, anim: 'skill_spell', fx: 'ice' },
+      { id: 'kh_prison', name: '冰魄寒狱', shape: 'ring', at: 'self', r: 9, r2: 2.6, wind: 1.5, dmg: 0.16, knock: 5, freeze: 4, open: 1.8, phase: 1, weight: 2, anim: 'skill_slash', fx: 'ice' },
+      { id: 'kh_dash', name: '踏冰追魂', shape: 'line', at: 'self', r: 15, r2: 1.5, wind: 0.95, dmg: 0.17, knock: 9, rush: true, phase: 2, weight: 3, anim: 'attack_1', fx: 'ice' },
+      { id: 'kh_avalanche', name: '雪崩掌', shape: 'cone', at: 'self', r: 12, r2: 0.55, wind: 1.4, dmg: 0.21, knock: 10, freeze: 4, open: 2.4, phase: 2, weight: 2, anim: 'skill_spell', fx: 'ice' },
+      { id: 'kh_lotus', name: '冰莲绽', shape: 'circle', at: 'target', r: 4.2, n: 3, spread: 6, wind: 1.6, dmg: 0.18, knock: 6, freeze: 4, phase: 3, weight: 2, anim: 'skill_spell', fx: 'ice' },
+      { id: 'kh_domain', name: '万载寒域', shape: 'ring', at: 'self', r: 16, r2: 2.4, wind: 2.2, dmg: 0.3, knock: 8, freeze: 7, open: 3, phase: 3, weight: 2, anim: 'skill_slash', fx: 'ice' },
+    ],
+  },
   // 水战 (owner: fights in the water): a river 蛟 in the wide deep pool below the fisherman, its 水寇 on the banks
   jiao: {
     key: 'jiao',
@@ -251,12 +281,12 @@ export const GIANTS: Record<string, GiantDef> = {
     ],
     moves: [
       { id: 'jbite', name: '覆舟一咬', shape: 'cone', at: 'self', r: 10, r2: 0.7, wind: 0.95, dmg: 0.26, knock: 9, phase: 1, weight: 3, anim: 'attack_2', fx: 'sweep' },
-      { id: 'jtail', name: '甩尾掀浪', shape: 'circle', at: 'self', r: 10, wind: 1.3, dmg: 0.24, knock: 14, phase: 1, weight: 3, anim: 'attack_3', fx: 'ice' },
-      { id: 'spout', name: '水龙吐息', shape: 'line', at: 'self', r: 24, r2: 2, wind: 1.5, dmg: 0.3, knock: 10, open: 2.6, phase: 1, weight: 2, anim: 'skill_spell', fx: 'ice' },
+      { id: 'jtail', name: '甩尾掀浪', shape: 'circle', at: 'self', r: 10, wind: 1.3, dmg: 0.24, knock: 14, phase: 1, weight: 3, anim: 'attack_3', fx: 'water' },
+      { id: 'spout', name: '水龙吐息', shape: 'line', at: 'self', r: 24, r2: 2, wind: 1.5, dmg: 0.3, knock: 10, open: 2.6, phase: 1, weight: 2, anim: 'skill_spell', fx: 'water' },
       { id: 'whirl', name: '漩涡', shape: 'ring', at: 'self', r: 15, r2: 4, wind: 1.6, dmg: 0.22, knock: 12, pull: 3.2, phase: 1, weight: 2, anim: 'skill_slash', fx: 'roar' },
-      { id: 'dive', name: '潜渊突袭', shape: 'circle', at: 'target', r: 6, wind: 1.4, dmg: 0.34, launch: 8, rush: true, open: 3, phase: 2, weight: 3, anim: 'attack_1', fx: 'ice' },
-      { id: 'rain', name: '暴雨', shape: 'circle', at: 'target', r: 2.8, n: 8, spread: 11, wind: 1.4, dmg: 0.2, knock: 5, adds: 2, phase: 2, weight: 2, anim: 'skill_spell', fx: 'ice' },
-      { id: 'tide', name: '怒潮三叠', shape: 'line', at: 'self', r: 28, r2: 2.2, n: 3, spread: 0.6, wind: 1.5, dmg: 0.32, knock: 14, open: 3.2, phase: 3, weight: 3, anim: 'skill_slash', fx: 'ice' },
+      { id: 'dive', name: '潜渊突袭', shape: 'circle', at: 'target', r: 6, wind: 1.4, dmg: 0.34, launch: 8, rush: true, open: 3, phase: 2, weight: 3, anim: 'attack_1', fx: 'water' },
+      { id: 'rain', name: '暴雨', shape: 'circle', at: 'target', r: 2.8, n: 8, spread: 11, wind: 1.4, dmg: 0.2, knock: 5, adds: 2, phase: 2, weight: 2, anim: 'skill_spell', fx: 'water' },
+      { id: 'tide', name: '怒潮三叠', shape: 'line', at: 'self', r: 28, r2: 2.2, n: 3, spread: 0.6, wind: 1.5, dmg: 0.32, knock: 14, open: 3.2, phase: 3, weight: 3, anim: 'skill_slash', fx: 'water' },
     ],
   },
 };
@@ -320,7 +350,7 @@ export function makeGiant(s: Sim, f: Fighter, key: string) {
   // its men for the later phases, benched till called
   const st = G(f);
   st.baseHp = f.maxHp;
-  for (let k = 0; k < 4; k++) {
+  for (let k = 0; k < (def.adds && def.adds.length === 0 ? 0 : 4); k++) {
     const list = def.adds ?? [{ name: '血傀喽啰', model: 'foe-bandit.glb' }];
     const ad = list[Math.min(k, list.length - 1)];
     const a = (s as any).make('sect', null, ad.name, ad.model, Math.max(1, f.level - 2), f.pos[0], f.pos[2]);
@@ -384,7 +414,7 @@ export function giantThink(s: Sim, f: Fighter, dt: number) {
   a.wish = [0, 0];
   if (f.hp <= 0) return;
   // the ground answers every stride: a thud, a shake, dust from under the foot
-  if (def.look !== 'beast') {
+  if (def.look !== 'beast' && def.scale > 1.5) {
     const lp = (st as any).lp as number[] | undefined;
     if (lp) (st as any).walked = ((st as any).walked ?? 0) + Math.hypot(f.pos[0] - lp[0], f.pos[2] - lp[2]);
     (st as any).lp = [f.pos[0], f.pos[2]];
@@ -549,6 +579,10 @@ function runMove(s: Sim, f: Fighter, def: GiantDef, st: GState, _t: Fighter, dt:
         o.pos[0] += (dx / d) * k;
         o.pos[2] += (dz / d) * k;
       }
+  if (m.drop === 'icicle' && !(mv as any).dropped && mv.t >= m.wind - 0.4) {
+    (mv as any).dropped = true;
+    for (const mk of mv.marks) s.vfx('icicleFall', [mk.x, s.floorAt(mk.x, mk.z), mk.z], Math.max(0.05, m.wind - mv.t), mk.r);
+  }
   if (!mv.done && mv.t >= m.wind) {
     mv.done = true;
     // the blow lands on whoever is still in a mark (a roll's moment of grace saves you)
@@ -590,6 +624,22 @@ function runMove(s: Sim, f: Fighter, def: GiantDef, st: GState, _t: Fighter, dt:
 function landFx(s: Sim, f: Fighter, def: GiantDef, m: GiantMove, mk: Tele) {
   const y = s.floorAt(mk.x, mk.z) + 0.15;
   s.shake(m.fx === 'roar' || m.fx === 'slam' ? 0.8 : 0.5, mk.x, mk.z);
+  if (m.fx === 'ice' && !m.drop) {
+    // 寒冰: the ground bursts into spikes of ice over the mark (a strip's grow away from the one who threw it)
+    const g = s.floorAt(mk.x, mk.z);
+    if (mk.shape === 'circle') s.vfx('iceSpikes', [mk.x, g, mk.z], mk.r, Math.round(6 + mk.r * 2.4), 0.8 + mk.r * 0.16);
+    else if (mk.shape === 'ring') s.vfx('iceRing', [mk.x, g, mk.z], mk.r2, mk.r, Math.round(10 + mk.r * 2.2), 1 + mk.r * 0.05);
+    else {
+      const fx = -Math.sin(mk.yaw), fz = -Math.cos(mk.yaw);
+      const lines = mk.shape === 'cone' ? [-0.6, 0, 0.6].map((k) => k * mk.r2) : [0];
+      for (const da of lines) {
+        const ax = -Math.sin(mk.yaw + da), az = -Math.cos(mk.yaw + da), L = mk.r;
+        s.vfx('iceLine', [mk.x + ax * 1, g, mk.z + az * 1], [mk.x + ax * L, s.floorAt(mk.x + ax * L, mk.z + az * L), mk.z + az * L], mk.shape === 'cone' ? 0.8 : mk.r2 * 0.8, Math.round(L * 0.9), 1.1);
+      }
+      void fx;
+      void fz;
+    }
+  }
   if (mk.shape === 'circle') {
     s.vfx('ring', [mk.x, y, mk.z], mk.r * 1.2, def.color, 0.9, 0.15, 0.6);
     s.vfx('sparkBurst', [mk.x, y + 0.4, mk.z], 26, m.fx === 'rocks' ? '#9a8b7a' : def.color, 7, 0.12, 'up', 0.9);
@@ -629,6 +679,7 @@ function callAdds(s: Sim, f: Fighter, n: number) {
 
 function callHelpers(s: Sim, f: Fighter) {
   const st = G(f), p = s.player;
+  if (!st.helpers.length) return; // one fought alone (苦寒)
   st.helpers.forEach((id, k) => {
     const h = s.fighters[id];
     const a = p.yaw + Math.PI + (k - 1) * 0.7;

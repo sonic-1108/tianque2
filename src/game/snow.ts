@@ -12,6 +12,8 @@ import { FOE_KINDS } from './foes';
 
 import { ICE_CAVE, SNOW_CAMP } from './layout';
 import { realmById, realmFloor, realmOpen } from './realms';
+import { ROOMS } from './interiors';
+import { makeGiant, rearmGiant } from './giants';
 export { SNOW_CAMP };
 /** fires that warm you: the camp's, and two rock shelters up on the snow */
 export const SNOW_FIRES: [number, number][] = [
@@ -49,14 +51,11 @@ export function pickGlowLotus(s: Sim) {
 }
 /** the old temple's ice cave (its place lives in layout.ts), and where its monk stands */
 export { ICE_CAVE };
-/** 雪岭山道: the way up on foot, found by walking the slopes (a body climbs at most MAX_SLOPE): north off the 天阙 road
- * at r 800 up the valley to the camp, then north-west to the ice cave's mouth (drawn on the big map) */
-export const SNOW_TRAIL: [number, number][] = [
-  [-736, -313], [-754, -391], [-772, -430], [-766, -469], [-751, -508], [-751, -547], [-754, -586], [-748, -625], [-760, -664], [-727, -703], [-716, -722],
-  [-745, -735], [-772, -772], [-811, -823], [-826, -845],
-];
+export { SNOW_TRAIL } from './layout';
 /** the monk sits in the hall of 寒寺遗窟 before the frozen Buddha when the cave's inside exists (realms.ts), else by its mouth */
 const CAVE = realmById('icecave');
+/** the room the cave's inside is (looked up when wanted: interiors.ts is made after this module) */
+const caveRoom = () => ROOMS.find((r) => r.realm === 'icecave')?.id;
 export const MONK_AT: [number, number] = CAVE ? realmOpen(CAVE, 0, -24) : [-822, -843];
 const monkY = () => (CAVE ? realmFloor(CAVE, MONK_AT[0], MONK_AT[1]) : groundHeight(MONK_AT[0], MONK_AT[1]));
 /** the snowfield's bounds, for the wolves and the map */
@@ -78,14 +77,18 @@ export interface SnowState {
 }
 export function makeSnow(s: Sim) {
   const S = s as any;
-  const kind = FOE_KINDS[2]; // 野和尚's clips and moves
-  const f = S.make('sect', kind.house, '冰窟狂僧 · 苦寒', 'boss-kuhan.glb', 28, MONK_AT[0], MONK_AT[1]) as Fighter;
+  const kind = FOE_KINDS[2]; // (the 野和尚's body clips only: his blows are his own, giants.ts kuhan)
+  const f = S.make('sect', kind.house, '冰窟狂僧 · 苦寒', 'boss-kuhan.glb', 30, MONK_AT[0], MONK_AT[1]) as Fighter;
   const a = f as any;
   a.foeKind = kind;
-  a.elite = true;
   a.snowMonk = true;
-  f.maxHp = f.hp = Math.round(f.maxHp * 3.2);
+  a.boss = true;
   f.home = [MONK_AT[0], MONK_AT[1]];
+  // a boss of his own now (owner: he was weak and fought with the monk's moves): every blow ice, fought in his cave
+  makeGiant(s, f, 'kuhan');
+  f.maxHp = f.hp = Math.round((180 + 30 * 55) * 8);
+  (f as any).giant.baseHp = f.maxHp;
+  a.room = caveRoom();
   f.pos[1] = monkY();
   f.respawn = undefined;
   const st: SnowState = { cold: 0, warmUntil: 0, lotusBack: LOTUS.map(() => 0), monk: f.id, told: false, warm: false };
@@ -147,8 +150,8 @@ export function stepSnow(s: Sim, dt: number) {
       } else s.toast('苦寒又倒下了：一百六十文、两块玄铁。');
     }
     if (m.benched && D.monkDay !== s.clock.day) {
-      m.benched = false;
-      m.hp = m.maxHp;
+      // back on his ice, whole and asleep, as the day turns
+      rearmGiant(s, m, { home: [MONK_AT[0], MONK_AT[1]], room: caveRoom() });
       m.pos = [MONK_AT[0], monkY(), MONK_AT[1]];
     }
   }

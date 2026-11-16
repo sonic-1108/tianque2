@@ -91,6 +91,14 @@ export const GIANT_MOTION: Record<string, GMotion> = {
   dive: LEAP(0.7),
   rain: { clip: 'g_roar', seg: [0.05, 0.2, 0.24, 0.45], strike: 0.25 },
   tide: POUND,
+  // 冰窟狂僧 · 苦寒: palms pushed out, arms raised to bring the ice down, a stamp for the prison and the domain
+  kh_palm: PUSH,
+  kh_icicles: { clip: 'g_roar', seg: [0.05, 0.2, 0.24, 0.45], strike: 0.25 },
+  kh_prison: POUND,
+  kh_dash: CHARGE,
+  kh_avalanche: { ...PUSH, strike: 0.35 },
+  kh_lotus: ROAR,
+  kh_domain: POUND,
   // 天魔本相
   claw: { ...SWEEP, spin: 1 },
   stomp: POUND,

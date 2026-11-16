@@ -40,7 +40,11 @@ function crystal(seed: number) {
   return g;
 }
 
-/** a spike of ice: a six-sided crystal with a point, its foot at the origin, growing up +y */
+/** a spike of ice: a six-sided crystal with a point, its foot at the origin, growing up +y (also the ice that
+ * erupts from the ground under an ice blow: VFXSystem.iceSpikes) */
+export function iceSpikeGeometry() {
+  return spike();
+}
 function spike() {
   const body = new THREE.CylinderGeometry(0.8, 1, 1, 6, 1).translate(0, 0.5, 0);
   const tip = new THREE.ConeGeometry(0.8, 0.9, 6, 1).translate(0, 1.45, 0);

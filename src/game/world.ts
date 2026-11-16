@@ -3,7 +3,7 @@
 // all agree on where the ground is. Slopes steeper than MAX_SLOPE can't be walked up (the mountains are walls).
 import { STELE, TOWER } from './endLayout';
 import { DENS, DEN_R } from './foes';
-import { ROADS, nearTq, TQ_POS, TQ_ROT, TQ_TOP, tqWorld, TQ_Y, VILLAGE_R, WORLD_R, TQ_ROAD, GD_ARCH_R, GD_PAV, GD_PAV_R, onGudao, roadFrame, roadPoint } from './layout';
+import { ROADS, nearTq, TQ_POS, TQ_ROT, TQ_TOP, tqWorld, TQ_Y, VILLAGE_R, WORLD_R, TQ_ROAD, GD_ARCH_R, GD_PAV, GD_PAV_R, onGudao, roadFrame, roadPoint, SNOW_TRAIL } from './layout';
 import { mapBig, mapRough, mapSnow, mapWater } from './mapsample';
 import { FISH_SPOT, IN_TOWN, PLACES, PLACE_PARTS, innHouses, nearPlace, placeAt } from './places';
 import { ROOM_Y, roomSolids } from './interiors';
@@ -194,10 +194,55 @@ function padHeight(cx: number, cz: number) {
   return v;
 }
 
+/** 雪岭山道 as a path in the ground: the heights it keeps at its bends (the land's own, eased so no stretch climbs
+ * steeper than TRAIL_GRADE), and for any point how far it is from the path and the path's height beside it */
+const TRAIL_GRADE = 0.42;
+const TRAIL_H = (() => {
+  const hs = SNOW_TRAIL.map(([x, z]) => rawHeight(x, z));
+  const len = SNOW_TRAIL.map((p, i) => (i ? Math.hypot(p[0] - SNOW_TRAIL[i - 1][0], p[1] - SNOW_TRAIL[i - 1][1]) : 0));
+  // up then down the list, no step steeper than the grade (a bend set too high comes down, too low comes up)
+  for (let pass = 0; pass < 4; pass++) {
+    for (let i = 1; i < hs.length; i++) hs[i] = Math.min(Math.max(hs[i], hs[i - 1] - len[i] * TRAIL_GRADE), hs[i - 1] + len[i] * TRAIL_GRADE);
+    for (let i = hs.length - 2; i >= 0; i--) hs[i] = Math.min(Math.max(hs[i], hs[i + 1] - len[i + 1] * TRAIL_GRADE), hs[i + 1] + len[i + 1] * TRAIL_GRADE);
+  }
+  return hs;
+})();
+export function snowTrail(x: number, z: number): { d: number; h: number } {
+  let bd = Infinity, bh = 0;
+  for (let i = 1; i < SNOW_TRAIL.length; i++) {
+    const [ax, az] = SNOW_TRAIL[i - 1], [bx, bz] = SNOW_TRAIL[i];
+    const vx = bx - ax, vz = bz - az, L2 = vx * vx + vz * vz;
+    const u = Math.max(0, Math.min(1, ((x - ax) * vx + (z - az) * vz) / L2));
+    const d = Math.hypot(x - (ax + vx * u), z - (az + vz * u));
+    if (d < bd) {
+      bd = d;
+      bh = TRAIL_H[i - 1] + (TRAIL_H[i] - TRAIL_H[i - 1]) * u;
+    }
+  }
+  return { d: bd, h: bh };
+}
+const TRAIL_BOX = SNOW_TRAIL.reduce((b, [x, z]) => [Math.min(b[0], x - 20), Math.max(b[1], x + 20), Math.min(b[2], z - 20), Math.max(b[3], z + 20)], [Infinity, -Infinity, Infinity, -Infinity]);
+/** how far from 雪岭山道 (far away: Infinity, cheaply) */
+export const snowTrailDist = (x: number, z: number) => (x < TRAIL_BOX[0] || x > TRAIL_BOX[1] || z < TRAIL_BOX[2] || z > TRAIL_BOX[3] ? Infinity : snowTrail(x, z).d);
+
 /** the ground, precomputed on the 4 m grid and read back smoothly (the full formula is far too slow per query) */
 const HEIGHT = (() => {
   const h = new Float32Array(GN * GN);
   for (let i = 0; i < GN; i++) for (let j = 0; j < GN; j++) h[i * GN + j] = rawHeight(g2w(i), g2w(j));
+  // 雪岭山道 cut into the slopes (owner: the snow mountain fought you at every ridge): a path about 6 m across that
+  // climbs evenly from the 天阙 road to the camp and the cave, easing back into the land over the next 6 m
+  for (let i = 0; i < GN; i++) {
+    const x = g2w(i);
+    if (x < TRAIL_BOX[0] || x > TRAIL_BOX[1]) continue;
+    for (let j = 0; j < GN; j++) {
+      const z = g2w(j);
+      if (z < TRAIL_BOX[2] || z > TRAIL_BOX[3]) continue;
+      const t = snowTrail(x, z);
+      if (t.d > 10) continue;
+      const w = 1 - smooth(3.2, 9.5, t.d);
+      h[i * GN + j] += (t.h - h[i * GN + j]) * w;
+    }
+  }
   return h;
 })();
 export const groundHeight = (x: number, z: number) => bilinear(HEIGHT, x, z);
@@ -521,7 +566,7 @@ export const TREES: Tree[] = (() => {
     if (noise(x * 0.008 + 9, z * 0.008 - 4) < -0.05) continue;
     if (CAMPS.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < DEN_R + 8)) continue;
     if (nearTq(x, z, 52) || nearCourt(x, z, CT_PAD + 6) || BUILDINGS.some((b) => Math.hypot(b.x - x, b.z - z) < Math.max(b.hx, b.hz) + 7)) continue;
-    if (pathDist(x, z) < 7 || onGudao(x, z, pathDist(x, z)) || nearPlace(x, z, 4)) continue;
+    if (pathDist(x, z) < 7 || onGudao(x, z, pathDist(x, z)) || nearPlace(x, z, 4) || snowTrailDist(x, z) < 6) continue;
     const h = groundHeight(x, z);
     if (h < WATER_Y + 0.5 || h > SNOW_Y + 10) continue;
     if (slopeAt(x, z) > 0.9) continue;

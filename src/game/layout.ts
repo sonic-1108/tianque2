@@ -65,3 +65,9 @@ export const onGudao = (x: number, z: number, pd: number) =>
 export const SNOW_CAMP = { x: -716, z: -729 };
 /** the old temple's ice cave on the snowfield (snow.ts; its inside is the 秘境 寒寺遗窟, realms.ts); its mouth faces rot */
 export const ICE_CAVE = { x: -830, z: -850, rot: 0.6 };
+/** 雪岭山道: the way up on foot, north off the 天阙 road at r 800 up the valley to the camp, then north-west to the ice
+ * cave's mouth (found by walking the slopes; world.ts cuts it into the ground as a path, the big map draws it) */
+export const SNOW_TRAIL: [number, number][] = [
+  [-736, -313], [-754, -391], [-772, -430], [-766, -469], [-751, -508], [-751, -547], [-754, -586], [-748, -625], [-760, -664], [-727, -703], [-716, -722],
+  [-745, -735], [-772, -772], [-811, -823], [-826, -845],
+];

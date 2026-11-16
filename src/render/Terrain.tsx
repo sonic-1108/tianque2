@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Sky, mergeVertices } from 'three-stdlib';
-import { ICE, SNOW_Y, TREES, VILLAGE_R, WATER_Y, WORLD_R, groundHeight, noise, pathDist, slopeAt } from '../game/world';
+import { ICE, SNOW_Y, TREES, VILLAGE_R, WATER_Y, WORLD_R, groundHeight, noise, pathDist, slopeAt, snowTrailDist } from '../game/world';
 import { DENS, DEN_R } from '../game/foes';
 import { nearTq, onGudao } from '../game/layout';
 import { PLACES, nearPlace } from '../game/places';
@@ -21,7 +21,7 @@ const lodFor = (d: number) => (d < 220 ? 0 : d < 480 ? 1 : d < 900 ? 2 : 3);
 /** what the ground is made of here, for the shader: r = road / trampled path, g = bare dirt (village square,
  *  den grounds), b = wet shore. Everything else (grass, rock, snow) the shader works out from height, slope and noise. */
 function maskAt(x: number, z: number, h: number, out: THREE.Color) {
-  const pd = pathDist(x, z);
+  const pd = Math.min(pathDist(x, z), snowTrailDist(x, z) + 1); // 雪岭山道 shows as a trodden path too
   const road = Math.min(1, Math.max(0, (4.5 - pd) / 2.5));
   let bare = 0;
   const rv = Math.hypot(x, z);
@@ -438,7 +438,7 @@ function Rocks() {
       const x = (hash(k, 1.7) * 2 - 1) * R;
       const z = (hash(k * 1.3, 9.1) * 2 - 1) * R;
       const h = groundHeight(x, z);
-      if (h < WATER_Y + 0.5 || Math.hypot(x, z) < VILLAGE_R + 15 || pathDist(x, z) < 3.5) continue;
+      if (h < WATER_Y + 0.5 || Math.hypot(x, z) < VILLAGE_R + 15 || pathDist(x, z) < 3.5 || snowTrailDist(x, z) < 4.5) continue;
       if (nearTq(x, z, 47) || nearCourt(x, z, CT_PAD) || onGudao(x, z, pathDist(x, z)) || nearPlace(x, z, 2) || DENS.some((d) => Math.hypot(d.x - x, d.z - z) < DEN_R + 4)) continue;
       const sl = slopeAt(x, z);
       const want = sl > 0.35 ? 0.9 : h > 40 ? 0.6 : pathDist(x, z) < 12 ? 0.5 : 0.18;
