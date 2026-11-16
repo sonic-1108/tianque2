@@ -65,7 +65,8 @@ export const GATES: Gate[] = (() => {
     const [cx, cz] = clearNear(x, z);
     out.push({ id, name, area, x: cx, z: cz, out: Math.atan2(faceX - cx, faceZ - cz) });
   };
-  add('village', '青石村', '村中', 9, -8, 0, 0);
+  // (it once stood on the old locust tree in its stone ring at (8, -9): clearNear only knows buildings) east of the well
+  add('village', '青石村', '村中', 6.5, -3, 0, -3);
   for (const p of PLACES)
     if (p.kind === 'inn') {
       // in front of the inn, toward the road
