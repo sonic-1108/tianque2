@@ -82,7 +82,7 @@ function actionsFor(sim: SimT, name: string, changed: () => void, startGame: () 
     const morning = c.hour >= 6 && c.hour < 12;
     out.push({ label: D.debate === c.day ? '朝议（今日已议）' : morning ? '参与朝议' : '朝议（早朝在卯时到午时）', hot: morning && D.debate !== c.day, off: !morning || D.debate === c.day, go: play('debate') });
   }
-  if (name === '铁匠 · 张大锤') out.push({ label: '打造兵器甲胄', hot: true, go: play('forge') });
+  if (name === '铁匠 · 张大锤') out.push({ label: '打造兵器 · 兵器图谱', hot: true, go: play('forge') });
   if (WARD_SHOPS[name]) out.push({ label: '看衣裳', hot: true, go: play('ward', { shop: name }) });
   if (name === '擂台官 · 包金刚') {
     const st = arenaState(sim);

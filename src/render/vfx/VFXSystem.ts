@@ -1120,8 +1120,17 @@ export class VFXSystem {
   }
 
   /** one spike of ice bursting up at (x, y, z), leaning out from (cx, cz) */
-  private spike(x: number, y: number, z: number, h: number, w: number, lean: number, cx: number, cz: number, life: number) {
+  private spike(x: number, y: number, z: number, h: number, w: number, lean: number, cx: number, cz: number, life: number, stone = false) {
     const s = this.spikes.find((q) => !q.active) ?? this.spikes.reduce((a, b) => (a.t / a.life > b.t / b.life ? a : b));
+    // the pool is shared: ice by default, rough stone for 土's spikes (forge.ts 不周)
+    const mat = s.m.material as THREE.MeshStandardMaterial;
+    if (!!(s as any).stone !== stone) {
+      (s as any).stone = stone;
+      mat.color.set(stone ? '#8a6a48' : '#e6f8ff');
+      mat.emissive.set(stone ? '#3a2410' : '#6cc8ff');
+      mat.emissiveIntensity = stone ? 0.35 : 0.6;
+      mat.roughness = stone ? 0.95 : 0.05;
+    }
     s.active = true;
     s.t = 0;
     s.life = life;
@@ -1146,6 +1155,18 @@ export class VFXSystem {
     }
     this.sparkBurst(tmpV2.set(pos.x, pos.y + 0.4, pos.z), Math.round(10 + r * 4), '#e8f8ff', 5 + r, 0.12, UP, 1.2);
     this.dustPuff(tmpV2.set(pos.x, pos.y + 0.2, pos.z), Math.round(6 + r * 2), r * 0.6, 2.4, 0.9, '#eaf6ff');
+  }
+  /** stone erupting in a ring (土 五阶 不周): tall leaning rocks round the rim, a few inside, dust and flying grit */
+  stoneSpikes(pos: THREE.Vector3, r: number, n = 14, h = 1.5, life = 1.1) {
+    const rim = Math.ceil(n * 0.7);
+    for (let k = 0; k < n; k++) {
+      const onRim = k < rim, a = onRim ? (k / rim) * Math.PI * 2 + Math.random() * 0.25 : Math.random() * Math.PI * 2;
+      const d = onRim ? r * (0.8 + Math.random() * 0.2) : r * Math.sqrt(Math.random()) * 0.6;
+      this.spike(pos.x + Math.cos(a) * d, pos.y, pos.z + Math.sin(a) * d, h * (onRim ? 0.85 + Math.random() * 0.5 : 0.5 + Math.random() * 0.3), (0.22 + Math.random() * 0.14) * Math.max(1, h * 0.7), onRim ? 0.3 + Math.random() * 0.3 : Math.random() * 0.3, pos.x, pos.z, life * (0.85 + Math.random() * 0.3), true);
+    }
+    this.rocks(tmpV2.set(pos.x, pos.y + 0.2, pos.z), Math.round(10 + r * 3), 8, 0.14);
+    this.dustPuff(tmpV2.set(pos.x, pos.y + 0.2, pos.z), Math.round(10 + r * 3), r * 0.7, 3, 1.1, '#b8956a');
+    this.ring(tmpV2.set(pos.x, pos.y + 0.05, pos.z), r, '#d19a5b', 0.6, 0.2, 0.25);
   }
   /** ice erupting over a ring between r0 and r1 (the eye inside left clear) */
   iceRing(pos: THREE.Vector3, r0: number, r1: number, n = 24, h = 1.3, life = 1.2) {

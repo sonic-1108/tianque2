@@ -13,6 +13,7 @@ import type { Folk } from './places';
 import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } from './types';
 import { DENS, DEN_R, FOE_KINDS, TQ_DEN, bossNameOf, menNameOf } from './foes';
 import { ICE, MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, buildingFloor, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
+import { wpnDodge, wpnHit, wpnKill, wpnPre, wpnStep, wpnSwing, wpnSwingK } from './forge';
 import { JH_TOUCH, allyDown, allyPower, wear, startEscort, endEscort, allyThink, allyUp, doJhTouch, dropFrom, fullHp, gearOf, jhTouch, levelFor, makeArenaPool, makeJianghu, newJH, rivalBeaten, stepArena, stepRivals, stepSeasons, warm, addVillagePts, type JH } from './jianghu';
 
 /** what a body stands on: the ground, or the lake's surface (wading / swimming) */
@@ -100,6 +101,8 @@ export interface HitOpts {
   fromX?: number; // push away from this point instead of the attacker
   fromZ?: number;
   noScale?: boolean; // a fixed amount (drain)
+  noProc?: boolean; // a forged weapon's own shot: sets off no more weapon effects (forge.ts)
+  wcrit?: boolean; // a 金 weapon's crit (forge.ts wpnPre)
 }
 
 const noStatus = (): Status => ({ slow: 0, root: 0, stun: 0, kneel: 0, daze: 0, crit: 0, invuln: 0, armor: 0, buffAtk: 0, rage: 0, shield: 0, weak: 0, silence: 0, protect: 0, wardT: 0, exhaust: 0 });
@@ -620,8 +623,17 @@ export class Sim {
     this.text(f, `+${Math.round(h)}`, '#4ade80');
   }
 
-  /** a blow lands. Returns the damage done (0 when it couldn't land) */
+  /** a blow lands. Returns the damage done (0 when it couldn't land). A blow of the player's (not a fixed amount, not a
+   * weapon's own shot) goes past the forged weapon first and sets off its element after (forge.ts) */
   hit(att: Fighter, def: Fighter, base: number, o: HitOpts = {}): number {
+    const mine = att.id === PLAYER && !o.noScale && !o.noProc && !this.netGuest;
+    if (!mine) return this.hitCore(att, def, base, o);
+    const pre = wpnPre(this, att, def, o);
+    const done = this.hitCore(att, def, base * pre.mult, pre.o);
+    if (done > 0) wpnHit(this, att, def, done, pre.o);
+    return done;
+  }
+  private hitCore(att: Fighter, def: Fighter, base: number, o: HitOpts = {}): number {
     if (this.netGuest) return 0; // a guest's world only shows what the host decides
     if (def.hp <= 0 || def.st.invuln > 0 || def.act === 'burrow' || !this.isEnemy(att, def)) return 0;
     let dmg = o.noScale ? base : base * this.power(att) * (o.mult ?? att.castMult ?? 1);
@@ -812,6 +824,7 @@ export class Sim {
       }
       if ((def as any).rival !== undefined) rivalBeaten(this, def);
       onEndKill(this, def);
+      wpnKill(this, att, def);
       if (!(def as any).spar && !(def as any).arena) dropFrom(this, def);
       for (const a of this.allyList) if ((a as any).comp) warm(this, a, 1);
       // a foe far below you is worth little
@@ -1013,7 +1026,8 @@ export class Sim {
     if (f.act === 'attack') f.combo = (f.combo + 1) % 3;
     else f.combo = 0;
     const slow = f.team === 'sect' ? 1.5 : 1; // disciples wind up slower: time to see it coming
-    this.setAct(f, 'attack', (CHAIN[f.combo].dur * slow) / (f.st.rage > 0 ? RAGE.speed : 1), ranged ? 'throw' : `attack_${f.combo + 1}`);
+    const ws = f.id === PLAYER ? wpnSwingK(this) : 1; // a 风 weapon swings quicker
+    this.setAct(f, 'attack', (CHAIN[f.combo].dur * slow * ws) / (f.st.rage > 0 ? RAGE.speed : 1), ranged ? 'throw' : `attack_${f.combo + 1}`);
     this.emit({ k: 'swing', x: f.pos[0], y: f.pos[1] + 1, z: f.pos[2], id: f.id, heavy: f.combo === 2 });
     kitSwing(this, f);
     if (!(f.run && SKILLS[f.run.id]?.parallel)) f.run = ranged ? { id: '_throw', t: 0, data: {} } : null;
@@ -1054,6 +1068,7 @@ export class Sim {
     }
     f.run = null;
     if (f.id === PLAYER) this.ultCharge = null;
+    if (f.id === PLAYER) wpnDodge(this, f);
     this.setAct(f, 'dodge', 0.42, 'dodge');
     f.vel[0] = dx * 12;
     f.vel[2] = dz * 12;
@@ -1123,6 +1138,7 @@ export class Sim {
     if (input) this.control(this.player, input);
     this.allyList = this.fighters.filter((f) => f.team === 'ally' && f.hp > 0 && !(f as any).away);
     kitStep(this, dt);
+    if (!this.netGuest) wpnStep(this, dt);
     for (const f of this.fighters) if (f.team !== 'player') this.think(f, dt);
     for (const f of this.fighters) this.physics(f, dt);
     // bodies don't stand inside each other
@@ -1832,7 +1848,7 @@ export class Sim {
     f.actT += dt;
     if (f.act === 'attack') {
       const c = CHAIN[f.combo];
-      const slow = (f.team === 'sect' ? 1.5 : 1) / (f.st.rage > 0 ? RAGE.speed : 1);
+      const slow = ((f.team === 'sect' ? 1.5 : 1) * (f.id === PLAYER ? wpnSwingK(this) : 1)) / (f.st.rage > 0 ? RAGE.speed : 1);
       if (!f.hitDone && f.actT >= c.at * slow) {
         f.hitDone = true;
         if (f.run?.id === '_throw') {
@@ -1848,6 +1864,7 @@ export class Sim {
             f.vel[2] += fz * 3;
           }
           for (const o of this.inCone(f, MELEE_RANGE, 0.25)) this.hit(f, o, c.dmg, f.combo === 2 ? { knock: 8, heavy: true, dur: 0.55, mult: 1 } : f.team === 'player' ? { knock: 2.2, dur: 0.3, mult: 1 } : { mult: 1 });
+          if (f.id === PLAYER) wpnSwing(this, f, f.combo);
           this.addFx({ kind: 'slash', x: f.pos[0] + fx * 1.2, y: f.pos[1] + 1.1, z: f.pos[2] + fz * 1.2, max: 0.18, r: 1.4, color: f.team === 'player' ? '#e8f4ff' : this.kindOf(f)?.color ?? '#fff', yaw: f.yaw });
         }
       }
@@ -2021,6 +2038,7 @@ export class Sim {
         heavy: pr.shape !== 'dart' && pr.shape !== 'knife',
         crit: pr.shape === 'watch',
       };
+      if ((pr as any).wpn) opts.noProc = true;
       if (pr.noStop) opts.stagger = false;
       else if (pr.onHit !== 'stagger' && (pr.shape === 'dart' || pr.shape === 'knife')) opts.flinch = true;
       if (pr.noStop || opts.flinch) opts.knock = pr.noStop ? 0 : opts.knock;

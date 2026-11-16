@@ -60,6 +60,8 @@ export function App() {
       if (e.code === 'KeyJ') setChron((v) => !v);
       if (e.code === 'KeyO' && !sim.game) sim.game = { kind: 'online' };
       else if (e.code === 'KeyO' && sim.game?.kind === 'online') sim.game = null;
+      if (e.code === 'KeyG' && (!sim.game || sim.game.kind === 'bag')) sim.game = { kind: 'atlas' };
+      else if (e.code === 'KeyG' && (sim.game?.kind === 'atlas' || sim.game?.kind === 'forge' || sim.game?.kind === 'gear')) sim.game = null;
       if (e.code === 'KeyB' && !sim.game) sim.game = { kind: 'bag' };
       else if (e.code === 'KeyB' && sim.game?.kind === 'bag') sim.game = null;
       if (e.code === 'KeyC' && (!sim.game || sim.game.kind === 'bag')) sim.game = { kind: 'ward' };

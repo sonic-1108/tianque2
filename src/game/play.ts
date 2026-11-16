@@ -14,6 +14,7 @@ import { POLICY_DREAD, shiftDread, warPrice } from './conflict';
 import { fullHp } from './jianghu';
 import { GLOW_LOTUS, LOTUS, glowLotusNow, lotusNear, pickGlowLotus, pickLotus } from './snow';
 import { GATES, GATE_R, gateAt, lit } from './gates';
+import { fishMats } from './forge';
 
 export { ITEMS, SHOPS, BUYERS, WANTS };
 
@@ -309,6 +310,7 @@ export function fishNow(s: Sim) {
 export function landFish(s: Sim, id: string) {
   const B = bag(s.progress);
   B[id] = (B[id] ?? 0) + 1;
+  fishMats(s, id);
   if (id === 'goldcarp') s.chron('你在雨夜里钓起了一尾金鲤。', '听说有人钓到了金鲤！河神要显灵了。');
   save(s.progress);
 }

@@ -1,6 +1,7 @@
 // The things to do in the village and at court, as data: money (铜钱), what each stall sells, what folk wish for
 // (委托: bring it, get paid), fish, lantern riddles, the imperial exam, the cases at the drum, and the court debates.
 // Pure data; sim.ts carries it out, ui/Games.tsx and ui/Dialog.tsx show it.
+import { EL, GRADE_NAME, MATS } from './mats';
 
 export type ItemKind = 'food' | 'service' | 'keep' | 'tool' | 'fish' | 'catch' | 'mat' | 'game';
 export interface Item {
@@ -51,6 +52,8 @@ export const ITEMS: Record<string, Item> = {
   lotus: { id: 'lotus', name: '天山雪莲', price: 70, kind: 'catch', desc: '雪岭高处才有，能续断骨；孙伯、御医和雪岭营地都收' },
   ginger: { id: 'ginger', name: '姜汤', price: 6, kind: 'food', desc: '雪岭营地的，一碗下肚好一阵不怕冷，回两成气血' },
   hen: { id: 'hen', name: '芦花鸡', price: 0, kind: 'catch', desc: '王婆婆跑丢的那只' },
+  // the nine elements' stuff for 铸兵 (mats.ts): each foe drops its own
+  ...Object.fromEntries(Object.values(MATS).map((m) => [m.id, { id: m.id, name: m.name, price: m.price, kind: 'mat' as ItemKind, desc: `${EL[m.el].name} · ${GRADE_NAME[m.grade]}料。${m.desc}。来自：${m.from}` }])),
 };
 
 /** who sells what (by the folk's name) */

@@ -178,6 +178,23 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   ward/t/wardgame.cjs (every outfit with pieces in the built game: body size, pieces, cloth, moves, errors).
   A Tripo run can come back untextured (grey preview, a flat grey texture): run it again.
 
+- 铸兵 (owner: each foe drops its own element's stuff; a weapon atlas where each weapon needs different things; after
+  转职 the weapons keep climbing, stronger and stranger). Data in `src/game/mats.ts` (a leaf: elements `EL` / `ELS`,
+  materials `MATS` ids `<el>_c|_r|_x` = 粗 / 精 / 极, `STAGES` one to five, `recipe(el, n)`, house element `AFFINITY`
+  (共鸣 x1.25), forged shape by house `FORM_OF`, names `fwName`), rules in `src/game/forge.ts`. Nine elements, one per
+  kind of foe: 山贼 火, 女飞贼 风, 野和尚 土, 刺客 毒, 伪朝禁军 雷, 奸商 金, 妖道 木, 水寇 and fishing 水, 雪狼 冰;
+  leaders, the wanted and far rings drop 精; each great foe its 极 once a day (`GIANT_X`, 剑冢守灵 风, 玄阴真人 木 by
+  chance). `dropsOf` / `giveMats` (jianghu.ts dropFrom calls them; snow.ts wolves, play.ts landFish). Weapons are ids
+  `fw:<el>:<n>` in `P.gear` (jianghu.ts gearById builds the Gear, gearName names it for the house); a stage above the
+  first reforges the one below (`fwForge`); stages 4 and 5 only with `P.hero` (a 散人 stops at three). Effects:
+  sim.hit wraps hitCore with `wpnPre` (金 crit x2 and breakArmor, 土 knock) and `wpnHit` (the element), acts calls
+  `wpnSwing` on the third cut, kill `wpnKill`, dodge `wpnDodge`, step `wpnStep`; effect blows are noScale, weapon shots
+  carry `wpn` (projSub sets noProc) so nothing loops. Look in hand (`render/forgedLook.ts`): the house's own weapon takes
+  the element's light by stage, a halo from 四阶, motes from 三阶, 异象 flourishes at 五阶, the trail in the element's
+  colour (Juice). Panel `ui/Atlas.tsx` (G anywhere, 打造 at 张大锤: `game.kind` forge / atlas / gear). Per house forged
+  shapes (FORM_OF is ready, the glyphs in the atlas already follow it) are not built as 3D models yet.
+  Test: scratch forge/t/forgetest.mts (drops, gating, every element vs dummies) and atlasgame.cjs (built game).
+
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported
   from 天阙 1: same timings, reach, damage, statuses; its `vfx.*` calls become `s.vfx(name, ...args)` commands in

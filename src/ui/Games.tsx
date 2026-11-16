@@ -1,6 +1,7 @@
 // The little games and panels of 玩法 (game/play.ts): the notice board, the bag, fishing, lantern riddles, the
 // imperial exam, the cases at the drum, the morning court, dice and pot throwing. Space or F plays; Esc leaves.
 import { Online } from './Online';
+import { Atlas, Seal } from './Atlas';
 import { SteleBoard } from './Endgame';
 import { GATES, lit, travel } from '../game/gates';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -9,7 +10,8 @@ import { CASES, EXAM, RIDDLES, WANTS, type Quiz } from '../game/economy';
 import {
   ITEMS, bag, caseDone, catchFish, debateDone, debateToday, diceRoll, done, examDone, fishNow, landFish, purse, riddleDone, titles, touhuDone, usable, use,
 } from '../game/play';
-import { GEAR, MAT_NAME, RIVALS, SLOT_NAME, equipped, forge, forgeBlock, gearOf, owned, wear, type Slot } from '../game/jianghu';
+import { RIVALS, SLOT_NAME, equipped, gearById, gearName, gearOf, owned, wear, type Slot } from '../game/jianghu';
+import { MATS } from '../game/mats';
 import { GARMENTS, PERK_TEXT, SLOTS as WSLOTS, WARD_SHOPS, buyGarment, garment, hidden, owns, ward, wear as dress, type Slot as WSlot } from '../game/wardrobe';
 import { save } from '../game/progress';
 import { roadPoint } from '../game/layout';
@@ -93,9 +95,10 @@ export function Games({ sim, onClose }: { sim: Sim; onClose: () => void }) {
     case 'bag':
       return <Bag sim={sim} onClose={close} />;
     case 'forge':
-      return <Forge sim={sim} make onClose={close} />;
+      return <Atlas sim={sim} make onClose={close} />;
     case 'gear':
-      return <Forge sim={sim} make={false} onClose={close} />;
+    case 'atlas':
+      return <Atlas sim={sim} make={!!g.make} onClose={close} />;
     case 'ward':
       return <Wardrobe sim={sim} shop={g.shop} onClose={close} />;
     case 'fish':
@@ -217,10 +220,20 @@ function Bag({ sim, onClose }: { sim: Sim; onClose: () => void }) {
       <GearLine sim={sim} />
       <div className="ward-open">
         <button onClick={() => (sim.game = { kind: 'ward' })}>衣装 · 换装备换衣裳 (C)</button>
+        <button onClick={() => (sim.game = { kind: 'atlas' })}>兵器图谱 · 素材 (G)</button>
       </div>
+      {items.some(([id]) => MATS[id]) && (
+        <div className="bag-mats">
+          {items.filter(([id]) => MATS[id]).map(([id, n]) => (
+            <span key={id} className="bag-mat" title={ITEMS[id]?.desc}>
+              <Seal id={id} size={22} /> {MATS[id].name} × {n}
+            </span>
+          ))}
+        </div>
+      )}
       {items.length === 0 && <div className="game-tip">包袱里空空的。去青石集逛逛吧。</div>}
       <div className="bag-list">
-        {items.map(([id, n]) => (
+        {items.filter(([id]) => !MATS[id]).map(([id, n]) => (
           <div key={id} className="bag-item">
             <div>
               <b>{ITEMS[id]?.name ?? id}</b> × {n}
@@ -582,13 +595,13 @@ function Wardrobe({ sim, shop, onClose }: { sim: Sim; shop?: string; onClose: ()
           {mine.length === 0 && <div className="game-tip">还没有装备。带上铁料、兽皮、玄铁去张记铁铺找张大锤打造，打擂、挑战巨人也会得到。</div>}
           <div className="bag-list">
             {(['weapon', 'armor', 'charm'] as Slot[]).flatMap((sl) =>
-              GEAR.filter((g) => g.slot === sl && mine.includes(g.id)).map((g) => {
+              mine.map((id) => gearById(id)!).filter((g) => g && g.slot === sl).map((g) => {
                 const on = E[g.slot] === g.id;
                 return (
                   <div key={g.id} className={'bag-item' + (on ? ' worn' : '')}>
                     <div>
                       <b>
-                        {g.name}
+                        {gearName(P, g.id)}
                         <span className="bi-where"> · {SLOT_NAME[g.slot]}</span>
                       </b>
                       <div className="bag-desc">{g.desc}</div>
@@ -663,56 +676,13 @@ function Wardrobe({ sim, shop, onClose }: { sim: Sim; shop?: string; onClose: ()
 // ---------------------------------------------------------------- 装备 (worn in the bag; forged at 张记铁铺; changed at home or the smithy)
 function GearLine({ sim }: { sim: Sim }) {
   const E = equipped(sim.progress), g = gearOf(sim.progress);
-  const name = (sl: Slot) => GEAR.find((x) => x.id === E[sl])?.name ?? '无';
+  const name = (sl: Slot) => gearName(sim.progress, E[sl]);
   const bits = [g.dmg && `伤害 +${Math.round(g.dmg * 100)}%`, g.def && `受伤 -${Math.round(g.def * 100)}%`, g.hp && `气血 +${Math.round(g.hp * 100)}%`, g.spd && `跑速 +${Math.round(g.spd * 100)}%`, g.mp && `回气 +${Math.round(g.mp * 100)}%`, g.leech && `吸血 ${Math.round(g.leech * 100)}%`].filter(Boolean);
   return (
     <div className="bag-titles">
       装备：{(['weapon', 'armor', 'charm'] as Slot[]).map((sl) => `${SLOT_NAME[sl]}「${name(sl)}」`).join(' ')}
       {bits.length > 0 && <div className="bag-desc">{bits.join('，')}</div>}
-      <div className="bag-desc">按 C 打开衣装，随时换装备、换衣裳</div>
+      <div className="bag-desc">按 C 打开衣装，随时换装备、换衣裳；按 G 看兵器图谱</div>
     </div>
-  );
-}
-function Forge({ sim, make, onClose }: { sim: Sim; make: boolean; onClose: () => void }) {
-  const [, setN] = useState(0);
-  const P = sim.progress, B = bag(P), E = equipped(P), mine = owned(P);
-  const list = make ? GEAR : GEAR.filter((g) => mine.includes(g.id));
-  const mats = Object.keys(MAT_NAME).map((m) => `${MAT_NAME[m]} ${B[m] ?? 0}`).join(' · ');
-  return (
-    <Frame title={make ? '张记铁铺 · 打造' : '兵器架 · 换装'} onClose={onClose}>
-      <div className="bag-coins">
-        铜钱 {purse(P)} 文 · {mats}
-      </div>
-      <GearLine sim={sim} />
-      {list.length === 0 && <div className="game-tip">还没有打造过装备。带上铁料、兽皮、玄铁去张记铁铺找张大锤。</div>}
-      <div className="bag-list">
-        {list.map((g) => {
-          const has = mine.includes(g.id), on = E[g.slot] === g.id;
-          const why = make && !has ? forgeBlock(sim, g) : null;
-          const cost = [g.coins ? `${g.coins} 文` : '', ...Object.entries(g.mats).map(([m, n]) => `${MAT_NAME[m]}×${n}`)].filter(Boolean).join(' ');
-          return (
-            <div key={g.id} className="bag-item">
-              <div>
-                <b>
-                  {g.name}
-                  <span className="bi-where"> · {SLOT_NAME[g.slot]}</span>
-                </b>
-                <div className="bag-desc">
-                  {g.desc}
-                  {make && !has && !g.prize && ` · 要 ${cost}${g.lvl > 1 ? ` · ${g.lvl} 级` : ''}`}
-                </div>
-              </div>
-              {has ? (
-                <button onClick={() => (wear(sim, g.id), setN((k) => k + 1))}>{on ? '卸下' : '穿上'}</button>
-              ) : (
-                <button disabled={!!why} title={why ?? ''} onClick={() => (forge(sim, g), setN((k) => k + 1))}>
-                  {why ?? '打造'}
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </Frame>
   );
 }

@@ -11,6 +11,8 @@ import { BAR_R } from '../game/progress';
 import { VFXSystem } from './vfx/VFXSystem';
 import { sfx } from '../audio/audio';
 import { swordSockets } from './Rig';
+import { forgedColor, weaponMotes } from './forgedLook';
+import { wielded } from '../game/forge';
 import type { Fx, Projectile } from '../game/types';
 import { questTarget } from '../game/quests';
 import { groundHeight } from '../game/world';
@@ -165,10 +167,13 @@ export function Juice({ sim }: { sim: Sim }) {
     const swinging = p.act === 'attack' || p.act === 'cast';
     if (swordSockets.base && swordSockets.tip && swinging) {
       const mv = p.act === 'cast' && p.run ? SKILLS[p.run.id] : undefined;
-      const col = (mv && houseOf(mv.sect)?.color) ?? heroOf(sim.progress.hero)?.color ?? '#dff3ff';
-      if (col !== trailCol.current) {
-        trailCol.current = col;
-        trail.setColor(col, 1.25);
+      // a forged weapon's plain cuts trail its element's light, brighter as it climbs the stages
+      const fc = !mv ? forgedColor(sim) : null;
+      const col = fc ?? (mv && houseOf(mv.sect)?.color) ?? heroOf(sim.progress.hero)?.color ?? '#dff3ff';
+      const boost = fc ? 1.2 + 0.18 * (wielded(sim.progress)?.n ?? 0) : 1.25;
+      if (col + boost !== trailCol.current) {
+        trailCol.current = col + boost;
+        trail.setColor(col, boost);
       }
       swordSockets.base.getWorldPosition(v.c);
       swordSockets.tip.getWorldPosition(v.d);
@@ -177,6 +182,15 @@ export function Juice({ sim }: { sim: Sim }) {
     } else {
       trail.emitting = false;
       trail.update(dt, null, null, state.clock.elapsedTime);
+    }
+    // a forged weapon's motes and its fifth stage's 异象 (forgedLook.ts)
+    if (p.hp > 0 && Math.hypot(p.pos[0] - camera.position.x, p.pos[2] - camera.position.z) < 60) {
+      const has = !!(swordSockets.base && swordSockets.tip);
+      if (has) {
+        swordSockets.base!.getWorldPosition(v.c);
+        swordSockets.tip!.getWorldPosition(v.d);
+      }
+      weaponMotes(vfx, sim, has ? v.c : null, has ? v.d : null, dt);
     }
     // footsteps
     if (p.act === 'run' && p.grounded) {

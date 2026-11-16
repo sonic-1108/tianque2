@@ -505,6 +505,15 @@ function addDot(s: Sim, src: Fighter, tgt: Fighter, dps: number, t: number, kind
     old.t = Math.max(old.t, t);
   } else W.dots.push({ src: src.id, tgt: tgt.id, dps: dpsN, t, kind, acc: 0, heal });
 }
+/** a dot of a fixed strength (the forged weapons' burns and poisons, forge.ts): stacks up to `stack` times, the time refreshed */
+export function addDotRaw(s: Sim, src: Fighter, tgt: Fighter, dps: number, t: number, kind: Dot['kind'], stack = 3) {
+  const W = kitWorld(s);
+  const old = W.dots.find((d) => d.src === src.id && d.tgt === tgt.id && d.kind === kind);
+  if (old) {
+    old.dps = Math.min(old.dps + dps, Math.max(old.dps, dps * stack));
+    old.t = Math.max(old.t, t);
+  } else W.dots.push({ src: src.id, tgt: tgt.id, dps, t, kind, acc: 0 });
+}
 export const bleeding = (s: Sim, f: Fighter) => kitWorld(s).dots.some((d) => d.tgt === f.id && d.kind === 'bleed' && d.t > 0);
 const poisoned = (s: Sim, f: Fighter) => kitWorld(s).dots.filter((d) => d.tgt === f.id && d.kind === 'poison' && d.t > 0);
 

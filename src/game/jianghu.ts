@@ -19,6 +19,9 @@ import { okSpot, type Animal } from './animals';
 import type { Touch } from './play';
 import { raidDueTonight, warnRaid } from './conflict';
 import { SKILLS } from './skills';
+import { dropsOf, fwStats, giveMats } from './forge';
+import { EL, STAGES, fwName, parseFw, recipe } from './mats';
+import { heroOf } from './heroes';
 
 /** the sim's share of all this, saved with the world */
 export interface JH {
@@ -95,7 +98,27 @@ export const GEAR: Gear[] = [
   { id: 'c7', slot: 'charm', name: '蛟珠', desc: '在水里走得和岸上一样快，气血 +10%（覆舟河蛟）', coins: 0, mats: {}, lvl: 1, hp: 0.1, swim: true, prize: 'giant' },
   { id: 'c6', slot: 'charm', name: '塔顶铃', desc: '气血 +15%，内力回得快一半（试炼塔二十层）', coins: 0, mats: {}, lvl: 1, hp: 0.15, mp: 0.5, prize: 'tower' },
 ];
-export const gearById = (id: string) => GEAR.find((g) => g.id === id);
+/** a forged weapon (forge.ts / mats.ts, ids fw:element:stage) as a piece of gear */
+const fwCache = new Map<string, Gear>();
+function forgedGear(id: string): Gear | undefined {
+  const w = parseFw(id);
+  if (!w) return undefined;
+  let g = fwCache.get(id);
+  if (!g) {
+    const st = STAGES[w.n - 1], x = fwStats(w.el, w.n);
+    g = { id, slot: 'weapon', name: EL[w.el].names[w.n - 1], desc: `${EL[w.el].name} · ${st.name} · 伤害 +${Math.round(st.dmg * 100)}%，${EL[w.el].effect}`, coins: st.coins, mats: recipe(w.el, w.n), lvl: st.lvl, dmg: x.dmg, spd: x.spd || undefined, def: x.def || undefined, leech: x.leech || undefined, mp: x.mp || undefined };
+    fwCache.set(id, g);
+  }
+  return g;
+}
+export const gearById = (id: string) => GEAR.find((g) => g.id === id) ?? forgedGear(id);
+/** what to call a piece of gear (a forged weapon by the shape the wearer's house holds: 焚天剑, 焚天枪) */
+export function gearName(P: Progress, id: string | undefined) {
+  if (!id) return '无';
+  const w = parseFw(id);
+  if (w) return fwName(w.el, w.n, heroOf(P.hero)?.house);
+  return gearById(id)?.name ?? '无';
+}
 export const owned = (P: Progress) => (P.gear ??= []);
 export const equipped = (P: Progress) => (P.equip ??= {});
 /** everything you wear, added up */
@@ -149,9 +172,10 @@ export function wear(s: Sim, id: string) {
   p.hp = Math.max(1, Math.round(p.maxHp * ratio));
   save(P);
 }
-/** what a fallen foe leaves: iron from most men, hide now and then, 玄铁 from bosses, the wanted and the 校尉 */
+/** what a fallen foe leaves: iron from most men, hide now and then, 玄铁 from bosses, the wanted and the 校尉, and its
+ * own element's stuff (forge.ts dropsOf) */
 export function dropFrom(s: Sim, def: Fighter) {
-  const P = s.progress, B = bag(P), a = def as any;
+  const a = def as any;
   const got: [string, number][] = [];
   if (a.rival !== undefined) got.push(['xuan', 1 + (def.level > 18 ? 1 : 0)], ['iron', 2]);
   else if (a.boss) got.push(['xuan', 2], ['iron', 3]);
@@ -160,9 +184,7 @@ export function dropFrom(s: Sim, def: Fighter) {
     if (Math.random() < 0.32) got.push(['iron', 1]);
     if (Math.random() < 0.12) got.push(['hide', 1]);
   }
-  if (!got.length) return;
-  for (const [m, n] of got) B[m] = (B[m] ?? 0) + n;
-  s.text(s.player, got.map(([m, n]) => `${MAT_NAME[m]} +${n}`).join('  '), '#d6c7a1');
+  giveMats(s, [...got, ...dropsOf(s, def)]);
 }
 
 // ================================================================ 悬赏榜: named wanderers on the roads

@@ -4,6 +4,7 @@
 // back after a day (孙伯 and the camp buy them); downhill on snow you slide fast; packs of 雪狼 hunt the slopes (your
 // blows hurt them, they bite); in the old temple's ice cave waits a mad monk, 冰窟狂僧 · 苦寒, once a day; and the
 // summit gives a name to whoever stands on it. Drawn by render/Snow.tsx; the HUD shows the cold.
+import { wolfMats } from './forge';
 import type { Sim } from './sim';
 import type { Fighter } from './types';
 import { DAY_S } from './clock';
@@ -185,6 +186,7 @@ export function stepSnow(s: Sim, dt: number) {
         B.hide = (B.hide ?? 0) + 1;
         s.progress.coins = (s.progress.coins ?? 0) + 8;
         s.toast('打死一头雪狼：兽皮一张，八文。');
+        wolfMats(s);
       }
     }
   }

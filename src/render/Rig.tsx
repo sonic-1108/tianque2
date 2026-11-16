@@ -15,6 +15,7 @@ TQ_DYE.b.value = new THREE.Color('#000000');
 import { KIT_FLY } from '../game/kit';
 import type { Sim } from '../game/sim';
 import { heroWeapons, weaponsFor } from './weapons';
+import { dressWeapon } from './forgedLook';
 import { buildUmbrella, type Umbrella } from './umbrella';
 import { applyGlidePose, collectLimbs, fistCentre, type Limbs } from './climbPose';
 import { applyCharacterShading } from './characterShading';
@@ -569,6 +570,8 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     // both hands are on the umbrella's shaft while gliding: the weapon they hold is put away (it used to poke out of the canopy)
     const stow = glide.umb.group.visible;
     if (held) for (const h of held) if (h.visible === stow) h.visible = !stow;
+    // a forged weapon in the player's hand: the element's light, brighter stage by stage (forgedLook.ts)
+    if (f.id === sim.player.id) dressWeapon(sim, held, swordSockets.base, swordSockets.tip, performance.now() / 1000);
   });
 
   return (
