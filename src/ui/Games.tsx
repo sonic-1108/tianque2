@@ -10,7 +10,7 @@ import {
   ITEMS, bag, caseDone, catchFish, debateDone, debateToday, diceRoll, done, examDone, fishNow, landFish, purse, riddleDone, titles, touhuDone, usable, use,
 } from '../game/play';
 import { GEAR, MAT_NAME, RIVALS, SLOT_NAME, equipped, forge, forgeBlock, gearOf, owned, wear, type Slot } from '../game/jianghu';
-import { GARMENTS, SLOTS as WSLOTS, WARD_SHOPS, buyGarment, garment, ward, wear as dress } from '../game/wardrobe';
+import { GARMENTS, PERK_TEXT, SLOTS as WSLOTS, WARD_SHOPS, buyGarment, garment, hidden, owns, ward, wear as dress, type Slot as WSlot } from '../game/wardrobe';
 import { save } from '../game/progress';
 import { roadPoint } from '../game/layout';
 /** which way out of the village a road runs (north is -z, as on the map) */
@@ -546,20 +546,36 @@ function Touhu({ sim, onClose }: { sim: Sim; onClose: () => void }) {
 // and prize gear: weapon, armour, charm). At a seller the clothes page also lists what they sell, to buy and put on.
 function Wardrobe({ sim, shop, onClose }: { sim: Sim; shop?: string; onClose: () => void }) {
   const [, setN] = useState(0);
-  const [page, setPage] = useState<'clothes' | 'gear'>('clothes');
+  const P = sim.progress, W = ward(P), sells = shop ? WARD_SHOPS[shop] ?? [] : null;
+  const slotsHere = WSLOTS.filter((sl) => !sells || GARMENTS.some((g) => g.slot === sl.id && sells.includes(g.id)));
+  const [page, setPage] = useState<string>(slotsHere[0]?.id ?? 'robe');
   const bump = () => setN((k) => k + 1);
-  const P = sim.progress, W = ward(P), sells = shop ? WARD_SHOPS[shop] ?? [] : [];
   const E = equipped(P), mine = owned(P);
-  const sellers = (slot: string) => Object.entries(WARD_SHOPS).filter(([, sl]) => sl.includes(slot as never)).map(([n]) => n.split(' · ')[1] ?? n).join('、');
+  const who = (g: { sellers: string[] }) => g.sellers.map((n) => n.split(' · ')[1] ?? n).join('、');
+  const put = (slot: WSlot, id: string | undefined) => (dress(P, slot, id), save(P), bump());
+  const buy = (id: string) => (buyGarment(P, id) && save(P), bump());
+  const action = (g: (typeof GARMENTS)[number]) => {
+    const has = owns(P, g.id), on = (W.worn[g.slot] ?? (g.start ? g.id : undefined)) === g.id;
+    if (has) return <button disabled={on} onClick={() => put(g.slot, g.id)}>{on ? '穿着' : '穿上'}</button>;
+    if (sells?.includes(g.id)) return <button disabled={purse(P) < g.price} onClick={() => buy(g.id)}>买 · {g.price} 文</button>;
+    return <span className="ward-where">{g.price} 文 · 找{who(g)}</span>;
+  };
+  const list = (slot: WSlot) => GARMENTS.filter((g) => g.slot === slot && (!sells || sells.includes(g.id)));
   return (
     <Frame title={shop ? `${shop} · 看衣裳` : '衣装'} onClose={onClose}>
       <div className="bag-coins">铜钱 {purse(P)} 文</div>
-      {!shop && (
-        <div className="ward-tabs">
-          <button className={page === 'clothes' ? 'on' : ''} onClick={() => setPage('clothes')}>衣裳</button>
-          <button className={page === 'gear' ? 'on' : ''} onClick={() => setPage('gear')}>装备</button>
-        </div>
-      )}
+      <div className="ward-tabs">
+        {slotsHere.map((sl) => (
+          <button key={sl.id} className={page === sl.id ? 'on' : ''} onClick={() => setPage(sl.id)}>
+            {sl.name}
+          </button>
+        ))}
+        {!shop && (
+          <button className={page === 'gear' ? 'on' : ''} onClick={() => setPage('gear')}>
+            装备
+          </button>
+        )}
+      </div>
       {page === 'gear' && !shop ? (
         <>
           <GearLine sim={sim} />
@@ -584,48 +600,60 @@ function Wardrobe({ sim, shop, onClose }: { sim: Sim; shop?: string; onClose: ()
             )}
           </div>
         </>
+      ) : page === 'robe' ? (
+        <>
+          {!shop && <div className="bag-desc ward-lead">衣装是一整身打扮，换上就是另一副模样。没有的去找卖它的人，和他们说话点「看衣裳」。</div>}
+          <div className="ward-grid">
+            {list('robe').map((g) => {
+              const on = (W.worn.robe ?? 'robe-ma') === g.id;
+              return (
+                <div key={g.id} className={'ward-card' + (on ? ' worn' : '') + (owns(P, g.id) ? '' : ' unowned')}>
+                  <div className="ward-pic" style={g.pic ? undefined : { background: `linear-gradient(160deg, ${g.a}, ${g.b})` }}>
+                    {g.pic && <img src={import.meta.env.BASE_URL + 'portraits/' + g.pic} alt="" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} />}
+                    {g.perk && <span className="ward-perk">{g.perk === 'warm' ? '暖' : '隐'}</span>}
+                  </div>
+                  <b>{g.name}</b>
+                  <div className="bag-desc">{g.note}</div>
+                  {g.perk && <div className="ward-perk-text">{PERK_TEXT[g.perk]}</div>}
+                  <div className="ward-act">{action(g)}</div>
+                </div>
+              );
+            })}
+          </div>
+        </>
       ) : (
         <div className="bag-list">
-          {WSLOTS.map((sl) => {
-            const list = GARMENTS.filter((g) => g.slot === sl.id && (W.owned.includes(g.id) || sells.includes(sl.id)));
-            const now = garment(W.worn[sl.id]);
+          {(() => {
+            const sl = page as WSlot, now = garment(W.worn[sl]), why = hidden(P, sl);
             return (
-              <div key={sl.id} className="ward-slot">
+              <>
                 <div className="ward-head">
-                  {sl.name} · 现在：{now ? now.name : '无'}
+                  现在：{now ? now.name : '无'}
                   {now && (
-                    <button className="ward-off" onClick={() => (dress(P, sl.id, undefined), save(P), bump())}>
-                      脱下
+                    <button className="ward-off" onClick={() => put(sl, undefined)}>
+                      取下
                     </button>
                   )}
                 </div>
-                {list.length === 0 && <div className="bag-desc ward-none">还没有。去找{sellers(sl.id)}看看（和她们说话，点「看衣裳」）。</div>}
-                {list.map((g) => {
-                  const has = W.owned.includes(g.id), on = W.worn[g.slot] === g.id;
-                  return (
-                    <div key={g.id} className={'bag-item' + (on ? ' worn' : '')}>
-                      <div className="ward-item">
-                        <span className="ward-swatch" style={{ background: `linear-gradient(135deg, ${g.a} 55%, ${g.b} 55%)` }} />
-                        <div>
-                          <b>{g.name}</b>
-                          <div className="bag-desc">{g.note}</div>
-                        </div>
+                {why && <div className="bag-desc ward-none">{why}</div>}
+                {list(sl).map((g) => (
+                  <div key={g.id} className={'bag-item' + (W.worn[g.slot] === g.id ? ' worn' : '')}>
+                    <div className="ward-item">
+                      <span className="ward-swatch" style={{ background: `linear-gradient(135deg, ${g.a} 55%, ${g.b} 55%)` }}>
+                        <img src={import.meta.env.BASE_URL + 'portraits/ward-' + g.id + '.png'} alt="" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} />
+                      </span>
+                      <div>
+                        <b>{g.name}</b>
+                        {g.perk && <span className="ward-perk-inline"> · {PERK_TEXT[g.perk]}</span>}
+                        <div className="bag-desc">{g.note}</div>
                       </div>
-                      {has ? (
-                        <button disabled={on} onClick={() => (dress(P, g.slot, g.id), save(P), bump())}>
-                          {on ? '穿着' : '穿上'}
-                        </button>
-                      ) : (
-                        <button disabled={purse(P) < g.price} onClick={() => (buyGarment(P, g.id) && save(P), bump())}>
-                          买 · {g.price} 文
-                        </button>
-                      )}
                     </div>
-                  );
-                })}
-              </div>
+                    {action(g)}
+                  </div>
+                ))}
+              </>
             );
-          })}
+          })()}
         </div>
       )}
     </Frame>

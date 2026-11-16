@@ -6,7 +6,7 @@ import { save } from '../game/progress';
 import { ALL_FOLK } from '../game/interiors';
 import { worldRemark } from '../game/life';
 import { BUYERS, ITEMS, SHOPS, bag, buy, done, give, nextCase, priceOf, purse, sell, startSpar, wantOf } from '../game/play';
-import { WARD_SHOPS } from '../game/wardrobe';
+import { WARD_SHOPS, outfitTalk } from '../game/wardrobe';
 import type { Sim as SimT } from '../game/sim';
 import { GIFTS, RIVALS, arenaState, comps, giftTo, setMode, startArena, type Comp } from '../game/jianghu';
 
@@ -149,7 +149,8 @@ export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => vo
   const box = useNumberKeys();
   if (f && folk) {
     // now and then they talk about the world: the weather, the season, the festival, what you've been up to
-    const deeds = sim.chronicle.filter((e) => e.talk).map((e) => e.talk!);
+    // (and how you're dressed)
+    const deeds = [...sim.chronicle.filter((e) => e.talk).map((e) => e.talk!), ...outfitTalk(sim.progress)];
     const remark = pick < 0.45 ? worldRemark(sim.clock, sim.weather, deeds, pick / 0.45) : null;
     const want = wantOf(sim, folk.name);
     const said = say ?? (want ? want.ask : remark ?? folk.lines[Math.floor(pick * folk.lines.length)]);

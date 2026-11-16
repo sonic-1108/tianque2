@@ -12,6 +12,7 @@ import { FOE_KINDS } from './foes';
 
 import { ICE_CAVE, SNOW_CAMP } from './layout';
 import { CAMP_FIRE, LAKE, NICHE, SUMMIT_PATH, SUMMIT_TOP } from './snowmap';
+import { hasPerk } from './wardrobe';
 import { realmById, realmFloor, realmOpen } from './realms';
 import { ROOMS } from './interiors';
 import { makeGiant, rearmGiant } from './giants';
@@ -117,6 +118,8 @@ export function stepSnow(s: Sim, dt: number) {
     if (s.clock.night) rise *= 1.5;
     if (s.weather.kind === 'snow' || s.weather.kind === 'storm') rise *= 1.4;
     if (s.worldT < W.warmUntil) rise *= 0.35;
+    // furs (猎户皮袄, 白狐裘): half as fast
+    if (hasPerk(s.progress, 'warm')) rise *= 0.5;
     W.cold = Math.min(100, W.cold + rise * dt);
     if (!W.told) {
       W.told = true;

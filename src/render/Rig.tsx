@@ -7,9 +7,9 @@ import { GLTFLoader, SkeletonUtils, MeshoptDecoder } from 'three-stdlib';
 import type { Fighter } from '../game/types';
 import { giantOf, giantOpen, giantPhase } from '../game/giants';
 import { giantPose, GIANT_CLIPS, GIANT_SOURCES } from './giantMotion';
-import { garment, ward, wornKey } from '../game/wardrobe';
+import { GARMENTS, outfitBody, shown, wornKey } from '../game/wardrobe';
 import { TQ_DYE } from './characterShading';
-import { dressBody, swayCloak } from './outfit';
+import { dressBody, keepRest, stepOutfit } from './outfit';
 TQ_DYE.a.value = new THREE.Color('#ffffff');
 TQ_DYE.b.value = new THREE.Color('#000000');
 import { KIT_FLY } from '../game/kit';
@@ -39,6 +39,10 @@ export const BODY_AS: Record<string, string> = {
   'hero-duzong.glb': 'ranger.glb', 'hero-gongshou.glb': 'ranger.glb',
   'hero-jiguan.glb': 'trader.glb',
 };
+// the 散人's outfits (wardrobe.ts): each a body of its own that moves, fights and holds weapons as the 散人 does
+for (const g of GARMENTS) if (g.body) BODY_AS[g.body] = 'wanderer_m.glb';
+/** the body a fighter shows: the player's 散人 wears his outfit's */
+const bodyOf = (sim: Sim, f: Fighter) => (f.id === sim.player.id && f.model === 'wanderer_m.glb' ? outfitBody(sim.progress) ?? f.model : f.model);
 /** bodies sculpted with their own weapon in hand: no house weapons on top */
 /** bodies whose painted metal reads too dark in the world (no reflections to light it): less metal, more colour */
 const LOOK_TUNE: Record<string, { metal: number; bright: number; rough?: number; glow?: [string, number] }> = {
@@ -254,19 +258,22 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
   const f = sim.fighters[id];
   const group = useRef<THREE.Group>(null);
   const [model, setModel] = useState<{ obj: THREE.Object3D; clips: ReturnType<typeof buildClips>; scale: number; floor: number } | null>(null);
+  // the body file shown (changes when the 散人 changes his outfit)
+  const [file, setFile] = useState(() => bodyOf(sim, f));
 
   useEffect(() => {
     let alive = true;
     const humanGiant = !!giantOf(f) && giantOf(f)!.look !== 'beast';
-    const base = BODY_AS[f.model] ? [BODY_AS[f.model], ...(CLIP_SOURCE[BODY_AS[f.model]] ?? [])] : CLIP_SOURCE[f.model] ?? [];
+    const base = BODY_AS[file] ? [BODY_AS[file], ...(CLIP_SOURCE[BODY_AS[file]] ?? [])] : CLIP_SOURCE[file] ?? [];
     // a giant borrows from the whole house library (slams, pounds, roars, throws, leaps: giantMotion.ts)
-    const extra = [...new Set([...base, ...(humanGiant ? GIANT_SOURCES : [])])].filter((x) => x !== f.model);
-    Promise.all([loadModel(f.model), ...extra.map(loadModel)])
+    const extra = [...new Set([...base, ...(humanGiant ? GIANT_SOURCES : [])])].filter((x) => x !== file);
+    Promise.all([loadModel(file), ...extra.map(loadModel)])
       .then(([m, ...more]) => {
         if (!alive) return;
         const obj = SkeletonUtils.clone(m.scene);
+        keepRest(obj); // for fitting worn pieces in the rest stance (outfit.ts)
         // own clips first, borrowed ones fill the gaps
-        const own = BODY_AS[f.model] ? [] : m.clips;
+        const own = BODY_AS[file] ? [] : m.clips;
         const raw = [...own, ...more.flatMap((x) => x.clips.filter((c) => !own.some((o) => o.name === c.name)))];
         // each body holds its own weapon(s) (the old game's builders), in the Mixamo hand frame
         const bones: Record<string, THREE.Object3D> = {};
@@ -275,9 +282,9 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
           if ((o as any).isBone && !bones[n]) bones[n] = o;
         });
         const glow = new THREE.Color(f.team === 'player' ? '#ff3b1f' : '#7dd3fc');
-        const w: ReturnType<typeof heroWeapons> & {} = heroWeapons(f.model) ?? weaponsFor(BODY_AS[f.model] ?? f.model, glow);
+        const w: ReturnType<typeof heroWeapons> & {} = heroWeapons(file) ?? weaponsFor(BODY_AS[file] ?? file, glow);
         if ((f as any).folk !== undefined) w.right = w.left = w.staff = undefined as any; // villagers go unarmed
-        if (OWN_WEAPON.has(f.model)) w.right = w.left = w.staff = undefined as any; // the body holds its own (雷彪's bone club)
+        if (OWN_WEAPON.has(file)) w.right = w.left = w.staff = undefined as any; // the body holds its own (雷彪's bone club)
         const held: THREE.Object3D[] = [];
         if (w.right && bones.righthand) {
           w.right.rotation.set(0, 0, w.reverse ? -Math.PI / 2 : Math.PI / 2);
@@ -317,7 +324,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
           mat.emissive = new THREE.Color('#000000');
           const tint = giantOf(f)?.tint;
           if (tint) mat.color.multiply(new THREE.Color(tint));
-          const tune = LOOK_TUNE[f.model];
+          const tune = LOOK_TUNE[file];
           if (tune) {
             mat.metalness = tune.metal;
             mat.color.multiplyScalar(tune.bright);
@@ -327,18 +334,18 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
             mat.emissive = new THREE.Color(tune.glow[0]);
             mat.emissiveIntensity = tune.glow[1];
           }
-          applyCharacterShading(mat, f.team === 'player', (BODY_AS[f.model] ?? f.model) === 'monk.glb');
+          applyCharacterShading(mat, f.team === 'player', (BODY_AS[file] ?? file) === 'monk.glb');
           o.material = mat;
           ((obj as any).userData.mats ||= []).push(mat);
         });
         ((globalThis as any).__T2_OBJ ??= {})[f.id] = obj; // headless tests read bone positions
-        setModel({ obj, clips: buildClips(raw, humanGiant ? { ...planOf(f.model), ...(GIANT_CLIPS as Record<string, Spec>) } : planOf(f.model)), scale: m.scale, floor: m.floor });
+        setModel({ obj, clips: buildClips(raw, humanGiant ? { ...planOf(file), ...(GIANT_CLIPS as Record<string, Spec>) } : planOf(file)), scale: m.scale, floor: m.floor });
       })
-      .catch((e) => console.warn('[tq2] model', f.model, e));
+      .catch((e) => console.warn('[tq2] model', file, e));
     return () => {
       alive = false;
     };
-  }, [f.model, f.team]);
+  }, [file, f.team]);
 
   const mixer = useMemo(() => (model ? new THREE.AnimationMixer(model.obj) : null), [model]);
   const actions = useMemo(() => {
@@ -383,20 +390,19 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     const saddle = f.id === 0 && sim.riding >= 0 ? 1.05 : 0;
     g.position.set(f.pos[0], f.pos[1] - (f.act === 'burrow' ? 1.3 : 0) + saddle, f.pos[2]);
     g.rotation.y = f.yaw + Math.PI;
-    // what the player wears (wardrobe.ts): the robe's dye eased in, the pieces put on when they change, the cloak's swing
+    // what the player wears (wardrobe.ts): his outfit's body (loaded when it changes), the pieces put on when they
+    // change, the cloak's cloth and the hangings' swing each frame
+    if (f.id === sim.player.id) {
+      const want = bodyOf(sim, f);
+      if (want !== file) setFile(want);
+    }
     if (f.id === sim.player.id && model?.obj) {
       const key = wornKey(sim.progress), o = model.obj as any;
       if (o.userData.wornKey !== key) {
         o.userData.wornKey = key;
-        dressBody(model.obj, ward(sim.progress).worn);
+        dressBody(model.obj, shown(sim.progress));
       }
-      const robe = garment(ward(sim.progress).worn.robe);
-      if (robe) {
-        (TQ_DYE.a.value as THREE.Color).lerp(new THREE.Color(robe.a), Math.min(1, dt * 6));
-        (TQ_DYE.b.value as THREE.Color).lerp(new THREE.Color(robe.b), Math.min(1, dt * 6));
-      }
-      TQ_DYE.k.value += ((robe ? 1 : 0) - TQ_DYE.k.value) * Math.min(1, dt * 6);
-      swayCloak(model.obj, Math.hypot(f.vel[0], f.vel[2]), performance.now() / 1000);
+      stepOutfit(model.obj, dt, f.pos[1], performance.now() / 1000);
     }
     // a talk's opening: the villager bows to you, you cup your fists back (a short dip and rise)
     g.rotation.order = 'YXZ';

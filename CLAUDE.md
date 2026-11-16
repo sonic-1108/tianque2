@@ -159,6 +159,25 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   `quality=max` drops the face cap and asks for detailed geometry. Test: `npx tsx tools/movecheck.ts <ids>` (D=1.8
   puts the dummy close).
 
+- 衣装 (owner: design what the 散人 can wear; `src/game/wardrobe.ts`, panel `Wardrobe` in ui/Games.tsx, C, or 看衣裳 at a
+  seller): four slots. 衣装 = a whole outfit, its own Tripo body `wanderer-*.glb` (quality=max, slimmed to ~125k tris,
+  borrows wanderer_m's clips and sword through BODY_AS); 头饰 / 披风 / 佩挂 are made in code (`render/outfit.ts`).
+  `GARMENTS`: price, sellers (folk with 看衣裳: 苏娘子, 阿秀, 钱八, 钱小二, 韩老三, 老参客, 张大锤, 柳嫂), perks (`warm`: 雪岭 cold
+  rises half as fast, snow.ts; `dark`: foes notice you closer at night, sim `seenK`), `hat` / `cape` outfits put your own
+  hat / cloak away, `pack` (the starter's bedroll) takes no cloak. `ward(P)` cleans old saves (v2). Rig: `bodyOf` swaps
+  the player's body, `dressBody` fits pieces when `wornKey` changes, `stepOutfit` runs the cloak (verlet cloth on
+  capsules) and the hangings' swing (substepped). Folk remark on the outfit (`outfitTalk`).
+  Fitting (`fit`): in the rest pose saved by `keepRest` at clone. Never `Skeleton.pose()`: a Tripo body's mesh is bound
+  in another space than its armature, pose() left it drawn twice its size. Done in a body frame read from the bones
+  (Tripo bodies face +x in their rig), seats measured on the skinned mesh: the skull's top from a ring of hair heights
+  round the head's middle (`headShape`: a topknot lifts the hats, the jade crown sits on it), the hip's side, the back,
+  the shoulders, the chest's front (the cloak's cords and clasp; a fur ruff for 白狐裘).
+  Pictures `portraits/ward-<id>.png` (outfits full length 270x360, pieces 96x96) come from the scratch viewer
+  `zz-ward.html` (?o= &hat= &cloak= &belt= &anim= &yaw= &view=bust &only=1 &noweapon=1; logs with `__T2_FITLOG`, cloth
+  catches up on slow frames with `__T2_CLOTHCAP`). Tests: scratch ward/t/wardlogic.mts (rules, old saves, files) and
+  ward/t/wardgame.cjs (every outfit with pieces in the built game: body size, pieces, cloth, moves, errors).
+  A Tripo run can come back untextured (grey preview, a flat grey texture): run it again.
+
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported
   from 天阙 1: same timings, reach, damage, statuses; its `vfx.*` calls become `s.vfx(name, ...args)` commands in

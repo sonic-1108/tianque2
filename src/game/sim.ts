@@ -44,6 +44,7 @@ import { controlRemote, hostKill, makeCoopSlots } from '../net/coop';
 import { END_TOUCH, doEndTouch, endTouch, makeEndgame, newEnd, onEndKill, onPlayerDown, roomOpen, startTower, endTower, stepEndgame } from './endgame';
 import { ALL_FOLK, ROOMS, ROOM_Y, roomAt, roomSpawn, roomExit, roomRealm } from './interiors';
 import { pushOutOfRealm, realmFloor, realmGap } from './realms';
+import { hasPerk } from './wardrobe';
 import { GIANT_OF_RING, avatarCheck, makeAvatar, bodyH, bodyR, giantRespawn, giantTakes, giantThink, helperThink, makeGiant, pushFromGiants, stepTeles, type Tele } from './giants';
 
 /** an ultimate goes off only after R is held this long (the owner's rule); letting go or a hit throws it away */
@@ -113,6 +114,8 @@ export interface VCmd {
 }
 
 export class Sim {
+  /** how near a foe must come to see you (1, or less in 夜行衣 by night) */
+  seenK = 1;
   fighters: Fighter[] = [];
   /** red marks on the ground where a giant's blow is coming (giants.ts) */
   teles: Tele[] = [];
@@ -1107,6 +1110,8 @@ export class Sim {
     dt = Math.min(dt, 0.05);
     this.time += dt;
     (this as any).lastDt = dt;
+    // 夜行衣 by night: foes must come closer before they see you
+    this.seenK = this.clock.night && hasPerk(this.progress, 'dark') ? 0.6 : 1;
     for (const f of this.fighters) this.timers(f, dt);
     if (this.soon.length) {
       const due = this.soon.filter((x) => (x.t -= dt) <= 0);
@@ -1610,17 +1615,18 @@ export class Sim {
     // they give up when you leave their ground, and never follow you into the village
     const pInVillage = Math.hypot(p.pos[0], p.pos[2]) < VILLAGE_R + 10;
     const mode = (f as any).mode;
+    const k = this.seenK;
     if (mode === 'raid') f.aggro = p.hp > 0 && this.indoor < 0 && d < 22;
     else if (mode === 'hunt') f.aggro = p.hp > 0 && this.indoor < 0 && d < 160;
     else if (mode === 'tower') f.aggro = p.hp > 0 && this.indoor === (f as any).roomId;
     else if (mode === 'rival') {
       if (p.hp <= 0 || pInVillage || this.indoor >= 0 || d > 42) f.aggro = false;
-      else if (d < 13) f.aggro = true;
+      else if (d < 13 * k) f.aggro = true;
     } else if (mode) {
       if (p.hp <= 0 || pFromHome > 60 || this.indoor >= 0) f.aggro = false;
-      else if (d < 24) f.aggro = true;
+      else if (d < 24 * k) f.aggro = true;
     } else if (p.hp <= 0 || pInVillage || pFromHome > DEN_R + 28 || fromHome > 38) f.aggro = false;
-    else if (d < 15 && pFromHome < DEN_R + 16) f.aggro = true;
+    else if (d < 15 * k && pFromHome < DEN_R + 16) f.aggro = true;
     let wx = 0;
     let wz = 0;
     if (f.st.daze > 0) {
