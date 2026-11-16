@@ -4,6 +4,7 @@ import { storyDone, sequelAt, tianmoBeaten } from '../game/endgame';
 import { TOWER, STELE, ABYSS, JIAO_POOL } from '../game/endLayout';
 import { GATES, lit } from '../game/gates';
 import { ICE_CAVE, SNOW_CAMP, SNOW_TRAIL, SUMMIT } from '../game/snow';
+import { SUMMIT_PATH } from '../game/snowmap';
 import { ROOMS } from '../game/interiors';
 import { ARENA_AT, GLADES, firefliesOut } from '../game/jianghu';
 import { HOME } from '../game/village';
@@ -124,10 +125,13 @@ export function BigMap({ sim, onClose }: { sim: Sim; onClose: () => void }) {
       // 雪岭山道: the way up on foot, dashed
       // (a dark bed under red dashes, so it shows on the snow as well as the green)
       g.save();
+      // 雪岭山道 and the summit's ledge path
       const trail = () => {
-        g.beginPath();
-        SNOW_TRAIL.forEach(([x, z], i) => (i ? g.lineTo(X(x), Z(z)) : g.moveTo(X(x), Z(z))));
-        g.stroke();
+        for (const line of [SNOW_TRAIL, SUMMIT_PATH]) {
+          g.beginPath();
+          line.forEach(([x, z], i) => (i ? g.lineTo(X(x), Z(z)) : g.moveTo(X(x), Z(z))));
+          g.stroke();
+        }
       };
       g.lineJoin = g.lineCap = 'round';
       g.strokeStyle = 'rgba(30, 16, 8, 0.75)';

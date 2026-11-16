@@ -9,6 +9,7 @@ import { PLACES } from './places';
 import { CT_R, CT_ROAD } from './court';
 import { WATER_Y, groundHeight, inBuilding } from './world';
 import { SNOW_CAMP } from './snow';
+import { CAMP_GATE } from './snowmap';
 import { save } from './progress';
 
 export interface Gate {
@@ -87,7 +88,7 @@ export const GATES: Gate[] = (() => {
     const b = beside(TQ_ROAD, GD_ARCH_R - 28, -8), f = roadFrame(TQ_ROAD, GD_ARCH_R - 28);
     add('gudao', '天阙古道口', '天阙山下', b.x, b.z, f.x, f.z);
   }
-  add('snow', '雪岭营地', '雪岭', SNOW_CAMP.x - 7, SNOW_CAMP.z + 6, SNOW_CAMP.x, SNOW_CAMP.z);
+  add('snow', '雪岭营地', '雪岭', CAMP_GATE[0], CAMP_GATE[1], SNOW_CAMP.x, SNOW_CAMP.z);
   return out;
 })();
 

@@ -6,16 +6,18 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Sky, mergeVertices } from 'three-stdlib';
-import { ICE, SNOW_Y, TREES, VILLAGE_R, WATER_Y, WORLD_R, groundHeight, noise, pathDist, slopeAt, snowTrailDist } from '../game/world';
+import { GROUND_CELL, ICE, SNOW_Y, TREES, VILLAGE_R, WATER_Y, WORLD_R, groundHeight, noise, onSnowPad, pathDist, slopeAt, snowTrailDist } from '../game/world';
 import { DENS, DEN_R } from '../game/foes';
 import { nearTq, onGudao } from '../game/layout';
 import { PLACES, nearPlace } from '../game/places';
 import type { Sim } from '../game/sim';
 
-const CH = 125;
+// chunks of 128 m laid on the physics grid (world.ts, 4 m): up close a chunk's corners are the grid's own points and
+// its triangles split the same way groundHeight reads them, so what you see is exactly what you stand on
+const CH = 128;
 const NCH = Math.ceil((WORLD_R * 2 + 200) / CH);
-const ORIGIN = -NCH * CH * 0.5;
-const LODS = [40, 20, 10, 5]; // segments per chunk side
+const ORIGIN = -WORLD_R - Math.ceil((NCH * CH - WORLD_R * 2) / 2 / GROUND_CELL) * GROUND_CELL;
+const LODS = [32, 16, 8, 4]; // segments per chunk side: 4, 8, 16, 32 m
 const lodFor = (d: number) => (d < 220 ? 0 : d < 480 ? 1 : d < 900 ? 2 : 3);
 
 /** what the ground is made of here, for the shader: r = road / trampled path, g = bare dirt (village square,
@@ -214,10 +216,10 @@ function Ground({ sim }: { sim: Sim }) {
   const state = useMemo(() => {
     const mat = groundMaterial();
     const chunks: { mesh: THREE.Mesh; lod: number; ci: number; cj: number }[] = [];
+    // every chunk of the square (the round cut left holes in the corners: 雪岭 looked out on the sky through one)
     for (let i = 0; i < NCH; i++)
       for (let j = 0; j < NCH; j++) {
         const cx = ORIGIN + (i + 0.5) * CH, cz = ORIGIN + (j + 0.5) * CH;
-        if (Math.hypot(cx, cz) > WORLD_R + 250) continue;
         const lod = lodFor(Math.hypot(cx - sim.player.pos[0], cz - sim.player.pos[2]));
         const mesh = new THREE.Mesh(buildChunk(i, j, LODS[lod]), mat);
         mesh.receiveShadow = true;
@@ -237,18 +239,26 @@ function Ground({ sim }: { sim: Sim }) {
     };
   }, [state]);
   useFrame(() => {
-    // re-detail the chunks whose distance band changed, a few per frame
+    // re-detail the chunks whose distance band changed, nearest first, a few per frame; the ones round you at once
+    // (after a 传送阵 the ground under your feet must be the fine one before you take a step)
     const p = sim.player.pos;
-    let budget = 3;
+    const todo: { c: (typeof state.chunks)[number]; d: number; want: number }[] = [];
     for (const c of state.chunks) {
       const cx = ORIGIN + (c.ci + 0.5) * CH, cz = ORIGIN + (c.cj + 0.5) * CH;
-      const want = lodFor(Math.hypot(cx - p[0], cz - p[2]));
-      if (want === c.lod) continue;
+      const d = Math.hypot(cx - p[0], cz - p[2]);
+      const want = lodFor(d);
+      if (want !== c.lod) todo.push({ c, d, want });
+    }
+    if (!todo.length) return;
+    todo.sort((a, b) => a.d - b.d);
+    let budget = 3;
+    for (const { c, d, want } of todo) {
+      if (budget <= 0 && d > 160) break;
       c.mesh.geometry.dispose();
       c.mesh.geometry = buildChunk(c.ci, c.cj, LODS[want]);
       c.mesh.castShadow = want <= 1;
       c.lod = want;
-      if (--budget <= 0) break;
+      budget--;
     }
   });
   return <group ref={group} />;
@@ -438,7 +448,7 @@ function Rocks() {
       const x = (hash(k, 1.7) * 2 - 1) * R;
       const z = (hash(k * 1.3, 9.1) * 2 - 1) * R;
       const h = groundHeight(x, z);
-      if (h < WATER_Y + 0.5 || Math.hypot(x, z) < VILLAGE_R + 15 || pathDist(x, z) < 3.5 || snowTrailDist(x, z) < 4.5) continue;
+      if (h < WATER_Y + 0.5 || Math.hypot(x, z) < VILLAGE_R + 15 || pathDist(x, z) < 3.5 || snowTrailDist(x, z) < 6.5 || onSnowPad(x, z, 3)) continue;
       if (nearTq(x, z, 47) || nearCourt(x, z, CT_PAD) || onGudao(x, z, pathDist(x, z)) || nearPlace(x, z, 2) || DENS.some((d) => Math.hypot(d.x - x, d.z - z) < DEN_R + 4)) continue;
       const sl = slopeAt(x, z);
       const want = sl > 0.35 ? 0.9 : h > 40 ? 0.6 : pathDist(x, z) < 12 ? 0.5 : 0.18;

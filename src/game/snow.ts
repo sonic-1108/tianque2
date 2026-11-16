@@ -11,26 +11,29 @@ import { SNOW_Y, groundHeight } from './world';
 import { FOE_KINDS } from './foes';
 
 import { ICE_CAVE, SNOW_CAMP } from './layout';
+import { CAMP_FIRE, LAKE, NICHE, SUMMIT_PATH, SUMMIT_TOP } from './snowmap';
 import { realmById, realmFloor, realmOpen } from './realms';
 import { ROOMS } from './interiors';
 import { makeGiant, rearmGiant } from './giants';
 export { SNOW_CAMP };
 /** fires that warm you: the camp's, and two rock shelters up on the snow */
 export const SNOW_FIRES: [number, number][] = [
-  [SNOW_CAMP.x + 3, SNOW_CAMP.z + 2],
+  CAMP_FIRE,
   [-650, -800],
   [-812, -770],
+  NICHE,
 ];
 export const FIRE_R = 7;
-/** where 天山雪莲 grow (picked over the reachable high snow) */
+/** where 天山雪莲 grow: in the basin's drifts and corners, by the lake, before the cave, and on the summit's path */
 export const LOTUS: [number, number][] = [
-  [-818, -890], [-734, -836], [-818, -830], [-620, -830], [-572, -806], [-710, -800], [-608, -776], [-812, -730], [-782, -734], [-662, -734], [-854, -640], [-482, -692],
+  [-786, -838], [-768, -770], [-735, -866], [-768, -826], [-625, -815], [-585, -760], [-612, -782], [-822, -780], [-690, -812],
+  [SUMMIT_PATH[22][0], SUMMIT_PATH[22][1]], [-806, -834], [-742, -752],
 ];
-/** the highest ground you can walk to */
-export const SUMMIT: [number, number] = [-692, -794];
+/** the highest ground you can walk to (the top of the ridge path, snowmap.ts) */
+export const SUMMIT: [number, number] = SUMMIT_TOP;
 /** 夜光雪莲 (the rumour made true): one flower that opens only at night, a different high spot each night */
 export const GLOW_LOTUS: [number, number][] = [
-  [-700, -808], [-846, -872], [-596, -818], [-760, -770], [-668, -760], [-820, -800],
+  [-760, -860], [-640, -790], [LAKE.x + 3, LAKE.z - 2], [-815, -760], [SUMMIT_PATH[34][0], SUMMIT_PATH[34][1]], [-700, -776],
 ];
 export const isNight = (hour: number) => hour >= 20 || hour < 4;
 /** tonight's spot, or -1 by day or once picked tonight */
@@ -51,7 +54,7 @@ export function pickGlowLotus(s: Sim) {
 }
 /** the old temple's ice cave (its place lives in layout.ts), and where its monk stands */
 export { ICE_CAVE };
-export { SNOW_TRAIL } from './layout';
+export { SNOW_TRAIL } from './snowmap';
 /** the monk sits in the hall of 寒寺遗窟 before the frozen Buddha when the cave's inside exists (realms.ts), else by its mouth */
 const CAVE = realmById('icecave');
 /** the room the cave's inside is (looked up when wanted: interiors.ts is made after this module) */

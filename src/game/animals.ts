@@ -145,7 +145,7 @@ export function makeAnimals(): Animal[] {
     if (okSpot(x, z)) add('horse', x, z);
   }
   // 雪岭: three packs of snow wolves on the high snow (none near the camp)
-  ([[-620, -830], [-812, -760], [-760, -880]] as const).forEach(([cx, cz], h) => {
+  ([[-635, -792], [-790, -805], [-748, -852]] as const).forEach(([cx, cz], h) => {
     for (let k = 0; k < 4; k++) {
       const x = cx + (rnd(h * 7 + k, 31) - 0.5) * 8, z = cz + (rnd(h * 7 + k, 33) - 0.5) * 8;
       if (okSpot(x, z, false, true)) {

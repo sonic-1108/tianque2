@@ -74,6 +74,7 @@ function Loop({ sim }: { sim: Sim }) {
   const smooth = useRef(new THREE.Vector3());
   const init = useRef(false);
   const scope = useRef(0);
+  const lift = useRef(0);
   useFrame((_, dt) => {
     if (sim.camSnap !== null) {
       cam.yaw = sim.camSnap; // through a door: look the way you're walking
@@ -146,10 +147,25 @@ function Loop({ sim }: { sim: Sim }) {
     // in a 秘境 the walls are its splats: the boom stops short of them and of the vault
     const inRealmWall = (x: number, y: number, z: number) =>
       !!realm && (realmGap(realm, x, z) < 0.12 || y > realmFloor(realm, x, z) + realm.grid.ceil * realm.scale - 0.4);
+    // the land between you and the camera: a rise behind you lifts the camera over it (on a mountain slope it used to
+    // sink into the hill and the player vanished behind the ground); what's left in the way brings the boom in
+    if (!room) {
+      let need = 0;
+      for (let k = 3; k <= 12; k++) {
+        const t = k / 12;
+        const x = tx + (c.x - tx) * t, y = ty + (c.y - ty) * t, z = tz + (c.z - tz) * t;
+        const under = groundHeight(x, z) + 0.55 - y;
+        if (under > 0) need = Math.max(need, under / t);
+      }
+      need = Math.min(need, 7);
+      lift.current = need > lift.current ? need : lift.current + (need - lift.current) * Math.min(1, dt * 3);
+      c.y += lift.current;
+    } else lift.current = 0;
+    const inGround = (x: number, y: number, z: number) => !room && y < groundHeight(x, z) + 0.25;
     for (let k = 1; k <= 12; k++) {
       const t = k / 12;
       const x = tx + (c.x - tx) * t, y = ty + (c.y - ty) * t, z = tz + (c.z - tz) * t;
-      if (inBuilding(x, y, z, 0.3) || inRealmWall(x, y, z)) {
+      if (inBuilding(x, y, z, 0.3) || inRealmWall(x, y, z) || inGround(x, y, z)) {
         const back = Math.max(0.15, (k - 1) / 12);
         c.set(tx + (c.x - tx) * back, ty + (c.y - ty) * back, tz + (c.z - tz) * back);
         break;

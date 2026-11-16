@@ -26,6 +26,14 @@ const floorAt = (x: number, z: number, y?: number) => {
   }
   return Math.max(groundHeight(x, z), ICE.on ? WATER_Y : WATER_Y - 1.1, y === undefined ? -Infinity : buildingFloor(x, z, y));
 };
+/** no way out but up a slope too steep to walk, whichever way you turn */
+function boxedIn(x: number, z: number, g: number) {
+  for (let k = 0; k < 12; k++) {
+    const a = (k / 12) * Math.PI * 2;
+    if (floorAt(x + Math.cos(a) * 1.5, z + Math.sin(a) * 1.5) - g <= MAX_SLOPE * 1.5) return false;
+  }
+  return true;
+}
 import { BAR_KEYS, BAR_R, Progress, STORY_V, gainXp, load, playerMaxHp, playerPower, save, skillPower, xpFor } from './progress';
 import { WANDERER, heroOf } from './heroes';
 import { SKILLS } from './skills';
@@ -35,7 +43,7 @@ import { NPCS, QUESTS, fromStory, type NpcRole } from './quests';
 import { controlRemote, hostKill, makeCoopSlots } from '../net/coop';
 import { END_TOUCH, doEndTouch, endTouch, makeEndgame, newEnd, onEndKill, onPlayerDown, roomOpen, startTower, endTower, stepEndgame } from './endgame';
 import { ALL_FOLK, ROOMS, ROOM_Y, roomAt, roomSpawn, roomExit, roomRealm } from './interiors';
-import { pushOutOfRealm, realmFloor } from './realms';
+import { pushOutOfRealm, realmFloor, realmGap } from './realms';
 import { GIANT_OF_RING, avatarCheck, makeAvatar, bodyH, bodyR, giantRespawn, giantTakes, giantThink, helperThink, makeGiant, pushFromGiants, stepTeles, type Tele } from './giants';
 
 /** an ultimate goes off only after R is held this long (the owner's rule); letting go or a hit throws it away */
@@ -1748,7 +1756,23 @@ export class Sim {
       pushOutOfTrees(f.pos);
       pushOutOfBuildings(f.pos);
       const R = roomRealm(roomAt(f.pos[0], f.pos[2]));
-      if (R) pushOutOfRealm(R, f.pos);
+      if (R) {
+        pushOutOfRealm(R, f.pos);
+        // still deep in the rock (a hard knock at a low frame rate): back where it was
+        if (realmGap(R, f.pos[0], f.pos[2]) < -0.3 && realmGap(R, ox, oz) > realmGap(R, f.pos[0], f.pos[2])) {
+          f.pos[0] = ox;
+          f.pos[2] = oz;
+          f.vel[0] = f.vel[2] = 0;
+        }
+      }
+    }
+    // nobody leaves a room by walking (or being knocked) out of it: a door takes you out. A body knocked past a 秘境's
+    // edge used to fall out of the room onto the world's rim, and the player was lost (人消失了)
+    const wasIn = roomAt(ox, oz);
+    if (wasIn && roomAt(f.pos[0], f.pos[2]) !== wasIn) {
+      f.pos[0] = ox;
+      f.pos[2] = oz;
+      f.vel[0] = f.vel[2] = 0;
     }
     if (!roomAt(f.pos[0], f.pos[2])) clampWorld(f.pos);
     // too steep to walk up: slide along the slope if one way is easier, otherwise stop (mountains are walls)
@@ -1766,12 +1790,16 @@ export class Sim {
         } else if (!steep(ox, f.pos[2])) {
           f.pos[0] = ox;
           f.vel[0] = 0;
+        } else if (((f as any).boxedT = ((f as any).boxedT ?? 0) + dt) > 0.8 && boxedIn(ox, oz, og)) {
+          // steep on every side (a hollow among crags): after a moment you scramble out, slowly
+          f.pos[0] = ox + (f.pos[0] - ox) * 0.45;
+          f.pos[2] = oz + (f.pos[2] - oz) * 0.45;
         } else {
           f.pos[0] = ox;
           f.pos[2] = oz;
           f.vel[0] = f.vel[2] = 0;
         }
-      }
+      } else (f as any).boxedT = 0;
     }
     const g = floorAt(f.pos[0], f.pos[2], f.pos[1]);
     if (f.pos[1] <= g) {

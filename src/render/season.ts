@@ -10,12 +10,20 @@ export const SEASON_U = {
   uWet: { value: 0 },
 };
 
+// above the snowline (雪岭) the snow lies on everything all year: the cover there comes from the height
 const SNOW_GLSL = `
 vec3 tqWN = inverseTransformDirection(normal, viewMatrix);
 float tqUp = smoothstep(0.35, 0.85, tqWN.y);
-diffuseColor.rgb *= 1.0 - uWet * 0.22 * tqUp;
-diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.90, 0.93, 0.98), clamp(uSnowCover * tqUp * 1.15, 0.0, 0.92));
+float tqCover = max(uSnowCover, smoothstep(${(95 - 10).toFixed(1)}, ${(95 + 8).toFixed(1)}, vTqY) * 0.95);
+diffuseColor.rgb *= 1.0 - uWet * 0.22 * tqUp * (1.0 - tqCover);
+diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.90, 0.93, 0.98), clamp(tqCover * tqUp * 1.15, 0.0, 0.92));
 #include <emissivemap_fragment>`;
+const SNOW_VERT = `#include <project_vertex>
+vec4 tqWP = vec4(transformed, 1.0);
+#ifdef USE_INSTANCING
+tqWP = instanceMatrix * tqWP;
+#endif
+vTqY = (modelMatrix * tqWP).y;`;
 
 /** lying snow and rain-wet on a material's upward faces (chained after its own onBeforeCompile) */
 export function withSnow<M extends THREE.Material>(m: M): M {
@@ -26,7 +34,8 @@ export function withSnow<M extends THREE.Material>(m: M): M {
     sh.uniforms.uSnowCover = SEASON_U.uSnowCover;
     sh.uniforms.uWet = SEASON_U.uWet;
     if (!sh.fragmentShader.includes('uniform float uSnowCover;')) sh.fragmentShader = 'uniform float uSnowCover;\nuniform float uWet;\n' + sh.fragmentShader;
-    sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', SNOW_GLSL);
+    sh.fragmentShader = 'varying float vTqY;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>', SNOW_GLSL);
+    sh.vertexShader = 'varying float vTqY;\n' + sh.vertexShader.replace('#include <project_vertex>', SNOW_VERT);
   };
   const key = m.customProgramCacheKey?.bind(m);
   m.customProgramCacheKey = () => (key ? key() : '') + '|snow';

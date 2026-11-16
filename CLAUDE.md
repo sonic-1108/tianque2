@@ -203,6 +203,17 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   (`snowSpeed`), 雪狼 packs (animals.ts kind `wolf`: warn, charge, bite 5%, your swings hurt them; okSpot `corner`
   for the square map's corner), 冰窟狂僧 · 苦寒 (an elite, once a day), the summit (名号 一览众山小). The hunting band
   keeps away from the camp. Test: scratch snowtest.mts.
+  Laid out by hand in `src/game/snowmap.ts` (owner: the raw ridges were a buggy maze): `SNOW_ROAD` (valley from a fork
+  on the 天阙 climb, 山门 at the snowline, canyon, camp terrace, basin, cave), `BASIN` circles, `PADS` (camp, gate, lake,
+  cave apron, shelters, pavilion), the peak `SUMMIT_TOP` with its spiral ledge `SUMMIT_PATH` and the 半山石龛 fire
+  `NICHE`; world.ts `snowLand` turns these into ground (open floors, cliffs and crags round them, fading into the land)
+  and `fillSnowPits` fills every hollow so nobody is trapped. Things on it (gate, pavilion, tents, stakes, stupas, the
+  ruined gate, stele, shelters) are `SNOW_PARTS` (BUILDINGS) and must match render/Snow.tsx. Layout check: scratch
+  snow2/dump2.mts + render2.py (hillshade, reach from the camp, traps); walk: snow2/walk.mts.
+- Ground (all maps): `groundHeight` reads the 4 m grid as the same triangles the near terrain chunks draw (Terrain.tsx
+  chunks are 128 m on the grid, LOD0 = 4 m), so feet are exactly on the visible ground; the camera lifts over rises
+  behind you and pulls in rather than sink into a slope (Scene.tsx); a body can never walk or be knocked out of a room's
+  rect (it used to drop onto the world's rim); boxed in by steep slopes on every side, you scramble out after 0.8 s.
 - 秘境 (owner: real 3D, very detailed, distinctive; Atlas credits are plentiful): places made by World Labs Atlas as 3D
   Gaussian splats and walked like rooms. Pipeline `tools/atlas/scene.py`, run by `.github/workflows/worldlabs.yml`
   action `scene` (repo secret WORLDLABS_API_KEY, never printed): stage `t2i` (text to image with depth, 4 samples; look
