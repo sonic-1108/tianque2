@@ -3,7 +3,7 @@
 import { storyDone, sequelAt, tianmoBeaten } from '../game/endgame';
 import { TOWER, STELE, ABYSS, JIAO_POOL } from '../game/endLayout';
 import { GATES, lit } from '../game/gates';
-import { ICE_CAVE, SNOW_CAMP, SUMMIT } from '../game/snow';
+import { ICE_CAVE, SNOW_CAMP, SNOW_TRAIL, SUMMIT } from '../game/snow';
 import { ROOMS } from '../game/interiors';
 import { ARENA_AT, GLADES, firefliesOut } from '../game/jianghu';
 import { HOME } from '../game/village';
@@ -121,6 +121,24 @@ export function BigMap({ sim, onClose }: { sim: Sim; onClose: () => void }) {
       // after 伪帝: the trial tower and 巨灵碑 (天魔窟 once the sequel leads there)
       if (storyDone(sim.progress)) marks.push([TOWER.x, TOWER.z, '塔', '天阙试炼塔'], [STELE.x, STELE.z, '碑', '巨灵碑'], [JIAO_POOL[0], JIAO_POOL[1], '蛟', '覆舟河蛟']);
       if (sequelAt(sim.progress) >= 4 || tianmoBeaten(sim.progress)) marks.push([ABYSS.x, ABYSS.z, '魔', '天魔窟']);
+      // 雪岭山道: the way up on foot, dashed
+      // (a dark bed under red dashes, so it shows on the snow as well as the green)
+      g.save();
+      const trail = () => {
+        g.beginPath();
+        SNOW_TRAIL.forEach(([x, z], i) => (i ? g.lineTo(X(x), Z(z)) : g.moveTo(X(x), Z(z))));
+        g.stroke();
+      };
+      g.lineJoin = g.lineCap = 'round';
+      g.strokeStyle = 'rgba(30, 16, 8, 0.75)';
+      g.lineWidth = 5.5 * u;
+      trail();
+      g.setLineDash([8 * u, 6 * u]);
+      g.strokeStyle = '#ff8a4c';
+      g.lineWidth = 3 * u;
+      trail();
+      g.restore();
+      label('雪岭山道', X(SNOW_TRAIL[4][0]) + 38 * u, Z(SNOW_TRAIL[4][1]), 12, '#ffb38a');
       // 雪岭: its camp, the summit, the ice cave
       marks.push([SNOW_CAMP.x, SNOW_CAMP.z + 14, '营', '雪岭营地'], [SUMMIT[0], SUMMIT[1], '顶', '雪岭之巅'], [ICE_CAVE.x, ICE_CAVE.z, '窟', '寒寺遗窟 · 苦寒']);
       // 传送阵: lit ones bright, the rest grey

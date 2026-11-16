@@ -49,6 +49,12 @@ export function pickGlowLotus(s: Sim) {
 }
 /** the old temple's ice cave (its place lives in layout.ts), and where its monk stands */
 export { ICE_CAVE };
+/** 雪岭山道: the way up on foot, found by walking the slopes (a body climbs at most MAX_SLOPE): north off the 天阙 road
+ * at r 800 up the valley to the camp, then north-west to the ice cave's mouth (drawn on the big map) */
+export const SNOW_TRAIL: [number, number][] = [
+  [-736, -313], [-754, -391], [-772, -430], [-766, -469], [-751, -508], [-751, -547], [-754, -586], [-748, -625], [-760, -664], [-727, -703], [-716, -722],
+  [-745, -735], [-772, -772], [-811, -823], [-826, -845],
+];
 /** the monk sits in the hall of 寒寺遗窟 before the frozen Buddha when the cave's inside exists (realms.ts), else by its mouth */
 const CAVE = realmById('icecave');
 export const MONK_AT: [number, number] = CAVE ? realmOpen(CAVE, 0, -24) : [-822, -843];
