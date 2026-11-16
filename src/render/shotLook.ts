@@ -126,12 +126,31 @@ export function shotMesh(look: ShotLook, color: string, radius: number): THREE.O
       break;
     }
     case 'crescent': {
-      // a flat arc of light lying across the flight, bowed forward
-      const arc = new THREE.Mesh(new THREE.TorusGeometry(0.75, 0.05, 6, 24, Math.PI).rotateX(Math.PI / 2).rotateY(Math.PI), add(color, 0.9));
-      arc.scale.set(1, 1, 0.55);
-      const inner = new THREE.Mesh(new THREE.TorusGeometry(0.68, 0.14, 6, 24, Math.PI).rotateX(Math.PI / 2).rotateY(Math.PI), add(color, 0.3));
-      inner.scale.set(1, 0.3, 0.55);
-      g.add(arc, inner, glow(color, 1.4, 0.5));
+      // 剑气: a crescent moon of sword light standing across the flight, so the one who throws it sees it face on (it
+      // used to lie flat and was seen edge on from behind), tilted like the cut that threw it; its body in the colour
+      // itself under the glow so it shows in sunlight, a white-hot edge along its outside
+      const R = Math.max(0.9, radius * 1.5), sh = new THREE.Shape();
+      const a0 = 0.12 * Math.PI, a1 = 0.88 * Math.PI, n = 20, ri = R * 0.8, dy = -R * 0.16;
+      for (let k = 0; k <= n; k++) {
+        const a = a0 + ((a1 - a0) * k) / n;
+        k ? sh.lineTo(Math.cos(a) * R, Math.sin(a) * R) : sh.moveTo(Math.cos(a) * R, Math.sin(a) * R);
+      }
+      for (let k = n; k >= 0; k--) {
+        const a = a0 + ((a1 - a0) * k) / n;
+        sh.lineTo(Math.cos(a) * ri, Math.sin(a) * ri + dy);
+      }
+      const geo = new THREE.ShapeGeometry(sh).translate(0, -R * 0.55, 0);
+      const tilt = new THREE.Group();
+      tilt.name = 'tilt';
+      tilt.rotation.z = (Math.random() < 0.5 ? -1 : 1) * (0.35 + Math.random() * 0.25);
+      const body = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: col.clone().multiplyScalar(0.9), transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+      const lit = new THREE.Mesh(geo, add(col.clone().multiplyScalar(1.6), 0.85));
+      const edge = new THREE.Mesh(new THREE.TorusGeometry(R * 0.99, 0.035, 5, 28, a1 - a0).rotateZ(a0).translate(0, -R * 0.55, 0), add('#ffffff', 0.95));
+      body.renderOrder = 7;
+      lit.renderOrder = 8;
+      edge.renderOrder = 9;
+      tilt.add(body, lit, edge);
+      g.add(tilt, glow(color, R * 1.6, 0.45));
       break;
     }
   }

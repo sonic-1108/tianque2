@@ -218,8 +218,9 @@ export class KitFX {
     const L = lookOf(house);
     switch (L.arc) {
       case 'thin': // 剑客 弓手 暗器: two hair-thin cuts, the second a beat late
-        this.fan(pos, yaw, r * 1.05, spread, color, life * 0.8, tilt, { sharp: 9, inner: 0.6, bright: 2.4 });
-        this.fan(pos, yaw, r * 0.85, spread * 0.9, '#ffffff', life * 0.7, tilt - 0.15, { sharp: 12, inner: 0.7, bright: 1.6, wait: 0.06 });
+        // (hair-thin read as nothing on a sunlit field: a little more body to the cut)
+        this.fan(pos, yaw, r * 1.05, spread, color, life * 0.85, tilt, { sharp: 5.5, inner: 0.5, bright: 2.8 });
+        this.fan(pos, yaw, r * 0.85, spread * 0.9, '#ffffff', life * 0.75, tilt - 0.15, { sharp: 8, inner: 0.6, bright: 1.9, wait: 0.06 });
         return;
       case 'twin': // 双刀客 影刃: two blades crossing in an X
         this.fan(pos, yaw, r, spread, color, life, 0.55, { sharp: 5, inner: 0.5, roll: 0.4 });
