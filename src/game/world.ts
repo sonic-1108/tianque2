@@ -293,7 +293,13 @@ export function snowLand(x: number, z: number, raw: number): { h: number; open: 
     h = raw + (g - raw) * w;
   }
   // the road, all the way down to where it leaves the 天阙 road
-  if (road.d < ROAD_EASE) h += (road.h - h) * (1 - smooth(ROAD_HALF, ROAD_EASE, road.d)) * wTq;
+  // (where it leaves the 天阙 road it rises out of that road's own climb: levelling the climb at the fork left a 2 m
+  // step in it, and easing off toward the land beside it dipped into the cut along the road)
+  if (road.d < ROAD_EASE) {
+    const climb = TQ_Y * (1 - smooth(TQ_TOP - 4, 210, Math.hypot(x - TQ_POS[0], z - TQ_POS[1])));
+    const target = climb + (road.h - climb) * smooth(2.5, 9, pathDist(x, z));
+    h += (target - h) * (1 - smooth(ROAD_HALF, ROAD_EASE, road.d)) * wTq;
+  }
   return { h, open, w };
 }
 /** how far from 雪岭山道 or the summit's path (far away: Infinity, cheaply) */
