@@ -13,10 +13,12 @@ import { GLOW_LOTUS, LOTUS, SNOW_FIRES, SUMMIT, glowLotusNow, onSnow } from '../
 import { SNOW_Y, groundHeight, onSnowPad, slopeAt, snowLand, snowTrailDist } from '../game/world';
 import {
   CAMP, CAMP_FENCE, CAMP_FIRE, CAVE, GATE, GATE_AT, GATE_HALF, LAKE, NICHE, PAVILION, RUIN_HALF, RUIN_Z, SNOW_BOX, SNOW_ROAD, STELE_AT, STUPAS, SUMMIT_PATH, SUMMIT_TOP, TENTS,
-  SNOW_PARTS, inFrame, padById, shelterRot, type Frame,
+  SNOW_PARTS, SUMMIT_H, inFrame, padById, shelterRot, type Frame,
 } from '../game/snowmap';
 import { Builder, Built } from './build';
 import { textTex } from './Gudao';
+import { ambience } from '../audio/audio';
+import { ROOMS } from '../game/interiors';
 import { withSnow } from './season';
 
 const hash = (a: number, b: number) => {
@@ -255,11 +257,11 @@ function buildAll() {
     rack.box('wood', 0, 1.85, 0, 2.8, 0.07, 0.07);
     for (let k = 0; k < 6; k++) rack.box(k % 2 ? 'hay' : 'fur', -1.0 + k * 0.4, 1.15, 0, k % 2 ? 0.14 : 0.36, k % 2 ? 0.6 : 0.8, k % 2 ? 0.14 : 0.04);
     {
-      const [x, z] = at(CAMP, -4.5, -8.5);
+      const [x, z] = at(CAMP, -1.5, -9.5);
       b.merge(rack, x, ch, z, CAMP.rot + 0.3);
     }
     {
-      const [x, z] = at(CAMP, 8.5, 3.5);
+      const [x, z] = at(CAMP, 10, 7.5);
       b.box('plank', x, ch, z, 0.8, 0.7, 0.8, 0.3);
       b.box('plank', x + 0.7, ch, z + 0.6, 0.7, 0.6, 0.7, -0.2);
       b.box('plank', x + 0.2, ch + 0.7, z + 0.2, 0.6, 0.5, 0.6, 0.6);
@@ -275,11 +277,11 @@ function buildAll() {
       }
       for (let k = 0; k < 6; k++) sled.box('plank', 0, 0.3, -0.9 + k * 0.34, 1.0, 0.05, 0.26);
       for (const s of [-1, 1]) for (const zz of [-0.7, 0.4]) sled.box('wood', s * 0.45, 0.06, zz, 0.06, 0.26, 0.06);
-      const [x, z] = at(CAMP, -9.5, -3.5);
-      b.merge(sled, x, ch + 0.02, z, CAMP.rot + 1.2);
+      const [x, z] = at(CAMP, -11.5, -0.5);
+      b.merge(sled, x, ch + 0.02, z, CAMP.rot + 1.4);
     }
     {
-      const [x, z] = at(CAMP, 4, -9.5);
+      const [x, z] = at(CAMP, 1.5, -12);
       for (let r = 0; r < 4; r++) for (let k = 0; k < 5 - r; k++) b.add('log', new THREE.CylinderGeometry(0.17, 0.17, 1.6, 7).rotateZ(Math.PI / 2), x - 0.68 + k * 0.36 + r * 0.18, ch + 0.17 + r * 0.3, z, CAMP.rot);
     }
     // the banner pole and the sign of the ginseng digger
@@ -346,7 +348,6 @@ function buildAll() {
       const a = -1.35 + (k / 12) * 2.7, r = 3.3 + (k % 3) * 0.25;
       c.add('rock', rockGeo(1.15 + (k % 3) * 0.35, k * 3.1, 1.15), Math.sin(a) * r, Math.cos(a) * r * 0.95 + 0.4, -0.7 - (k % 2) * 0.5);
     }
-    for (let k = 0; k < 8; k++) c.add('rock', rockGeo(2.2 + (k % 3) * 0.6, k * 5.7, 0.9), -5 + k * 1.45, 5.4 + (k % 2) * 0.9, -2.6 - (k % 3) * 0.8);
     c.box('dark', 0, -0.2, -0.95, 4.3, 4.1, 0.4);
     // frost on the ground before it
     c.add('white', new THREE.CircleGeometry(4.2, 18).rotateX(-Math.PI / 2), 0, 0.08, 2.2);
@@ -790,6 +791,7 @@ diffuseColor.rgb = c;`,
   const light = useRef<THREE.PointLight>(null);
   const built = useRef<THREE.Group>(null);
   const tick = useRef(0);
+  const windT = useRef(0);
   useFrame((state, dt) => {
     const t = state.clock.elapsedTime, p = sim.player.pos;
     const out = sim.indoor < 0;
@@ -797,6 +799,12 @@ diffuseColor.rgb = c;`,
     const near = out && p[0] > SNOW_BOX.x0 - 250 && p[0] < SNOW_BOX.x1 + 250 && p[2] > SNOW_BOX.z0 - 250 && p[2] < SNOW_BOX.z1 + 250;
     S.root.visible = near;
     if (built.current) built.current.visible = near;
+    // the wind: a blizzard's howl up on the snow (and in the ice cave), thin high wind round the summit, the woods elsewhere
+    if ((windT.current -= dt) <= 0) {
+      windT.current = 0.5;
+      const room = sim.indoor >= 0 ? ROOMS[sim.indoor] : null;
+      ambience(room ? (room.realm === 'icecave' ? 'glacier' : 'forest') : near && Math.hypot(p[0] - SUMMIT_TOP[0], p[2] - SUMMIT_TOP[1]) < 45 && p[1] > SUMMIT_H - 30 ? 'summit' : near && onSnow(p[1]) ? 'glacier' : 'forest');
+    }
     if (!near) return;
     // flicker
     S.flames.forEach((g, i) => {

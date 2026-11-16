@@ -4,7 +4,7 @@
 import { STELE, TOWER } from './endLayout';
 import { DENS, DEN_R } from './foes';
 import { ROADS, nearTq, TQ_POS, TQ_ROT, TQ_TOP, tqWorld, TQ_Y, VILLAGE_R, WORLD_R, TQ_ROAD, GD_ARCH_R, GD_PAV, GD_PAV_R, onGudao, roadFrame, roadPoint } from './layout';
-import { BASIN, PADS, PEAK_SLOPE, ROAD_EASE, ROAD_HALF, SNOW_BOX, SNOW_PARTS, SNOW_ROAD, SUMMIT_H, SUMMIT_PATH, SUMMIT_TOP, inSnowBox, nearOnLine } from './snowmap';
+import { BASIN, CAVE, PADS, PEAK_SLOPE, ROAD_EASE, ROAD_HALF, SNOW_BOX, SNOW_PARTS, SNOW_ROAD, SUMMIT_H, SUMMIT_PATH, SUMMIT_TOP, inSnowBox, nearOnLine, padById } from './snowmap';
 import { mapBig, mapRough, mapSnow, mapWater } from './mapsample';
 import { FISH_SPOT, IN_TOWN, PLACES, PLACE_PARTS, innHouses, nearPlace, placeAt } from './places';
 import { ROOM_Y, roomSolids } from './interiors';
@@ -204,6 +204,7 @@ function padHeight(cx: number, cz: number) {
 }
 
 // ---------------------------------------------------------------- 雪岭 (snowmap.ts)
+const CAVE_FLOOR = padById('cave').h;
 /** smooth minimum (rounded joins between the open pieces) */
 function smin(a: number, b: number, k: number) {
   const t = Math.max(0, Math.min(1, 0.5 + (0.5 * (b - a)) / k));
@@ -263,9 +264,26 @@ export function snowLand(x: number, z: number, raw: number): { h: number; open: 
       const dp = Math.hypot(x - p.x, z - p.z);
       if (dp < p.r + p.edge) g += (p.h - g) * (1 - smooth(p.r, p.r + p.edge, dp));
     }
+    // the ice cave's cliff: sheer right behind its mouth (its rock frame stands against the face)
+    {
+      const dx = x - CAVE.x, dz = z - CAVE.z, c = Math.cos(CAVE.rot), sn = Math.sin(CAVE.rot);
+      const lx = dx * c - dz * sn, lz = dx * sn + dz * c;
+      if (lz < 1 && Math.abs(lx) < 24) {
+        const back = Math.max(0, -lz - 3.2);
+        const face = CAVE_FLOOR + Math.min(28, back * 3.4) + Math.max(0, crags(x * 2, z * 2) - 0.4) * 10 * smooth(2, 10, back);
+        g = Math.max(g, CAVE_FLOOR + (face - CAVE_FLOOR) * (1 - smooth(9, 20, Math.abs(lx))));
+        // the mouth itself: a level alcove into the face, as wide as the opening (else the slope buried it)
+        const alc = (1 - smooth(3.2, 5.5, Math.abs(lx))) * (1 - smooth(2.8, 4.6, -lz));
+        if (alc > 0) g += (Math.min(g, CAVE_FLOOR) - g) * alc;
+      }
+    }
     // 雪岭之巅 stands out of the rim, steep all round; near it the crags keep below it
     if (ds < 80) {
-      const peak = SUMMIT_H + 0.6 - Math.max(0, ds - 6) * PEAK_SLOPE + noise(x * 0.09, z * 0.09) * 1.6 * smooth(6, 20, ds);
+      // not a cone: five ridges run down from the top with gullies between, and the rock is broken into knobs
+      const th = Math.atan2(z - SUMMIT_TOP[1], x - SUMMIT_TOP[0]);
+      const spur = 0.5 + 0.5 * Math.sin(th * 5 + noise(x * 0.02 + 3, z * 0.02) * 2.4);
+      const knobs = (crags(x * 1.7 + 40, z * 1.7) - 0.42) * 12 + noise(x * 0.09, z * 0.09) * 1.6;
+      const peak = SUMMIT_H + 0.6 - Math.max(0, ds - 6) * (PEAK_SLOPE + 0.25 - 0.45 * spur) + knobs * smooth(7, 26, ds) + spur * 5 * smooth(10, 40, ds);
       g = Math.max(g, peak);
       if (ds < 9) g += (SUMMIT_H - g) * (1 - smooth(5, 9, ds));
     }

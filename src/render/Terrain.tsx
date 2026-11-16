@@ -171,7 +171,7 @@ float rsmall = vn(face * 0.6);
 float rtiny = vn(face * 3.7);
 float strata = sin(vWP.y * 1.3 + rmid * 6.0 + face.x * 0.05) * 0.5 + 0.5;
 vec3 rock = mix(vec3(0.330, 0.320, 0.300), vec3(0.520, 0.500, 0.470), rmid);
-rock *= 0.78 + 0.22 * strata + 0.15 * (rsmall - 0.5) + 0.1 * (rtiny - 0.5) * fine;
+rock *= 0.82 + 0.18 * mix(0.5, strata, fine * (0.5 + 0.5 * rmid)) + 0.15 * (rsmall - 0.5) + 0.1 * (rtiny - 0.5) * fine;
 rock = mix(rock, vec3(0.40, 0.42, 0.28), smoothstep(0.62, 0.8, fbm(face * 0.3)) * 0.35 * (1.0 - smoothstep(0.5, 0.8, slope)));
 // snow, bluish where it faces away from the sun
 vec3 snow = mix(vec3(0.80, 0.85, 0.92), vec3(0.96, 0.97, 0.99), smoothstep(-0.2, 0.6, vWN.x * 0.6 + vWN.y * 0.4));
@@ -183,7 +183,18 @@ float bareN = smoothstep(0.62, 0.8, mid + (small - 0.5) * 0.3) * 0.5;
 col = mix(col, earth, bareN);
 float rockW = smoothstep(0.30, 0.55, slope + (mid - 0.5) * 0.25);
 col = mix(col, rock, rockW);
-float snowW = smoothstep(uSnow - 12.0, uSnow + 12.0, vWP.y + (mid - 0.5) * 30.0) * (1.0 - smoothstep(0.45, 0.75, slope));
+// up high: snow lies on the ledges and gentle slopes; the cliffs stay dark rock with snow caught in their gullies
+// (it used to cover anything gentler than 57 degrees, and 雪岭's peaks read as smooth white cones)
+float highW = smoothstep(uSnow - 12.0, uSnow + 12.0, vWP.y + (mid - 0.5) * 30.0);
+// no grass up there: grey scree where it's gentle, dark wet rock where it's steep
+vec3 scree = mix(rock, earth * 0.85, 0.3) * (0.85 + 0.3 * small);
+col = mix(col, scree, highW * (1.0 - rockW));
+col = mix(col, rock * 0.72, highW * rockW);
+float snowW = highW * (1.0 - smoothstep(0.24, 0.44, slope + (mid - 0.5) * 0.16 + (rsmall - 0.5) * 0.1));
+float gully = smoothstep(0.52, 0.7, fbm(face * vec2(0.07, 0.55)));
+snowW = max(snowW, highW * gully * 0.9 * (1.0 - smoothstep(0.46, 0.75, slope)));
+// a glint here and there in the snow up close
+snow += vec3(0.25) * step(0.992, h21(floor(vWP.xz * 11.0))) * fine * smoothstep(0.3, 0.7, vWN.y);
 col = mix(col, snow, snowW);
 // paths and grounds from the masks: worn earth with a lighter middle, grass creeping in at the edges
 float road = vColor.r * smoothstep(0.15, 0.55, vColor.r + (small - 0.5) * 0.5);
@@ -221,6 +232,8 @@ function Ground({ sim }: { sim: Sim }) {
       for (let j = 0; j < NCH; j++) {
         const cx = ORIGIN + (i + 0.5) * CH, cz = ORIGIN + (j + 0.5) * CH;
         const lod = lodFor(Math.hypot(cx - sim.player.pos[0], cz - sim.player.pos[2]));
+        // (a headless look at one spot draws only the ground round it)
+        if ((globalThis as any).__T2_LITE && Math.hypot(cx - sim.player.pos[0], cz - sim.player.pos[2]) > (globalThis as any).__T2_LITE) continue;
         const mesh = new THREE.Mesh(buildChunk(i, j, LODS[lod]), mat);
         mesh.receiveShadow = true;
         mesh.castShadow = lod <= 1;
@@ -659,9 +672,9 @@ export function Landscape({ sim }: { sim: Sim }) {
       <SkyDome />
       <Ground sim={sim} />
       <Water />
-      <Trees />
+      {!(globalThis as any).__T2_NOTREES && <Trees />}
       <Rocks />
-      <Grass sim={sim} />
+      {!(globalThis as any).__T2_LITE && <Grass sim={sim} />}
     </>
   );
 }

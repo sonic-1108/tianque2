@@ -67,7 +67,7 @@ export const PADS: Pad[] = [
   { id: 'camp', x: SNOW_CAMP.x, z: SNOW_CAMP.z, r: 15, edge: 9, h: 118 },
   { id: 'gate', x: SNOW_ROAD[GATE_AT][0], z: SNOW_ROAD[GATE_AT][1], r: 8, edge: 6, h: SNOW_ROAD[GATE_AT][2] },
   { id: 'lake', x: -748, z: -818, r: 15, edge: 5, h: 121.2 },
-  { id: 'cave', x: ICE_CAVE.x + CAVE_FWD[0] * 8, z: ICE_CAVE.z + CAVE_FWD[1] * 8, r: 8.5, edge: 6, h: 130 },
+  { id: 'cave', x: ICE_CAVE.x + CAVE_FWD[0] * 10, z: ICE_CAVE.z + CAVE_FWD[1] * 10, r: 9, edge: 6, h: 130 },
   { id: 'shelterE', x: -650, z: -800, r: 6, edge: 5, h: 125.5 },
   { id: 'shelterW', x: -812, z: -770, r: 6, edge: 5, h: 124 },
   { id: 'pavilion', x: -683, z: -404, r: 7, edge: 5, h: 61 },
@@ -166,7 +166,7 @@ export const CAMP_FIRE: [number, number] = inFrame(CAMP, 6.5, 2);
 /** the 传送阵 by the camp's way in, and where its two folk keep (the ginseng digger by the fire, the warden by the banner) */
 export const CAMP_GATE: [number, number] = inFrame(CAMP, -6.8, 7.2);
 export const CAMP_DIGGER: [number, number] = inFrame(CAMP, 7.6, 4.2);
-export const CAMP_WARDEN: [number, number] = inFrame(CAMP, -1.2, -8.6);
+export const CAMP_WARDEN: [number, number] = inFrame(CAMP, 1.5, -7);
 /** the stockade of stakes round the camp's back, as runs between local points */
 export const CAMP_FENCE: [number, number, number, number][] = (() => {
   const out: [number, number, number, number][] = [];
