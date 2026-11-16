@@ -96,6 +96,16 @@ export class Builder {
     }
     under.computeVertexNormals();
     this.add('wood', under, x, y, z);
+    // a square roof meets in a point: a finial (a gourd on a little drum), not a ridge whose two end ornaments stood up
+    // like a U
+    if (Math.abs(w - d) < 0.6) {
+      const k = Math.min(1, Math.max(0.45, short / 5));
+      this.add('ridge', new THREE.CylinderGeometry(0.32 * k, 0.42 * k, 0.4 * k, 10), x, y + h * 0.96 + 0.2 * k, z);
+      this.add('gold', new THREE.SphereGeometry(0.3 * k, 10, 8), x, y + h * 0.96 + 0.62 * k, z);
+      this.add('gold', new THREE.SphereGeometry(0.2 * k, 10, 8), x, y + h * 0.96 + 1.02 * k, z);
+      this.add('gold', new THREE.ConeGeometry(0.07 * k, 0.45 * k, 8), x, y + h * 0.96 + 1.38 * k, z);
+      return;
+    }
     // the ridge and its two end ornaments
     // (along the longer side; the end ornaments curl up at its two ends)
     const along = Math.max(1, Math.abs(w - d) * 0.6), endAt = Math.max(0.5, Math.abs(w - d) * 0.3);

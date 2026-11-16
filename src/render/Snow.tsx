@@ -642,11 +642,11 @@ crack = max(crack, smoothstep(0.95, 1.0, abs(sin(atan(vLk.y, vLk.x) * 7.0 + r * 
 float streak = smoothstep(0.55, 0.85, ln(vec2(vLk.x * 0.18 + vLk.y * 0.05, vLk.y * 0.9)));
 vec3 c = mix(vec3(0.42, 0.58, 0.68), vec3(0.62, 0.76, 0.84), ln(vLk * 0.15));
 c = mix(c, vec3(0.86, 0.92, 0.96), crack * 0.7);
-c = mix(c, vec3(0.92, 0.94, 0.97), streak * 0.65 + smoothstep(${(LAKE.r - 3).toFixed(1)}, ${(LAKE.r + 0.8).toFixed(1)}, r));
+c = mix(c, vec3(0.92, 0.94, 0.97), clamp(streak * 0.65 + smoothstep(${(LAKE.r - 3.5).toFixed(1)}, ${(LAKE.r - 0.5).toFixed(1)}, r + (ln(vLk * 0.4) - 0.5) * 2.0), 0.0, 1.0));
 diffuseColor.rgb = c;`,
           );
       };
-      const disc = new THREE.Mesh(new THREE.CircleGeometry(LAKE.r + 1.2, 48), lakeMat);
+      const disc = new THREE.Mesh(new THREE.CircleGeometry(LAKE.r - 0.4, 64), lakeMat);
       disc.rotation.x = -Math.PI / 2;
       disc.position.set(LAKE.x, LAKE.h + 0.035, LAKE.z);
       disc.receiveShadow = true;

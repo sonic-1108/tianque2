@@ -1602,7 +1602,8 @@ export class Sim {
       if (folk?.walk && f.home) this.stroll(f, f.home, folk.walk, dt);
       return;
     }
-    const home = f.home!;
+    // (a body called up from a bench with no ground of its own keeps where it stands: this used to throw and stop the game)
+    const home = (f.home ??= [f.pos[0], f.pos[2]]);
     const fromHome = Math.hypot(f.pos[0] - home[0], f.pos[2] - home[1]);
     const d = this.dist(f, p);
     const pFromHome = Math.hypot(p.pos[0] - home[0], p.pos[2] - home[1]);
