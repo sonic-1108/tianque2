@@ -9,6 +9,16 @@ export const SEASON_U = {
   uSnowCover: { value: 0 },
   uWet: { value: 0 },
 };
+/** what the rivers (render/Water.tsx) and the riverbed (Terrain.tsx) need of the sky, filled by Climate each frame */
+export const WATER_U = {
+  uTime: { value: 0 },
+  uSunDir: { value: new THREE.Vector3(0.3, 0.8, 0.2) },
+  uHorizon: { value: new THREE.Color('#b9c8d2') },
+  uZenith: { value: new THREE.Color('#6d93b8') },
+  uNight: { value: 0 },
+  uRain: { value: 0 },
+  uDay: { value: 1 },
+};
 
 // above the snowline (雪岭) the snow lies on everything all year: the cover there comes from the height
 const SNOW_GLSL = `

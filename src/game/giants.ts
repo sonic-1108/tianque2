@@ -66,7 +66,9 @@ export interface GiantDef {
   bodyH: number;
   hpMul: number; // life against an ordinary boss's
   color: string; // its marks and its rage
-  look: 'blood' | 'beast' | 'bronze' | 'gold';
+  /** blood / bronze / gold: a body on two legs (Rig); beast: a Tripo animal (GiantBeasts); serpent: the river dragon
+   * that swims (GiantSerpent) */
+  look: 'blood' | 'beast' | 'bronze' | 'gold' | 'serpent';
   ground: number; // the radius of its ground
   /** its blows scaled (the first giant is a lesson) */
   soft?: number;
@@ -263,13 +265,13 @@ export const GIANTS: Record<string, GiantDef> = {
   jiao: {
     key: 'jiao',
     name: '覆舟河蛟',
-    model: 'giant-jiao.glb', // the owner's Tripo flood dragon: it stands on its hind legs and fights with its claws
-    scale: 4.6,
-    bodyR: 3.4,
-    bodyH: 8.2,
+    model: 'giant-jiao.glb', // the owner's Tripo river dragon (four clawed legs, a finned tail), swimming (render/GiantSerpent)
+    scale: 1,
+    bodyR: 4,
+    bodyH: 5.5,
     hpMul: 1, // its life is set when it is made (endgame.ts)
     color: '#38bdf8',
-    look: 'blood',
+    look: 'serpent',
     ground: 30,
     intro: '水面忽然鼓起一个大包，一条披着青鳞的河蛟从浪里抬起头来，水从它的角上往下淌。脚下是齐腰的水，你走得慢，它游得快：看清水面上的圈，别被漩涡卷进去。',
     phaseLines: ['（河水倒灌，浪头比人还高）', '（它把整条河都搅了起来）'],
@@ -280,7 +282,7 @@ export const GIANTS: Record<string, GiantDef> = {
       { name: '援手 · 孙二娘', model: 'ally-militia.glb' },
     ],
     moves: [
-      { id: 'jbite', name: '覆舟一咬', shape: 'cone', at: 'self', r: 10, r2: 0.7, wind: 0.95, dmg: 0.26, knock: 9, phase: 1, weight: 3, anim: 'attack_2', fx: 'sweep' },
+      { id: 'jbite', name: '覆舟一咬', shape: 'cone', at: 'self', r: 7, r2: 0.7, wind: 0.95, dmg: 0.26, knock: 9, phase: 1, weight: 3, anim: 'attack_2', fx: 'sweep' },
       { id: 'jtail', name: '甩尾掀浪', shape: 'circle', at: 'self', r: 10, wind: 1.3, dmg: 0.24, knock: 14, phase: 1, weight: 3, anim: 'attack_3', fx: 'water' },
       { id: 'spout', name: '水龙吐息', shape: 'line', at: 'self', r: 24, r2: 2, wind: 1.5, dmg: 0.3, knock: 10, open: 2.6, phase: 1, weight: 2, anim: 'skill_spell', fx: 'water' },
       { id: 'whirl', name: '漩涡', shape: 'ring', at: 'self', r: 15, r2: 4, wind: 1.6, dmg: 0.22, knock: 12, pull: 3.2, phase: 1, weight: 2, anim: 'skill_slash', fx: 'roar' },
@@ -414,7 +416,7 @@ export function giantThink(s: Sim, f: Fighter, dt: number) {
   a.wish = [0, 0];
   if (f.hp <= 0) return;
   // the ground answers every stride: a thud, a shake, dust from under the foot
-  if (def.look !== 'beast' && def.scale > 1.5) {
+  if (def.look !== 'beast' && def.look !== 'serpent' && def.scale > 1.5) {
     const lp = (st as any).lp as number[] | undefined;
     if (lp) (st as any).walked = ((st as any).walked ?? 0) + Math.hypot(f.pos[0] - lp[0], f.pos[2] - lp[2]);
     (st as any).lp = [f.pos[0], f.pos[2]];

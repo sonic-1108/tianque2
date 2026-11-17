@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import type { Sim } from '../game/sim';
 import { sunAngles, weatherMix } from '../game/clock';
-import { SEASON_U, seasonWeights } from './season';
+import { SEASON_U, WATER_U, seasonWeights } from './season';
 import { GRASS, SKY } from './Terrain';
 import { TQ_DARK } from './characterShading';
 
@@ -157,6 +157,13 @@ export function Climate({ sim }: { sim: Sim }) {
     mm.opacity = nightK * (1 - overcast * 0.9);
     sky.moon.scale.setScalar(c.festival?.name === '中秋' ? 380 : 250);
     sky.moon.position.set(p[0] - Math.cos(bearing) * 2600, 1500, p[2] - Math.sin(bearing) * 2600);
+    // what the rivers reflect: the sun (or the moon), the haze on the horizon, the sky overhead, the rain on them
+    WATER_U.uSunDir.value.copy(nightK > 0.5 ? new THREE.Vector3(-Math.cos(bearing), 0.75, -Math.sin(bearing)).normalize() : dir);
+    if (fog) WATER_U.uHorizon.value.copy(fog.color);
+    WATER_U.uZenith.value.set('#5d8cbf').lerp(tmp2.set('#8a7aa0'), low * (1 - nightK) * 0.5).lerp(tmp2.set('#0a1424'), nightK).lerp(tmp2.set('#8e979f'), overcast * 0.7 * (1 - nightK));
+    WATER_U.uNight.value = nightK;
+    WATER_U.uDay.value = (1 - nightK) * (1 - overcast * 0.6);
+    WATER_U.uRain.value = indoor ? 0 : Math.min(1, rain + storm);
     // the surfaces: season, snow lying, wet
     seasonWeights(c.season, c.seasonT, SEASON_U.uSeason.value);
     SEASON_U.uSnowCover.value = indoor ? 0 : w.snow;

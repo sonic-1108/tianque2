@@ -9,6 +9,7 @@ import { ROOMS, ROOM_Y, roomRealm } from '../game/interiors';
 import { realmFloor, realmGap } from '../game/realms';
 import { giantOf } from '../game/giants';
 import { GiantBeasts } from './GiantBeasts';
+import { GiantSerpent } from './GiantSerpent';
 import { readInput, takeMouse, took, heldKey } from '../input';
 import { World } from './World';
 import { Rig } from './Rig';
@@ -253,10 +254,11 @@ export function Scene({ sim, version }: { sim: Sim; version: number }) {
     <>
       <Loop sim={sim} />
       <World sim={sim} />
-      {sim.fighters.filter((f) => giantOf(f)?.look !== 'beast').map((f) => (
+      {sim.fighters.filter((f) => giantOf(f)?.look !== 'beast' && giantOf(f)?.look !== 'serpent').map((f) => (
         <Rig key={`${f.id}:${f.model}`} sim={sim} id={f.id} />
       ))}
       <GiantBeasts sim={sim} />
+      <GiantSerpent sim={sim} />
       <HouseFx sim={sim} />
       <Juice sim={sim} />
       <Post sim={sim} />

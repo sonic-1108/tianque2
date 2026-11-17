@@ -195,6 +195,15 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   shapes (FORM_OF is ready, the glyphs in the atlas already follow it) are not built as 3D models yet.
   Test: scratch forge/t/forgetest.mts (drops, gating, every element vs dummies) and atlasgame.cjs (built game).
 
+- 河 (owner: the river had no texture, no character): `render/Water.tsx` bakes a water map (depth, distance to the bank,
+  flow along the channel) and draws ripples running with the current, foam on the banks, the sky's reflection, sun
+  glints, spring petals and autumn leaves carried down, ice in deep winter; `RiverLife`: reeds, lotus in still water,
+  river lanterns at night (all on festivals), dawn mist, a carp leaping. The riverbed (Terrain ground shader): sand ribs,
+  stones, weed, caustics. Shared uniforms `WATER_U` (season.ts), set by Climate.
+- 覆舟河蛟 swims (owner: it must not stand): giants.ts look `serpent`, `render/GiantSerpent.tsx` gives the Tripo dragon a
+  made spine (10 bones) and four leg bones, poses per move on the sim's clock; the fighter stands for its neck (`ZC`) so
+  blows reach the head. Scratch viewer zz-serpent.html (?poses=swim,jbite:0.6,whirl:1.5&views=side,persp).
+
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported
   from 天阙 1: same timings, reach, damage, statuses; its `vfx.*` calls become `s.vfx(name, ...args)` commands in
