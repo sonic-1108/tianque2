@@ -4,7 +4,9 @@
 // player; Juice calls weaponMotes for the particles and takes the trail's colour from forgedColor.
 import * as THREE from 'three';
 import type { Sim } from '../game/sim';
-import { wielded } from '../game/forge';
+import { houseOf, wielded } from '../game/forge';
+import { fwArt, holdsLine } from '../game/mats';
+import { propFrom } from './weapons';
 import { EL, type El } from '../game/mats';
 import type { VFXSystem } from './vfx/VFXSystem';
 
@@ -35,10 +37,54 @@ export const forgedColor = (sim: Sim) => {
   return w ? EL[w.el].color : null;
 };
 
+/** the forged weapon's own Tripo model (mats.ts FW_ART) goes into the hands that hold that kind of weapon, in place of
+ * what the body carried; the trail's sockets move to the model's length. Put back when it's laid down */
+function swapModel(sim: Sim, held: THREE.Object3D[], base: THREE.Object3D | null, tip: THREE.Object3D | null) {
+  const w = wielded(sim.progress);
+  const art = w ? fwArt(w.el, w.n) : undefined;
+  const want = w && art && holdsLine(houseOf(sim.progress), w.el) ? `${w.el}:${w.n}` : '';
+  for (const h of held) {
+    const hand = h.userData.hand;
+    if (hand !== 'right' && hand !== 'left') continue;
+    if ((h.userData.fwKey ?? '') === want) continue;
+    h.userData.fwKey = want;
+    const old = h.getObjectByName('fw-model');
+    if (old) h.remove(old);
+    for (const c of h.children) {
+      if (c.name === 'fw-halo' || c === base || c === tip) continue;
+      if (c.userData.fwShown === undefined) c.userData.fwShown = c.visible;
+      c.visible = want ? false : c.userData.fwShown;
+    }
+    if (want && art) {
+      const r = propFrom(art, (inner) =>
+        inner.traverse((o: any) => {
+          if (o.isMesh) {
+            o.userData.fwArt = true;
+            o.userData.weapon = true;
+          }
+        }),
+      );
+      r.group.name = 'fw-model';
+      h.add(r.group);
+    }
+    if (hand === 'right' && base && tip) {
+      if (base.userData.y0 === undefined) {
+        base.userData.y0 = base.position.y;
+        tip.userData.y0 = tip.position.y;
+      }
+      base.position.y = want && art ? art.len * 0.15 : base.userData.y0;
+      tip.position.y = want && art ? art.len * (1 - art.grip) * 0.95 : tip.userData.y0;
+    }
+  }
+}
+/** a Tripo model's glow: its own colours lit from within (the bright inlays shine), not tinted */
+const ART_GLOW = [0.05, 0.09, 0.16, 0.28, 0.42];
+
 /** each frame: the held weapons' meshes take the element's light (their own materials kept to put back) and the halo
  * breathes. `held` are the weapon roots in the hands (Rig's userData.held), `blade` the trail's base and tip */
 export function dressWeapon(sim: Sim, held: THREE.Object3D[] | undefined, base: THREE.Object3D | null, tip: THREE.Object3D | null, t: number) {
   if (!held?.length) return;
+  swapModel(sim, held, base, tip);
   const w = wielded(sim.progress);
   const col = w ? new THREE.Color(EL[w.el].color) : null;
   const pulse = w && w.n >= 4 ? 0.75 + 0.25 * Math.sin(t * (w.n >= 5 ? 5 : 3)) : 1;
@@ -59,8 +105,19 @@ export function dressWeapon(sim: Sim, held: THREE.Object3D[] | undefined, base: 
         if (!m) return;
         o.material = m;
         ud.base = m.color ? m.color.clone() : null;
+        if (ud.fwArt && m.map) {
+          m.emissiveMap = m.map;
+          m.needsUpdate = true;
+        }
       }
       const m = o.material as THREE.MeshStandardMaterial;
+      if (ud.fwArt) {
+        if (m.emissive) {
+          m.emissive.copy(col!);
+          m.emissiveIntensity = ART_GLOW[w.n - 1] * pulse;
+        }
+        return;
+      }
       if (m.emissive) {
         m.emissive.copy(col!);
         m.emissiveIntensity = GLOW[w.n - 1] * pulse;

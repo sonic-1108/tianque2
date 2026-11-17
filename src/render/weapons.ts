@@ -321,7 +321,7 @@ export function weaponsFor(model: string, glow: THREE.Color): { right: THREE.Obj
 // Each prop lies at a slant in its own file: `dir` is its long axis (found offline, principal axis of the points),
 // `c` its middle, `lo` / `hi` its ends along dir, `blade` which way the business end points (+1 toward hi), `grip`
 // where the hand goes (0 = the lo end, 1 = the hi end), `len` how long it is in the hand (metres).
-interface PropWeapon {
+export interface PropWeapon {
   file: string;
   dir: [number, number, number];
   c: [number, number, number];
@@ -345,7 +345,11 @@ const PW: Record<string, PropWeapon> = {
 const pwCache = new Map<string, Promise<THREE.Object3D>>();
 /** a prop weapon laid along +Y with the grip at the origin (filled in when its file has loaded) */
 function propWeapon(key: string) {
-  const w = PW[key];
+  return propFrom(PW[key]);
+}
+/** the same for any prop described the same way (the forged weapons' Tripo models, mats.ts FW_ART); `onLoad` gets the
+ * laid out model when it arrives */
+export function propFrom(w: PropWeapon, onLoad?: (obj: THREE.Object3D) => void) {
   const holder = new THREE.Group();
   let p = pwCache.get(w.file);
   if (!p) {
@@ -370,6 +374,7 @@ function propWeapon(key: string) {
       }
     });
     holder.add(inner);
+    onLoad?.(inner);
   }).catch((e) => console.warn('[tq2] weapon', w.file, e));
   // the trail runs from near the grip to the tip
   const base = new THREE.Object3D();

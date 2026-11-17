@@ -342,6 +342,9 @@ button:not(:disabled):hover { border-color: var(--gold); }
 .ag-name { font-size: 11px; letter-spacing: 1px; white-space: nowrap; line-height: 1.2; }
 .ag-lock { position: absolute; top: 3px; right: 3px; font-size: 9px; color: #ffcf7a; background: rgba(0,0,0,0.55); border-radius: 3px; padding: 0 3px; }
 .wglyph { display: block; overflow: visible; }
+.wpic { display: block; object-fit: contain; }
+.wpic.pulse { animation: wgPulse 2.2s ease-in-out infinite; }
+.ad-note { display: block; font-size: 11px; color: #8a7050; margin-top: 3px; }
 .wglyph.pulse { animation: wgPulse 2.2s ease-in-out infinite; }
 @keyframes wgPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 .atlas-detail { flex: 0 0 300px; background: #fff8e6; border: 2px solid; border-radius: 8px; padding: 10px 12px; }

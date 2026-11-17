@@ -3,7 +3,7 @@
 // prizes. Forging and reforging only at the smithy (`make`); wearing anywhere. Logic in game/forge.ts, data in mats.ts.
 import { useState } from 'react';
 import type { Sim } from '../game/sim';
-import { AFFINITY, EL, ELS, FORM_NAME, GRADE_NAME, MATS, PAIRED, RESONANCE, STAGES, formOf, fwId, fwName, matId, matName, recipe, BASE_MATS, type El, type Form } from '../game/mats';
+import { AFFINITY, EL, ELS, FORM_NAME, FORM_OF, GRADE_NAME, LINE_FORM, MATS, PAIRED, RESONANCE, STAGES, fwArt, fwId, fwName, holdsLine, matId, matName, recipe, BASE_MATS, type El, type Form } from '../game/mats';
 import { fwBlock, fwForge, houseOf, ownedStage, wielded } from '../game/forge';
 import { GEAR, SLOT_NAME, equipped, forge, forgeBlock, gearName, owned, wear, type Slot } from '../game/jianghu';
 import { bag, purse } from '../game/play';
@@ -129,6 +129,13 @@ export function WeaponGlyph({ form, el, n, size = 56 }: { form: Form; el: El; n:
   );
 }
 
+/** a forged weapon's picture: rendered from its Tripo model when there is one, else drawn */
+export function WeaponPic({ el, n, size = 56 }: { el: El; n: number; size?: number }) {
+  if (fwArt(el, n))
+    return <img className={'wpic' + (n >= 4 ? ' pulse' : '')} src={`${import.meta.env.BASE_URL}portraits/fw-${el}-${n}.png`} width={size} height={size} alt="" style={{ filter: `drop-shadow(0 0 ${[2, 3, 5, 8, 12][n - 1]}px ${EL[el].color})` }} />;
+  return <WeaponGlyph form={LINE_FORM[el]} el={el} n={n} size={size} />;
+}
+
 /** a material's seal: its element's character, its grade in the border */
 export function Seal({ id, size = 30 }: { id: string; size?: number }) {
   const M = MATS[id];
@@ -145,7 +152,7 @@ export function Atlas({ sim, make, onClose }: { sim: Sim; make: boolean; onClose
   const [, setN] = useState(0);
   const bump = () => setN((k) => k + 1);
   const P = sim.progress, B = bag(P);
-  const house = houseOf(P), form = formOf(house), aff = AFFINITY[house ?? ''];
+  const house = houseOf(P), aff = AFFINITY[house ?? ''];
   const w = wielded(P);
   const [tab, setTab] = useState<Tab>('atlas');
   const [sel, setSel] = useState<{ el: El; n: number }>(() => (w ? { el: w.el, n: Math.min(5, w.n + 1) } : { el: aff ?? 'fire', n: 1 }));
@@ -207,7 +214,7 @@ export function Atlas({ sim, make, onClose }: { sim: Sim; make: boolean; onClose
                         onClick={() => setSel({ el, n })}
                         title={fwName(el, n, house)}
                       >
-                        <WeaponGlyph form={form} el={el} n={n} size={36} />
+                        <WeaponPic el={el} n={n} size={40} />
                         <span className="ag-name">{E.names[n - 1]}</span>
                         {locked && <span className="ag-lock">转职</span>}
                       </button>
@@ -271,7 +278,7 @@ export function Atlas({ sim, make, onClose }: { sim: Sim; make: boolean; onClose
 
 function Detail({ sim, make, el, n, flash, onForge, onWear }: { sim: Sim; make: boolean; el: El; n: number; flash: string; onForge: (msg: string) => void; onWear: () => void }) {
   const P = sim.progress, B = bag(P), E = EL[el], st = STAGES[n - 1];
-  const house = houseOf(P), form = formOf(house), res = AFFINITY[house ?? ''] === el;
+  const house = houseOf(P), form = LINE_FORM[el], res = AFFINITY[house ?? ''] === el;
   const have = ownedStage(P, el), mine = have >= n, id = fwId(el, n);
   const why = mine ? null : fwBlock(sim, el, n, make);
   const R = recipe(el, n);
@@ -280,7 +287,7 @@ function Detail({ sim, make, el, n, flash, onForge, onWear }: { sim: Sim; make: 
   return (
     <div className={'atlas-detail' + (flash ? ' forged' : '')} style={{ borderColor: E.color }}>
       <div className="ad-pic" style={{ background: `radial-gradient(circle at 50% 45%, ${E.deep} 0%, #120d09 72%)` }}>
-        <WeaponGlyph form={form} el={el} n={n} size={112} />
+        <WeaponPic el={el} n={n} size={128} />
         {flash && <div className="ad-flash" style={{ color: E.color }}>{flash}</div>}
       </div>
       <div className="ad-name" style={{ color: E.color }}>
@@ -288,7 +295,8 @@ function Detail({ sim, make, el, n, flash, onForge, onWear }: { sim: Sim; make: 
       </div>
       <div className="ad-sub">
         {E.name}系 · {st.name} · {FORM_NAME[form]}
-        {house && PAIRED.has(house) ? '（一对）' : ''}
+        {house && PAIRED.has(house) && FORM_OF[house] === form ? '（一对）' : ''}
+        {!holdsLine(house, el) && <span className="ad-note">（你的职业不拿{FORM_NAME[form]}：手里还是原来的兵器，带上{E.name}系的光和特效）</span>}
         {res && <b className="ag-aff">本命共鸣：特效强 {Math.round((RESONANCE - 1) * 100)}%</b>}
       </div>
       <div className="ad-stats">
@@ -324,7 +332,7 @@ function Detail({ sim, make, el, n, flash, onForge, onWear }: { sim: Sim; make: 
           <div className="ad-recipe">
             {n > 1 && (
               <div className={'ar-line' + (have >= n - 1 ? '' : ' short')}>
-                <WeaponGlyph form={form} el={el} n={n - 1} size={26} />
+                <WeaponPic el={el} n={n - 1} size={26} />
                 <span>{fwName(el, n - 1, house)}（回炉重铸）</span>
                 <span className="ar-n">{have >= n - 1 ? '有' : '没有'}</span>
               </div>

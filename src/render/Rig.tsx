@@ -291,12 +291,14 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
           w.right.rotation.set(0, 0, w.reverse ? -Math.PI / 2 : Math.PI / 2);
           w.right.position.set(0, 0.075, 0.025);
           bones.righthand.add(w.right);
+          w.right.userData.hand = 'right'; // forgedLook.ts swaps a forged weapon's model in here
           held.push(w.right);
         }
         if (w.left && bones.lefthand) {
           w.left.rotation.set(Math.PI, 0, w.reverse ? Math.PI / 2 : -Math.PI / 2);
           w.left.position.set(0, 0.075, 0.025);
           bones.lefthand.add(w.left);
+          w.left.userData.hand = 'left';
           held.push(w.left);
         }
         if (w.staff && bones.righthand) {

@@ -33,7 +33,7 @@ export const EL: Record<El, ElDef> = {
     desc: '出手破开霸体；一成上下的机会暴击，伤害翻倍',
     sub: ['剑气', '暴击时斩出一道金色剑气，穿过一排人'],
     ult: ['万剑', '暴击时三柄金剑从天而降，扎向身边的敌人；身后常浮三柄金剑'],
-    partner: 'earth', names: ['流金', '断金', '龙吟', '太白', '万剑'],
+    partner: 'earth', names: ['流金', '断金', '龙吟', '太白', '万刃'],
   },
   wood: {
     id: 'wood', name: '木', color: '#5fd16b', deep: '#24502a', foe: '妖道', effect: '回春',
@@ -200,20 +200,24 @@ export function parseFw(id: string | undefined | null): { el: El; n: number } | 
 }
 
 // ---------------------------------------------------------------- the houses: their element, their weapon's shape
-/** each house's own element (本命): its weapons of that element strike harder (共鸣) */
+/** each house's own element (本命): its weapons of that element strike harder (共鸣). Each line is one kind of weapon
+ * (LINE_FORM), and a house's own line is the kind it holds, so after 转职 its 本命 line climbs in its own hands */
 export const AFFINITY: Record<string, El> = {
-  kuangren: 'fire', qiangwang: 'fire',
-  anqi: 'wind', gongshou: 'wind',
-  fanyin: 'earth', quanshi: 'earth',
-  yingren: 'venom', duzong: 'venom',
-  tianzi: 'thunder', fushi: 'thunder',
-  jiaoyi: 'metal', shuangdao: 'metal', jiguan: 'metal',
+  kuangren: 'metal', shuangdao: 'metal', jiaoyi: 'metal',
   dixian: 'wood', yushou: 'wood',
-  qinshi: 'water', qizong: 'water',
+  qinshi: 'water',
+  qiangwang: 'fire',
+  fanyin: 'earth', quanshi: 'earth', qizong: 'earth',
+  tianzi: 'thunder', fushi: 'thunder', jiguan: 'thunder',
+  gongshou: 'wind',
   jianke: 'ice',
+  yingren: 'venom', duzong: 'venom', anqi: 'venom',
 };
 export const RESONANCE = 1.25;
 export type Form = 'jian' | 'dao' | 'bi' | 'qiang' | 'zhang' | 'gong' | 'nu' | 'qin' | 'wan' | 'xia';
+/** what each element's line is: 金 a saber, 木 a staff, 水 a guqin, 火 a spear, 土 gauntlets, 雷 and 冰 swords, 风 a bow,
+ * 毒 daggers (the owner's Tripo models, FW_ART, follow this) */
+export const LINE_FORM: Record<El, Form> = { metal: 'dao', wood: 'zhang', water: 'qin', fire: 'qiang', earth: 'wan', thunder: 'jian', wind: 'gong', ice: 'jian', venom: 'bi' };
 /** what a house's forged weapon is (the 散人, no house, carries a 剑) */
 export const FORM_OF: Record<string, Form> = {
   kuangren: 'dao', anqi: 'bi', fanyin: 'wan', yingren: 'bi', tianzi: 'jian', jiaoyi: 'xia', dixian: 'zhang',
@@ -224,8 +228,20 @@ export const FORM_NAME: Record<Form, string> = { jian: '剑', dao: '刀', bi: '�
 /** houses that hold one in each hand */
 export const PAIRED = new Set(['kuangren', 'shuangdao', 'anqi', 'yingren', 'duzong']);
 export const formOf = (house: string | null | undefined): Form => (house ? FORM_OF[house] ?? 'jian' : 'jian');
-/** a forged weapon's name for whoever holds it: 焚天剑, 焚天双刀, 焚天枪 */
-export function fwName(el: El, n: number, house: string | null | undefined) {
-  const f = formOf(house);
-  return EL[el].names[n - 1] + (house && PAIRED.has(house) ? '双' : '') + FORM_NAME[f];
+/** does this body hold the line's own model (a house whose weapon is that kind; a 散人 any one handed blade)? */
+export function holdsLine(house: string | null | undefined, el: El) {
+  const f = LINE_FORM[el];
+  return house ? FORM_OF[house] === f : f === 'jian' || f === 'dao' || f === 'bi';
 }
+/** a forged weapon's name: 断金刀, 焚天枪 (a pair for the houses that hold one in each hand: 断金双刀) */
+export function fwName(el: El, n: number, house: string | null | undefined) {
+  const f = LINE_FORM[el];
+  return EL[el].names[n - 1] + (house && PAIRED.has(house) && FORM_OF[house] === f ? '双' : '') + FORM_NAME[f];
+}
+
+/** the forged weapons that have their Tripo model (public/models/fw-<el>-<n>.glb, a picture portraits/fw-<el>-<n>.png):
+ * laid out like weapons.ts PW (long axis by PCA, the grip as a fraction from the lo end) */
+export const FW_ART: Record<string, { file: string; dir: [number, number, number]; c: [number, number, number]; lo: number; hi: number; blade: 1 | -1; grip: number; len: number }> = {
+  'metal:2': { file: 'fw-metal-2.glb', dir: [-0.6506, -0.6301, 0.424], c: [0.0378, 0.5266, -0.009], lo: -0.6615, hi: 0.8111, blade: 1, grip: 0.14, len: 0.95 },
+};
+export const fwArt = (el: El, n: number) => FW_ART[`${el}:${n}`];
