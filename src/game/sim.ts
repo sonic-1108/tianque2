@@ -1715,6 +1715,11 @@ export class Sim {
 
   private physics(f: Fighter, dt: number) {
     const wish: [number, number] = (f as any).wish ?? [0, 0];
+    // swimming (owner: in deep water you swim, not walk): out of your depth and afloat; the body glides on (slow to
+    // start, slow to stop, slow to turn); Rig lays the body flat in a stroke, or treads water when still
+    const gh = groundHeight(f.pos[0], f.pos[2]);
+    const swim = !ICE.on && gh < WATER_Y - 1.2 && f.pos[1] < WATER_Y - 0.9 && f.hp > 0 && bodyR(f) === 0;
+    (f as any).swim = swim ? 1 : 0;
     const canWalk = f.hp > 0 && f.st.root <= 0 && f.st.stun <= 0 && f.st.kneel <= 0 && (f.act === 'idle' || f.act === 'run' || f.act === 'jump' || (f.act === 'attack' && f.team === 'player' && f.actT > f.actDur * 0.7));
     const sk = f.run && !SKILLS[f.run.id]?.parallel ? SKILLS[f.run.id] : null;
     if ((f as any).lunge > 0) (f as any).lunge -= dt;
@@ -1732,15 +1737,15 @@ export class Sim {
     }
     if (sk?.move) sk.move(this, f, wish, dt);
     else if (canWalk) {
-      let spd = (f.team === 'player' ? RUN : NPC_RUN) * (f.st.slow > 0 ? 0.5 : 1) * (f.st.daze > 0 ? 0.5 : 1) * (f.st.rage > 0 ? RAGE.move : 1) * (f.st.weak > 0 ? 0.8 : 1) * ((f as any).spdMul ?? 1) * (groundHeight(f.pos[0], f.pos[2]) < WATER_Y - 0.5 && !ICE.on && !(f as any).waterborne && !(f.id === PLAYER && gearOf(this.progress).swim) ? 0.55 : 1); // wading slows you (水寇 and the 蛟珠's wearer go as fast in water)
+      let spd = (f.team === 'player' ? RUN : NPC_RUN) * (f.st.slow > 0 ? 0.5 : 1) * (f.st.daze > 0 ? 0.5 : 1) * (f.st.rage > 0 ? RAGE.move : 1) * (f.st.weak > 0 ? 0.8 : 1) * ((f as any).spdMul ?? 1) * (gh < WATER_Y - 0.5 && !ICE.on && !(f as any).waterborne && !(f.id === PLAYER && gearOf(this.progress).swim) ? (swim ? 0.62 : 0.55) : 1); // wading slows you, swimming a little less (水寇 and the 蛟珠's wearer go as fast in water)
       if (!f.aggro && f.team === 'sect' && Math.hypot(f.pos[0] - (f.home?.[0] ?? 0), f.pos[2] - (f.home?.[1] ?? 0)) < 6) spd *= 0.6; // strolling about at home
-      const k = f.grounded ? 14 : 4;
+      const k = swim ? 2.6 : f.grounded ? 14 : 4;
       const tx = wish[0] * spd;
       const tz = wish[1] * spd;
       f.vel[0] += (tx - f.vel[0]) * Math.min(1, k * dt);
       f.vel[2] += (tz - f.vel[2]) * Math.min(1, k * dt);
       const moving = Math.hypot(wish[0], wish[1]) > 0.1;
-      if (moving && f.act !== 'attack') f.yaw = turn(f.yaw, Math.atan2(-wish[0], -wish[1]), dt * 12);
+      if (moving && f.act !== 'attack') f.yaw = turn(f.yaw, Math.atan2(-wish[0], -wish[1]), dt * (swim ? 5 : 12));
       if (f.grounded && f.act !== 'attack') {
         if (moving && f.act === 'idle') this.setAct(f, 'run', 0, 'run');
         else if (!moving && f.act === 'run') this.setAct(f, 'idle', 0, 'idle');

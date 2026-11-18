@@ -57,6 +57,8 @@ const facesX = (m: string) => isTownsfolk(m);
 const TOWN_PLAN: Record<string, Spec> = { idle: { match: ['idle'], loop: true }, run: { match: ['walk'], loop: true } };
 
 const BASE = import.meta.env.BASE_URL + 'models/';
+/** every Mixamo body can swim: those without a swim clip of their own borrow this one's (only that clip) */
+const SWIM_SRC = 'shadowblade.glb';
 /** the player's blade, base and tip, for the ribbon trail (set when his model is in) */
 export const swordSockets: { base: THREE.Object3D | null; tip: THREE.Object3D | null } = { base: null, tip: null };
 const TARGET_H = 1.8;
@@ -101,6 +103,9 @@ const PLAN: Record<string, Spec> = {
   skill_point: { match: ['angry_02', 'cast_a_spell', 'box_01'], start: 0.4, end: 0.85, fit: true },
   skill_raise: { match: ['cheer', 'agree', 'cast_a_spell'], start: 0, end: 0.6, fit: true },
   glide: { match: ['jump', 'fall'], start: 0.15, end: 0.25, loop: true, speed: 0.3 },
+  // in deep water (sim f.swim): a breaststroke, the body flat (the clip lies it down itself); bodies without one borrow
+  // shadowblade's (SWIM_SRC)
+  swim: { match: ['swim'], loop: true },
   // ---- each move with the clip 天阙 1 gave it (its CharacterRig3D plans), whoever borrows it
   kr_cleave: { match: ['slash', 'chop'], start: 0.25, end: 0.52, fit: true },
   kr_spin: { match: ['box_03', 'box_02', 'slash'], start: 0.15, end: 0.45, loop: true, speed: 1.6 },
@@ -268,14 +273,18 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     const base = BODY_AS[file] ? [BODY_AS[file], ...(CLIP_SOURCE[BODY_AS[file]] ?? [])] : CLIP_SOURCE[file] ?? [];
     // a giant borrows from the whole house library (slams, pounds, roars, throws, leaps: giantMotion.ts)
     const extra = [...new Set([...base, ...(humanGiant ? GIANT_SOURCES : [])])].filter((x) => x !== file);
-    Promise.all([loadModel(file), ...extra.map(loadModel)])
-      .then(([m, ...more]) => {
-        if (!alive) return;
+    const town = isTownsfolk(file);
+    Promise.all([loadModel(file), ...extra.map(loadModel), town ? Promise.resolve(null) : loadModel(SWIM_SRC)])
+      .then(([m, ...rest]) => {
+        if (!alive || !m) return;
+        const swimSrc = rest.pop() as Loaded | null;
+        const more = rest as Loaded[];
         const obj = SkeletonUtils.clone(m.scene);
         keepRest(obj); // for fitting worn pieces in the rest stance (outfit.ts)
         // own clips first, borrowed ones fill the gaps
         const own = BODY_AS[file] ? [] : m.clips;
         const raw = [...own, ...more.flatMap((x) => x.clips.filter((c) => !own.some((o) => o.name === c.name)))];
+        if (swimSrc && !raw.some((c) => /^swim/i.test(c.name))) raw.push(...swimSrc.clips.filter((c) => /^swim/i.test(c.name)));
         // each body holds its own weapon(s) (the old game's builders), in the Mixamo hand frame
         const bones: Record<string, THREE.Object3D> = {};
         obj.traverse((o) => {
@@ -380,7 +389,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
   }, [model, glide]);
   const lastAct = useRef<{ act: string; anim: string; t: number }>({ act: '', anim: '', t: 0 });
   const pose = useRef<THREE.Group>(null);
-  const body = useMemo(() => ({ spin: 0, lean: 0, lev: 0, lastHit: -1, jolt: 0, flash: 0, flashOn: false, openT: 0, gpId: null as object | null, yaw: 0, turn: 0 }), []);
+  const body = useMemo(() => ({ spin: 0, lean: 0, lev: 0, lastHit: -1, jolt: 0, flash: 0, flashOn: false, openT: 0, gpId: null as object | null, yaw: 0, turn: 0, swimY: 0, swimRoll: 0, swimYaw: f.yaw }), []);
 
   useFrame((_, dt) => {
     const g = group.current;
@@ -466,6 +475,10 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     if (f.id === 0 && sim.riding >= 0 && (key === 'run' || key === 'walk')) key = 'idle';
     if (!actions[key]) key = /^(skill|kr_|aq_|fy_|yr_|tz_|jy_|dx_)/.test(key) ? 'skill_slash' : key === 'channel' ? 'skill_spell' : 'idle';
     if (!actions[key]) key = 'idle';
+    // afloat: a stroke when moving, treading water (upright, low, bobbing) when still
+    const swimming = !!(f as any).swim && !isTownsfolk(f.model);
+    const swimSp = Math.hypot(f.vel[0], f.vel[2]);
+    if (swimming && (key === 'run' || key === 'walk' || key === 'idle') && actions.swim && swimSp > 0.7) key = 'swim';
     // a giant's blows on the sim's clock, its 破绽 crouch, a heavy walk that steps as it turns (giantMotion.ts)
     const humanGiant = !!gd && gd.look !== 'beast';
     body.openT = humanGiant && giantOpen(f) > 0 ? body.openT + dt : 0;
@@ -505,6 +518,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
       const sp = Math.hypot(f.vel[0], f.vel[2]);
       actions.g_walk.setEffectiveTimeScale(Math.max(0.35, Math.min(1.5, sp > 0.3 ? sp / (1.45 * gd.scale) : 0.45)));
     }
+    if (key === 'swim') actions.swim.setEffectiveTimeScale(Math.max(0.9, Math.min(2.8, swimSp / 1.5)));
     if (key === 'run') {
       const sp = Math.hypot(f.vel[0], f.vel[2]);
       actions.run?.setEffectiveTimeScale(isTownsfolk(f.model) ? Math.max(0.5, Math.min(1.8, sp / 1.4)) : Math.max(0.6, Math.min(1.6, sp / 6)));
@@ -543,7 +557,16 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
       // a giant: its sweep's turn, its leap's arc (in body heights of the 1.8 m model), a tremble as it strains at the top
       const gSpin = gp ? gp.spin : 0, gLift = gp ? gp.lift * TARGET_H : 0, strain = gp ? gp.strain : 0;
       ps.rotation.set(body.lean + flip - body.jolt * (gd ? 0.1 : 0.28), body.spin + gSpin, 0, 'YXZ');
-      ps.position.set((Math.random() - 0.5) * 0.025 * strain, PIVOT + body.lev + gLift, (Math.random() - 0.5) * 0.025 * strain);
+      // in the water: the stroke's body raised to lie along the surface (back awash, head out), treading water sunk to the
+      // shoulders; a bob, and a lean into the turns
+      const now = performance.now() / 1000;
+      const swimY = !swimming ? 0 : key === 'swim' ? 0.7 + Math.sin(now * 2.2 * Math.max(0.9, Math.min(2.8, swimSp / 1.5))) * 0.05 : -0.2 + Math.sin(now * 2.4 + f.id) * 0.045;
+      body.swimY += (swimY - body.swimY) * Math.min(1, dt * 5);
+      const dyaw = ((f.yaw - body.swimYaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+      body.swimYaw = f.yaw;
+      body.swimRoll += ((key === 'swim' ? Math.max(-0.35, Math.min(0.35, (dyaw / Math.max(dt, 1e-3)) * 0.12)) : 0) - body.swimRoll) * Math.min(1, dt * 4);
+      ps.rotation.z = body.swimRoll;
+      ps.position.set((Math.random() - 0.5) * 0.025 * strain, PIVOT + body.lev + gLift + body.swimY, (Math.random() - 0.5) * 0.025 * strain);
     }
     // the glider: blend the arms up onto the straps, open the canopy above the fists
     const gliding = f.act === 'glide' && f.hp > 0;
@@ -570,7 +593,7 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
       u.shaft.scale.set(1, 1.08, 1);
     } else glide.umb.group.visible = false;
     // both hands are on the umbrella's shaft while gliding: the weapon they hold is put away (it used to poke out of the canopy)
-    const stow = glide.umb.group.visible;
+    const stow = glide.umb.group.visible || (swimming && key === 'swim');
     if (held) for (const h of held) if (h.visible === stow) h.visible = !stow;
     // a forged weapon in the player's hand: the element's light, brighter stage by stage (forgedLook.ts)
     if (f.id === sim.player.id) dressWeapon(sim, held, swordSockets.base, swordSockets.tip, performance.now() / 1000);

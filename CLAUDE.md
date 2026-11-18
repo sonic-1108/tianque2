@@ -200,9 +200,17 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   glints, spring petals and autumn leaves carried down, ice in deep winter; `RiverLife`: reeds, lotus in still water,
   river lanterns at night (all on festivals), dawn mist, a carp leaping. The riverbed (Terrain ground shader): sand ribs,
   stones, weed, caustics. Shared uniforms `WATER_U` (season.ts), set by Climate.
+- Swimming (owner: in deep water you swim, not walk): sim `physics` sets `f.swim` out of your depth (ground below
+  WATER_Y - 1.2, afloat on the floor 1.1 under the surface); the body glides (accel 2.6, turn 5, speed x0.62). Rig: the
+  `swim` clip (a breaststroke lying flat; bodies without one borrow shadowblade's, `SWIM_SRC`), raised 0.7 to lie along
+  the surface, treading water when still (idle sunk 0.2, bobbing), a lean into turns, weapons stowed while stroking.
+  Test: scratch jiao/swimtest.cjs.
 - 覆舟河蛟 swims (owner: it must not stand): giants.ts look `serpent`, `render/GiantSerpent.tsx` gives the Tripo dragon a
-  made spine (10 bones) and four leg bones, poses per move on the sim's clock; the fighter stands for its neck (`ZC`) so
-  blows reach the head. Where it cuts the water it fills `WATER_BODY` (Water.tsx: white water hugging the body, rings
+  made spine (10 bones), each leg in three bones (shoulder or hip, elbow or knee, foot; joints measured on the mesh) and
+  a hinged lower jaw (23 bones), every joint on a spring (the tail lags and swings through turns); poses per move on the
+  sim's clock (claws raised and jaws wide, raking, roaring), idle gestures between blows (glance, head shake, snarl,
+  dip, tail flick, claw flex); the fighter stands for its neck (`ZC`) so blows reach the head. zz-serpent.html &dbg=1
+  colours each part by its bone. Where it cuts the water it fills `WATER_BODY` (Water.tsx: white water hugging the body, rings
   pushed out) and throws spray where a bone breaks the surface fast (`WATER_FX` queue in WaterFx.tsx). Scratch viewers:
   zz-serpent.html (?poses=swim,jbite:0.6,whirl:1.5&views=side,persp) and zz-pool.html (the dragon in its pool with the
   real water, fast in software: ?move=jbite&t=0.8&speed=5&circle=9&h=6&r=30&ang=0.3).
