@@ -99,6 +99,7 @@ export function makeEndgame(s: Sim) {
   const g = (s as any).make('sect', null, '天魔本相', 'giant-tianmo.glb', 40, R.ox, R.oz - 6) as Fighter;
   g.maxHp = Math.round((180 + 40 * 55) * 12); // half again 法相's: the last thing under 天阙
   g.home = [R.ox, R.oz - 6];
+  g.pos[1] = s.floorAt(R.ox, R.oz - 6); // on the cave's floor (made at the land's height out there, it fell 148 m when you came in)
   (g as any).boss = true;
   (g as any).room = R.id;
   (g as any).tianmo = true;
