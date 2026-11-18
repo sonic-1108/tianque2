@@ -31,7 +31,7 @@ export const tianmoBeaten = (P: Progress) => !!P.done?.['tianmo'];
 /** may this room's door be used yet */
 export function roomOpen(s: Sim, r: Room) {
   if (r.theme === 'trial') return storyDone(s.progress);
-  if (r.theme === 'abyss') return sequelAt(s.progress) >= 4 || tianmoBeaten(s.progress);
+  if (r.theme === 'abyss') return storyDone(s.progress) || tianmoBeaten(s.progress); // (owner: open as soon as 伪帝 falls, not only at the sequel's end)
   return true;
 }
 const ngOf = (P: Progress) => ((P as any).ng ?? 0) as number;

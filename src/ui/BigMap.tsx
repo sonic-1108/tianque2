@@ -1,6 +1,6 @@
 // The whole map (M): the land, the seven roads, 青石村, every den with its level (grey once cleared), the
 // waystations and story places, 天阙, where the quest wants you and where you are. Click or M / Esc to close.
-import { storyDone, sequelAt, tianmoBeaten } from '../game/endgame';
+import { storyDone, tianmoBeaten } from '../game/endgame';
 import { TOWER, STELE, ABYSS, JIAO_POOL } from '../game/endLayout';
 import { GATES, lit } from '../game/gates';
 import { ICE_CAVE, SNOW_CAMP, SNOW_TRAIL, SUMMIT } from '../game/snow';
@@ -119,9 +119,9 @@ export function BigMap({ sim, onClose }: { sim: Sim; onClose: () => void }) {
         [...ARENA_AT(), '擂', '擂台'] as [number, number, string, string],
       ];
       if (firefliesOut(sim)) for (const [gx, gz] of GLADES) marks.push([gx, gz, '萤', '萤火虫']);
-      // after 伪帝: the trial tower and 巨灵碑 (天魔窟 once the sequel leads there)
+      // after 伪帝: the trial tower, 巨灵碑, the river dragon's pool and 天魔窟
       if (storyDone(sim.progress)) marks.push([TOWER.x, TOWER.z, '塔', '天阙试炼塔'], [STELE.x, STELE.z, '碑', '巨灵碑'], [JIAO_POOL[0], JIAO_POOL[1], '蛟', '覆舟河蛟']);
-      if (sequelAt(sim.progress) >= 4 || tianmoBeaten(sim.progress)) marks.push([ABYSS.x, ABYSS.z, '魔', '天魔窟']);
+      if (storyDone(sim.progress) || tianmoBeaten(sim.progress)) marks.push([ABYSS.x, ABYSS.z, '魔', '天魔窟']);
       // 雪岭山道: the way up on foot, dashed
       // (a dark bed under red dashes, so it shows on the snow as well as the green)
       g.save();

@@ -219,6 +219,11 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   zz-serpent.html (?poses=swim,jbite:0.6,whirl:1.5&views=side,persp) and zz-pool.html (the dragon in its pool with the
   real water, fast in software: ?move=jbite&t=0.8&speed=5&circle=9&h=6&r=30&ang=0.3).
 
+- 天魔本相 (the owner's purple Tripo demon king, `giant-tianmo.glb`, giants.ts `tianmo`) lives in 天魔窟 (room theme
+  `abyss`, door at `ABYSS` on 天阙's mesa behind the hall, 魔 on the big map); the owner wants it seen sooner, so the door
+  opens as soon as 伪帝 falls (`roomOpen`: storyDone), not only at the sequel's end. Beaten early, the sequel's 下天魔窟
+  hands itself in. Made on the cave's floor (it used to fall 148 m from the land's height). Scratch tm/tm.mts walks in.
+
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported
   from 天阙 1: same timings, reach, damage, statuses; its `vfx.*` calls become `s.vfx(name, ...args)` commands in
