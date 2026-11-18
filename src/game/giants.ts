@@ -10,6 +10,7 @@ import type { Sim } from './sim';
 import type { Fighter } from './types';
 
 import { FOE_KINDS } from './foes';
+import { WATER_Y, groundHeight } from './world';
 
 export type TeleShape = 'circle' | 'ring' | 'cone' | 'line';
 export interface Tele {
@@ -498,12 +499,37 @@ export function giantThink(s: Sim, f: Fighter, dt: number) {
   }
   if (!t) return;
   if (st.move) return runMove(s, f, def, st, t, dt);
-  // between moves: turn on its target, close in a little
-  s.faceTo(f, t.pos[0], t.pos[2]);
   const d = s.dist(t, f);
-  if (d > def.bodyR + 5) {
-    const dx = (t.pos[0] - f.pos[0]) / d, dz = (t.pos[2] - f.pos[2]) / d;
-    a.wish = [dx * 0.55, dz * 0.55];
+  if (def.look === 'serpent') {
+    // the river dragon (owner: not stiff) never sits waiting: between blows it swims rings round you, its head on you
+    // (render/GiantSerpent turns it), the body trailing; it keeps to the deep water (turning back when the water ahead
+    // shoals) and now and then turns the other way round. Open (破绽), it lies still
+    a.waterborne = true;
+    if (st.open > 0) a.wish = [0, 0];
+    else {
+      const sv: number = ((st as any).swimDir ??= 1);
+      const R = 10.5 + Math.sin(s.time * 0.23 + f.id) * 2.5;
+      const ox = (f.pos[0] - t.pos[0]) / (d || 1), oz = (f.pos[2] - t.pos[2]) / (d || 1);
+      const radial = Math.max(-1, Math.min(1, (R - d) * 0.3));
+      let wx = -oz * sv + ox * radial, wz = ox * sv + oz * radial;
+      const wl = Math.hypot(wx, wz) || 1;
+      wx /= wl;
+      wz /= wl;
+      if (groundHeight(f.pos[0] + wx * 7, f.pos[2] + wz * 7) > WATER_Y - 1.4) {
+        (st as any).swimDir = -sv; // shoaling: round the other way, toward its home water
+        const [hx2, hz2] = f.home ?? [f.pos[0], f.pos[2]], hd = Math.hypot(hx2 - f.pos[0], hz2 - f.pos[2]) || 1;
+        wx = (hx2 - f.pos[0]) / hd;
+        wz = (hz2 - f.pos[2]) / hd;
+      } else if (Math.random() < dt / 10) (st as any).swimDir = -sv;
+      a.wish = [wx * 0.72, wz * 0.72];
+    }
+  } else {
+    // between moves: turn on its target, close in a little
+    s.faceTo(f, t.pos[0], t.pos[2]);
+    if (d > def.bodyR + 5) {
+      const dx = (t.pos[0] - f.pos[0]) / d, dz = (t.pos[2] - f.pos[2]) / d;
+      a.wish = [dx * 0.55, dz * 0.55];
+    }
   }
   if ((st.cd -= dt) > 0 || st.open > 0) return;
   // the next move: from those its phase knows, the near ones liked when you're close, the far ones when you're not

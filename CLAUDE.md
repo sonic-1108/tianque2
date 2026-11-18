@@ -209,8 +209,12 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   made spine (10 bones), each leg in three bones (shoulder or hip, elbow or knee, foot; joints measured on the mesh) and
   a hinged lower jaw (23 bones), every joint on a spring (the tail lags and swings through turns); poses per move on the
   sim's clock (claws raised and jaws wide, raking, roaring), idle gestures between blows (glance, head shake, snarl,
-  dip, tail flick, claw flex); the fighter stands for its neck (`ZC`) so blows reach the head. zz-serpent.html &dbg=1
-  colours each part by its bone. Where it cuts the water it fills `WATER_BODY` (Water.tsx: white water hugging the body, rings
+  dip, tail flick, claw flex); the fighter stands for its neck (`ZC`) so blows reach the head. The body lies along its path
+  (`bodyPath`: follow the leader from the neck, the head easing round to the sim's facing, joints never folding past
+  MAX_BEND, straightening behind the head when still); bones turn yaw after pitch ('YXZ'). Between blows it swims rings
+  round its target (giants.ts, look serpent: waterborne, keeps to deep water, turns back where it shoals), eyes on you.
+  zz-serpent.html &dbg=1 colours each part by its bone; zz-fight.html runs the real sim at a fixed 30 fps and captures
+  frames (scratch jiao/fight.cjs + sheet.py: contact sheet and gif; &rig=1 draws the player, &walk=1 swims him round). Where it cuts the water it fills `WATER_BODY` (Water.tsx: white water hugging the body, rings
   pushed out) and throws spray where a bone breaks the surface fast (`WATER_FX` queue in WaterFx.tsx). Scratch viewers:
   zz-serpent.html (?poses=swim,jbite:0.6,whirl:1.5&views=side,persp) and zz-pool.html (the dragon in its pool with the
   real water, fast in software: ?move=jbite&t=0.8&speed=5&circle=9&h=6&r=30&ang=0.3).

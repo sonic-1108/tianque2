@@ -28,9 +28,24 @@ function softTex() {
 export function WaterFx({ sim }: { sim: Sim }) {
   const S = useMemo(() => {
     const root = new THREE.Group();
-    const ringGeo = new THREE.RingGeometry(0.86, 1, 40).rotateX(-Math.PI / 2);
+    // a ripple, not a drawn circle: a soft band, brightest a little inside its edge, fading out both ways
+    const ringGeo = new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2);
+    const rtex = (() => {
+      const c = document.createElement('canvas');
+      c.width = c.height = 128;
+      const x = c.getContext('2d')!;
+      const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+      g.addColorStop(0, 'rgba(255,255,255,0)');
+      g.addColorStop(0.72, 'rgba(255,255,255,0)');
+      g.addColorStop(0.86, 'rgba(255,255,255,0.75)');
+      g.addColorStop(0.92, 'rgba(255,255,255,0.35)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = g;
+      x.fillRect(0, 0, 128, 128);
+      return new THREE.CanvasTexture(c);
+    })();
     const rings = Array.from({ length: RINGS }, () => {
-      const m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: '#e8f6ff', transparent: true, opacity: 0, depthWrite: false, fog: true }));
+      const m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ map: rtex, color: '#e8f6ff', transparent: true, opacity: 0, depthWrite: false, fog: true }));
       m.visible = false;
       m.renderOrder = 3;
       root.add(m);
@@ -111,7 +126,7 @@ export function WaterFx({ sim }: { sim: Sim }) {
         const u = 1 - r.t / r.max, rr = r.r0 + (r.r1 - r.r0) * (1 - (1 - u) * (1 - u));
         r.m.scale.set(rr, 1, rr);
         (r.m.material as THREE.MeshBasicMaterial).color.setRGB(0.91 * lum, 0.96 * lum, lum);
-        (r.m.material as THREE.MeshBasicMaterial).opacity = 0.55 * (1 - u);
+        (r.m.material as THREE.MeshBasicMaterial).opacity = 0.4 * (1 - u) * Math.min(1, u * 6);
         if (r.t <= 0) r.m.visible = false;
       }
     for (const d of S.drops)

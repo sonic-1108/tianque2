@@ -112,7 +112,13 @@ export function buildSerpent(scene: THREE.Object3D): SerpentBody {
   geo.applyMatrix4(mesh.matrixWorld);
   if (!g0.getAttribute('normal')) geo.computeVertexNormals();
   // the spine: the middle is the root, the chain runs forward to the head and back to the fin; legs and jaw hang off it
-  const bones = Array.from({ length: NB }, () => new THREE.Bone());
+  // (yaw after pitch: a bone bends down about its own crosswise axis, then turns; the other order stood a curled tail's
+  // fin on end)
+  const bones = Array.from({ length: NB }, () => {
+    const b = new THREE.Bone();
+    b.rotation.order = 'YXZ';
+    return b;
+  });
   const parent = (i: number) => (i < ROOT ? i + 1 : i - 1);
   SP.forEach(([z, y], i) => {
     if (i === ROOT) bones[i].position.set(0, y, z);
@@ -248,6 +254,8 @@ export interface SerpentIn {
   dead: number;
   /** metres to lower it by (deep water: the back at the water line) */
   wade: number;
+  /** each spine bone's yaw from the body's path (bodyPath): the body lying along where the head has been */
+  chain?: Float32Array;
 }
 
 const ease = (x: number) => 1 - (1 - x) * (1 - x);
@@ -502,7 +510,7 @@ export function poseSerpent(body: SerpentBody, L: SerpentLive, I: SerpentIn) {
         L.ang[k] += L.vel[k] * h;
       }
     }
-  for (let i = 0; i < NB; i++) body.bones[i].rotation.set(L.ang[i * 3], L.ang[i * 3 + 1], L.ang[i * 3 + 2]);
+  for (let i = 0; i < NB; i++) body.bones[i].rotation.set(L.ang[i * 3], L.ang[i * 3 + 1] + (i < 10 && I.chain ? I.chain[i] : 0), L.ang[i * 3 + 2]);
   const k = 1 - Math.exp(-dt * 10);
   L.y += (lift - L.y) * k;
   L.z += (push - L.z) * k;
@@ -511,8 +519,89 @@ export function poseSerpent(body: SerpentBody, L: SerpentLive, I: SerpentIn) {
   L.wade += (I.wade - L.wade) * (1 - Math.exp(-dt * 3));
   if (spin) L.spin += spin * dt;
   else L.spin -= Math.sin(L.spin) * Math.min(1, dt * 2); // back to facing its way
-  body.inner.position.set(0, L.y + L.wade / S, -ZC + L.z);
+  body.inner.position.set(0, L.y + L.wade / S, -SP[ROOT][0] + L.z);
   body.inner.rotation.set(L.rootPitch, L.spin, L.roll);
+}
+
+// ---------------------------------------------------------------- the body along its path
+/** the spine from the snout back: Q0 the head, Q1 the neck (where the fighter is), Q2 the shoulders, Q3 the middle
+ * (the root bone), Q4 the hips ... Q9 the fin; each segment's length on the ground (metres) */
+const SEG = [0.06, 0.08, 0.13, 0.12, 0.08, 0.08, 0.08, 0.08, 0.08].map((x) => x * S);
+/** how hard each joint is held from folding (radians), and how fast the body straightens out behind the head (/s) */
+const MAX_BEND = [0.85, 0.85, 0.7, 0, 0.6, 0.6, 0.6, 0.6, 0.6];
+const RELAX = [0, 1.4, 1.1, 0, 0.9, 0.8, 0.8, 0.7, 0.7];
+const wrapA = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
+const headingOf = (x: number, z: number) => Math.atan2(x, z);
+export const pathLive = () => ({ q: new Float32Array(20), d: new Float32Array(18), hv: 0, ok: false });
+/** follow the leader: the neck is where the fighter is, the head ahead of it on the way it looks (hv, eased toward the
+ * sim's facing so a snap turn swings round), each point after pulled along behind the one before, straightening a little
+ * each moment and never folding past MAX_BEND. Writes each spine bone's yaw (out) and returns the middle's place and
+ * heading (the group's) */
+export function bodyPath(P: ReturnType<typeof pathLive>, nx: number, nz: number, heading: number, dt: number, out: Float32Array) {
+  const q = P.q, d = P.d;
+  if (!P.ok || Math.hypot(q[2] - nx, q[3] - nz) > 8) {
+    P.hv = heading;
+    const bx = -Math.sin(heading), bz = -Math.cos(heading);
+    for (let k = 0; k < 9; k++) {
+      d[k * 2] = bx;
+      d[k * 2 + 1] = bz;
+    }
+    P.ok = true;
+  }
+  P.hv += Math.max(-3.5 * dt, Math.min(3.5 * dt, wrapA(heading - P.hv)));
+  // the head ahead of the neck
+  q[2] = nx;
+  q[3] = nz;
+  d[0] = -Math.sin(P.hv);
+  d[1] = -Math.cos(P.hv);
+  q[0] = nx - d[0] * SEG[0];
+  q[1] = nz - d[1] * SEG[0];
+  for (let k = 1; k < 9; k++) {
+    const px = d[(k - 1) * 2], pz = d[(k - 1) * 2 + 1];
+    let fx: number, fz: number;
+    if (k === 3) {
+      fx = px; // the middle is one piece: straight through
+      fz = pz;
+    } else {
+      // where the next point was, seen from this one (it is dragged along), eased toward straight on
+      const ox = q[(k + 1) * 2], oz = q[(k + 1) * 2 + 1];
+      fx = ox - q[k * 2];
+      fz = oz - q[k * 2 + 1];
+      const l = Math.hypot(fx, fz);
+      if (l < 1e-4 || !Number.isFinite(l)) {
+        fx = px;
+        fz = pz;
+      } else {
+        fx /= l;
+        fz /= l;
+      }
+      const r = Math.min(1, RELAX[k] * dt);
+      fx += (px - fx) * r;
+      fz += (pz - fz) * r;
+      // no sharper than its joint allows
+      let a = wrapA(headingOf(fx, fz) - headingOf(px, pz));
+      a = Math.max(-MAX_BEND[k], Math.min(MAX_BEND[k], a));
+      const h = headingOf(px, pz) + a;
+      fx = Math.sin(h);
+      fz = Math.cos(h);
+    }
+    d[k * 2] = fx;
+    d[k * 2 + 1] = fz;
+    q[(k + 1) * 2] = q[k * 2] + fx * SEG[k];
+    q[(k + 1) * 2 + 1] = q[k * 2 + 1] + fz * SEG[k];
+  }
+  // segment k runs from Q(k) toward the tail; the front bones look up the body (-d), the back ones down it (d)
+  const hd = (k: number, sgn: number) => headingOf(d[k * 2] * sgn, d[k * 2 + 1] * sgn);
+  const root = hd(2, -1);
+  out.fill(0);
+  out[SHOULDER] = wrapA(hd(1, -1) - hd(2, -1));
+  out[NECK] = wrapA(hd(0, -1) - hd(1, -1));
+  out[HIP] = wrapA(hd(4, 1) - hd(3, 1));
+  out[4] = wrapA(hd(5, 1) - hd(4, 1));
+  out[3] = wrapA(hd(6, 1) - hd(5, 1));
+  out[2] = wrapA(hd(7, 1) - hd(6, 1));
+  out[1] = wrapA(hd(8, 1) - hd(7, 1));
+  return { x: q[6], z: q[7], heading: root };
 }
 
 let FILE: Promise<THREE.Object3D> | null = null;
@@ -545,6 +634,7 @@ function Serpent({ sim, f }: { sim: Sim; f: Fighter }) {
   }, [def]);
   const live = useMemo(() => ({ ...serpentLive(), last: [f.pos[0], f.pos[2]] as [number, number], lastYaw: f.yaw, turnR: 0, speed: 0, deadT: 0, lastHit: -1, flash: 0, h: new Float32Array(10).fill(NaN), sprayT: new Float32Array(10), bowT: 0 }), [f]);
   const V = useMemo(() => new THREE.Vector3(), []);
+  const path = useMemo(() => ({ P: pathLive(), yaw: new Float32Array(10) }), [f]);
   useFrame((_, dt) => {
     const g = group.current;
     if (!g) return;
@@ -555,24 +645,24 @@ function Serpent({ sim, f }: { sim: Sim; f: Fighter }) {
       WATER_BODY.uBodyOn.value = 0;
       return;
     }
-    g.position.set(f.pos[0], f.pos[1], f.pos[2]);
-    g.rotation.y = f.yaw + Math.PI;
+    // the body along its path: the group sits at its middle, turned the middle's way; the bones bend it along the path
+    const lay = bodyPath(path.P, f.pos[0], f.pos[2], f.yaw + Math.PI, Math.min(dt, 0.1), path.yaw);
+    g.position.set(lay.x, f.pos[1], lay.z);
+    g.rotation.y = lay.heading;
     const sp = Math.hypot(f.pos[0] - live.last[0], f.pos[2] - live.last[1]) / Math.max(dt, 1e-3);
     live.last = [f.pos[0], f.pos[2]];
     live.speed += (Math.min(sp, 30) - live.speed) * Math.min(1, dt * 5);
     const dyaw = ((f.yaw - live.lastYaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
     live.lastYaw = f.yaw;
     live.turnR += (dyaw / Math.max(dt, 1e-3) - live.turnR) * Math.min(1, dt * 6);
-    // where you are against its nose
-    const dx = p[0] - f.pos[0], dz = p[2] - f.pos[2], dl = Math.hypot(dx, dz) || 1;
-    const fx = -Math.sin(f.yaw), fz = -Math.cos(f.yaw), lx = -Math.cos(f.yaw), lz = Math.sin(f.yaw);
-    const look = Math.max(-0.7, Math.min(0.7, Math.atan2((dx * lx + dz * lz) / dl, (dx * fx + dz * fz) / dl)));
+    // where you are against its nose (the head's way, not the sim's facing: it swims rings round you, eyes on you)
+    const look = Math.max(-0.95, Math.min(0.95, wrapA(headingOf(p[0] - f.pos[0], p[2] - f.pos[2]) - path.P.hv)));
     // low in deep water (the back at the water line), on its feet in the shallows and on the bank
     const ground = groundHeight(f.pos[0], f.pos[2]);
     const swim = clamp01((WATER_Y - 0.3 - ground) / 1.3);
     const wade = swim * Math.min(0, WATER_Y + 0.15 - (f.pos[1] + SP[ROOT][1] * S));
     const st = (f as any).giant as { move: { m: { id: string; wind: number }; t: number } | null; open: number } | undefined;
-    poseSerpent(body, live, { dt, speed: live.speed, turn: live.turnR, look, swim, move: st?.move ? { id: st.move.m.id, wind: st.move.m.wind, t: st.move.t } : null, open: (st?.open ?? 0) > 0, dead: live.deadT, wade });
+    poseSerpent(body, live, { dt, chain: path.yaw, speed: live.speed, turn: 0, look, swim, move: st?.move ? { id: st.move.m.id, wind: st.move.m.wind, t: st.move.t } : null, open: (st?.open ?? 0) > 0, dead: live.deadT, wade });
     // where it cuts the water: white water round it (the river shader), spray where it breaks the surface fast
     g.updateMatrixWorld(true);
     let on = 0;
@@ -608,7 +698,7 @@ function Serpent({ sim, f }: { sim: Sim; f: Fighter }) {
     live.flash *= Math.exp(-dt * 14);
     const t = performance.now() / 1000, ph = giantPhase(f);
     const c = new THREE.Color(def.color).multiplyScalar((0.05 + ph * 0.02 + Math.sin(t * (ph * 2 + 2)) * 0.03) * 0.5);
-    if (giantOpen(f) > 0) c.lerp(new THREE.Color('#ffd84a'), 0.3 + Math.sin(t * 12) * 0.12);
+    if (giantOpen(f) > 0) c.add(new THREE.Color('#ffc23a').multiplyScalar(0.02 + Math.sin(t * 9) * 0.012)); // open: a faint gold pulse (it used to gild the whole body flat)
     const fl = live.flash * live.flash * 0.7;
     for (const m of body.mats) m.emissive.setRGB(c.r + fl, c.g + fl, c.b + fl);
   });

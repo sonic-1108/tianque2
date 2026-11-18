@@ -268,10 +268,7 @@ diffuseColor.a = mix(0.34, 0.93, smoothstep(0.0, 1.7, wDep));`,
   float bank = 1.0 - smoothstep(0.0, 0.6, wDep);
   wFoam = smoothstep(0.55, 0.75, fn + bank * 0.55) * bank;
   vec2 along = normalize(wFlow + 1e-4);
-  // soft drifts of froth on the quick water, long along the current and broken up (not hard lines)
-  vec2 sq = vec2(dot(p, along) * 0.07, dot(p, vec2(-along.y, along.x)) * 0.55) - vec2(uTime * length(wFlow) * 0.3, 0.0);
-  float drift = smoothstep(0.62, 0.9, wn(sq)) * smoothstep(0.45, 0.8, wn(p * 1.1 - wFlow * uTime * 0.5));
-  wFoam += drift * smoothstep(0.35, 0.85, length(wFlow)) * 0.14 * wDetail * smoothstep(0.8, 2.0, wDep);
+  // (no froth drifting on open water: up close it read as scraps of paper)
   wFoam *= 1.0 - uIce;
   wFoam = max(wFoam, smoothstep(0.25, 0.85, wBody) * 0.95);
 }`,
@@ -325,7 +322,7 @@ diffuseColor.a = mix(0.34, 0.93, smoothstep(0.0, 1.7, wDep));`,
 #include <opaque_fragment>`,
       );
   };
-  m.customProgramCacheKey = () => 'tq-river-v4';
+  m.customProgramCacheKey = () => 'tq-river-v5';
   return m;
 }
 
