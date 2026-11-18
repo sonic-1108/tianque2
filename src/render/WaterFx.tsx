@@ -7,7 +7,9 @@ import type { Sim } from '../game/sim';
 import { WATER_Y, groundHeight } from '../game/world';
 import { bodyR } from '../game/giants';
 
-const RINGS = 48, DROPS = 160;
+const RINGS = 48, DROPS = 220;
+/** spray asked for from elsewhere (the river dragon breaking the surface): where, how many drops, how hard, a ring */
+export const WATER_FX: { x: number; z: number; n: number; p: number; r?: number }[] = [];
 
 function softTex() {
   const c = document.createElement('canvas');
@@ -96,6 +98,10 @@ export function WaterFx({ sim }: { sim: Sim }) {
         splash(t.x, t.z, 24, t.shape === 'circle' ? 1.6 + t.r * 0.1 : 1.4);
         ring(t.x, t.z, 0.5, t.r + 2, 1.4);
       }
+    for (let e = WATER_FX.shift(); e; e = WATER_FX.shift()) {
+      splash(e.x, e.z, e.n, e.p);
+      if (e.r) ring(e.x, e.z, 0.5, e.r, 1.3);
+    }
     for (const r of S.rings)
       if (r.t > 0) {
         r.t -= dt;

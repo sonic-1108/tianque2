@@ -202,7 +202,10 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   stones, weed, caustics. Shared uniforms `WATER_U` (season.ts), set by Climate.
 - 覆舟河蛟 swims (owner: it must not stand): giants.ts look `serpent`, `render/GiantSerpent.tsx` gives the Tripo dragon a
   made spine (10 bones) and four leg bones, poses per move on the sim's clock; the fighter stands for its neck (`ZC`) so
-  blows reach the head. Scratch viewer zz-serpent.html (?poses=swim,jbite:0.6,whirl:1.5&views=side,persp).
+  blows reach the head. Where it cuts the water it fills `WATER_BODY` (Water.tsx: white water hugging the body, rings
+  pushed out) and throws spray where a bone breaks the surface fast (`WATER_FX` queue in WaterFx.tsx). Scratch viewers:
+  zz-serpent.html (?poses=swim,jbite:0.6,whirl:1.5&views=side,persp) and zz-pool.html (the dragon in its pool with the
+  real water, fast in software: ?move=jbite&t=0.8&speed=5&circle=9&h=6&r=30&ang=0.3).
 
 ## Code
 - `src/game/`: pure logic, no React/three. `sim.ts` (Sim.step), `skills.ts` (all 35 moves as data + hooks, ported

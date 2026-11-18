@@ -15,6 +15,8 @@ import type { Sim } from '../game/sim';
 import type { Fighter } from '../game/types';
 import { giantOf, giantOpen, giantPhase } from '../game/giants';
 import { WATER_Y, groundHeight } from '../game/world';
+import { BODY_N, WATER_BODY } from './Water';
+import { WATER_FX } from './WaterFx';
 
 /** the spine in the file's units (z toward the head, y up), from the fin to the head */
 const SP: [number, number][] = [
@@ -30,6 +32,8 @@ const SP: [number, number][] = [
   [0.31, 0.34],
 ];
 const ROOT = 6, HIP = 5, SHOULDER = 7, NECK = 8, HEAD = 9;
+/** the body's half girth at each spine bone (file units): thin at the fin, thickest at the chest, the head */
+const GIRTH = [0.03, 0.04, 0.05, 0.055, 0.062, 0.07, 0.075, 0.075, 0.068, 0.08];
 /** the back chain from the hips to the fin (bone indices) */
 const BACK = [5, 4, 3, 2, 1, 0];
 /** each leg's bone: where it meets the body (x, y, z), the spine bone it hangs from; 10, 11 the forelegs, 12, 13 the hind */
@@ -280,11 +284,13 @@ export function poseSerpent(body: SerpentBody, L: SerpentLive, I: SerpentIn) {
       }
     }
   } else if (I.open && !I.dead) {
-    // open: the head down on the water, panting
-    X[SHOULDER] += 0.22;
-    X[NECK] += 0.32 + Math.sin(L.ph * 1.5) * 0.04;
-    X[HEAD] += -0.05;
-    lift -= 0.04;
+    // open: the head laid down on the water, panting, the claws limp
+    X[SHOULDER] += 0.3;
+    X[NECK] += 0.42 + Math.sin(L.ph * 1.5) * 0.05;
+    X[HEAD] += -0.12;
+    X[10] += 0.4;
+    X[11] += 0.4;
+    lift -= 0.06;
   }
   if (I.dead) {
     // over on its side and down
@@ -338,14 +344,18 @@ function Serpent({ sim, f }: { sim: Sim; f: Fighter }) {
       alive = false;
     };
   }, [def]);
-  const live = useMemo(() => ({ ...serpentLive(), last: [f.pos[0], f.pos[2]] as [number, number], speed: 0, deadT: 0, lastHit: -1, flash: 0 }), [f]);
+  const live = useMemo(() => ({ ...serpentLive(), last: [f.pos[0], f.pos[2]] as [number, number], speed: 0, deadT: 0, lastHit: -1, flash: 0, h: new Float32Array(10).fill(NaN), sprayT: new Float32Array(10), bowT: 0 }), [f]);
+  const V = useMemo(() => new THREE.Vector3(), []);
   useFrame((_, dt) => {
     const g = group.current;
     if (!g) return;
     const p = sim.player.pos;
     live.deadT = f.hp > 0 ? 0 : live.deadT + dt;
     g.visible = !(f as any).benched && sim.indoor < 0 && Math.hypot(f.pos[0] - p[0], f.pos[2] - p[2]) < 200 && live.deadT < 6;
-    if (!g.visible || !body) return;
+    if (!g.visible || !body) {
+      WATER_BODY.uBodyOn.value = 0;
+      return;
+    }
     g.position.set(f.pos[0], f.pos[1], f.pos[2]);
     g.rotation.y = f.yaw + Math.PI;
     const sp = Math.hypot(f.pos[0] - live.last[0], f.pos[2] - live.last[1]) / Math.max(dt, 1e-3);
@@ -361,6 +371,32 @@ function Serpent({ sim, f }: { sim: Sim; f: Fighter }) {
     const wade = swim * Math.min(0, WATER_Y + 0.15 - (f.pos[1] + SP[ROOT][1] * S));
     const st = (f as any).giant as { move: { m: { id: string; wind: number }; t: number } | null; open: number } | undefined;
     poseSerpent(body, live, { dt, speed: live.speed, look, swim, move: st?.move ? { id: st.move.m.id, wind: st.move.m.wind, t: st.move.t } : null, open: (st?.open ?? 0) > 0, dead: live.deadT, wade });
+    // where it cuts the water: white water round it (the river shader), spray where it breaks the surface fast
+    g.updateMatrixWorld(true);
+    let on = 0;
+    live.bowT -= dt;
+    for (let i = 0; i < BODY_N; i++) {
+      body.bones[i].getWorldPosition(V);
+      const R = GIRTH[i] * S, h = V.y - WATER_Y, u = WATER_BODY.uBody.value[i];
+      const wet = Math.abs(h) < R && swim > 0.2;
+      u.set(V.x, V.z, wet ? Math.sqrt(R * R - h * h) : 0, wet ? (0.55 + 0.45 * Math.min(1, live.speed / 4)) * swim : 0);
+      if (wet) on = 1;
+      const was = live.h[i];
+      live.h[i] = h;
+      live.sprayT[i] -= dt;
+      if (swim > 0.2 && Number.isFinite(was) && Math.sign(was) !== Math.sign(h) && live.sprayT[i] <= 0 && WATER_FX.length < 40) {
+        const v = Math.abs(h - was) / Math.max(dt, 1e-3);
+        if (v > 1.5) {
+          live.sprayT[i] = 0.35;
+          WATER_FX.push({ x: V.x, z: V.z, n: Math.min(18, 4 + v * 2), p: Math.min(2.4, 0.7 + v * 0.18), r: R + 2 + v * 0.4 });
+        }
+      }
+      if (i === HEAD && wet && live.speed > 2.5 && live.bowT <= 0 && WATER_FX.length < 40) {
+        live.bowT = 0.3;
+        WATER_FX.push({ x: V.x, z: V.z, n: 3, p: 0.8 });
+      }
+    }
+    WATER_BODY.uBodyOn.value = on;
     // its skin: the giant's colour faint under the scales, gold while it stands open, white when struck
     const ha = (f as any).hitAt;
     if (ha !== undefined && ha !== live.lastHit) {

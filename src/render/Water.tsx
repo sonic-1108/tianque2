@@ -5,7 +5,9 @@
 // it at a glance, white foam along the banks, rings in the rain, peach petals floating in spring and red leaves in
 // autumn, milky ice in deep winter. Along it: reeds in the shallows (green, gold in autumn, pale in winter), lotus in
 // the still water near the village (flowers in summer, seed heads in autumn), mist lying on it at dawn and at night,
-// river lanterns drifting down past the village after dark, a carp leaping now and then near you.
+// river lanterns drifting down past the village after dark, a carp leaping now and then near you. A great body lying
+// in the water (the river dragon, GiantSerpent) churns it: white water hugging it where it meets the surface and rings
+// pushed out from it (`WATER_BODY`, filled each frame by whoever is in the water).
 import { useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -165,6 +167,9 @@ export function waterMap(): WaterMap {
 }
 
 // ================================================================ the surface
+/** points where a great body cuts the surface (x, z, its girth there, how hard it churns 0..1); uBodyOn 0 when none */
+export const BODY_N = 10;
+export const WATER_BODY = { uBody: { value: Array.from({ length: BODY_N }, () => new THREE.Vector4()) }, uBodyOn: { value: 0 } };
 const NOISE = `
 float wh(vec2 p){ vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
 float wn(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.0-2.0*f);
@@ -178,7 +183,7 @@ function waterMaterial() {
     sh.uniforms.uWaterMap = { value: waterMap().tex };
     sh.uniforms.uIce = { value: 0 };
     sh.uniforms.uSeason = SEASON_U.uSeason;
-    Object.assign(sh.uniforms, WATER_U);
+    Object.assign(sh.uniforms, WATER_U, WATER_BODY);
     m.userData.sh = sh;
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vWP2;')
@@ -197,9 +202,11 @@ uniform vec3 uSunDir;
 uniform vec3 uHorizon;
 uniform vec3 uZenith;
 uniform vec4 uSeason;
+uniform vec4 uBody[${BODY_N}];
+uniform float uBodyOn;
 varying vec3 vWP2;
 ${NOISE}
-float wDep; float wShore; vec2 wFlow; float wDetail; float wFoam;`,
+float wDep; float wShore; vec2 wFlow; float wDetail; float wFoam; float wBody;`,
       )
       .replace(
         '#include <color_fragment>',
@@ -238,7 +245,22 @@ diffuseColor.a = mix(0.34, 0.93, smoothstep(0.0, 1.7, wDep));`,
     dW += rv / (rr + 1e-3) * ring * 1.6 * uRain;
   }
   float amp = (0.09 + length(wFlow) * 0.13) * wDetail * (1.0 - uIce);
-  vec3 nW = normalize(vec3(-dW.x * amp, 1.0, -dW.y * amp));
+  // a great body in the water: white water hugging it, rings pushed out from it
+  vec2 bD = vec2(0.0);
+  wBody = 0.0;
+  if (uBodyOn > 0.5 && uIce < 0.5) {
+    float bn = wn(p * 1.3 + vec2(uTime * 0.9, -uTime * 0.6)) * 0.6 + wn(p * 3.7 - vec2(uTime * 1.7, uTime * 0.4)) * 0.4;
+    for (int k = 0; k < ${BODY_N}; k++) {
+      vec4 b = uBody[k];
+      if (b.w <= 0.0) continue;
+      vec2 dv = p - b.xy;
+      float d = length(dv), edge = d - b.z;
+      wBody = max(wBody, b.w * smoothstep(0.7 + bn * 1.6, 0.0, edge));
+      float rip = sin(edge * 2.4 - uTime * 4.5) * smoothstep(10.0, 0.6, edge) * step(-0.3, edge);
+      bD += dv / (d + 1e-3) * rip * 0.35 * b.w;
+    }
+  }
+  vec3 nW = normalize(vec3(-dW.x * amp - bD.x * wDetail, 1.0, -dW.y * amp - bD.y * wDetail));
   normal = normalize((viewMatrix * vec4(nW, 0.0)).xyz);
   // foam: along the banks, breaking up and drifting; streaks where the river runs quick
   vec2 fp = p - wFlow * uTime * 0.7;
@@ -246,9 +268,12 @@ diffuseColor.a = mix(0.34, 0.93, smoothstep(0.0, 1.7, wDep));`,
   float bank = 1.0 - smoothstep(0.0, 0.6, wDep);
   wFoam = smoothstep(0.55, 0.75, fn + bank * 0.55) * bank;
   vec2 along = normalize(wFlow + 1e-4);
-  vec2 sq = vec2(dot(p, along) * 0.12, dot(p, vec2(-along.y, along.x)) * 1.6) - vec2(uTime * length(wFlow) * 0.5, 0.0);
-  wFoam += smoothstep(0.78, 0.92, wn(sq)) * length(wFlow) * 0.35 * wDetail * smoothstep(0.8, 2.0, wDep);
+  // soft drifts of froth on the quick water, long along the current and broken up (not hard lines)
+  vec2 sq = vec2(dot(p, along) * 0.07, dot(p, vec2(-along.y, along.x)) * 0.55) - vec2(uTime * length(wFlow) * 0.3, 0.0);
+  float drift = smoothstep(0.6, 0.88, wn(sq)) * smoothstep(0.4, 0.8, wn(p * 0.8 - wFlow * uTime * 0.5));
+  wFoam += drift * length(wFlow) * 0.2 * wDetail * smoothstep(0.8, 2.0, wDep);
   wFoam *= 1.0 - uIce;
+  wFoam = max(wFoam, smoothstep(0.25, 0.85, wBody) * 0.95);
 }`,
       )
       .replace(
@@ -298,7 +323,7 @@ diffuseColor.a = mix(0.34, 0.93, smoothstep(0.0, 1.7, wDep));`,
 #include <opaque_fragment>`,
       );
   };
-  m.customProgramCacheKey = () => 'tq-river-v2';
+  m.customProgramCacheKey = () => 'tq-river-v3';
   return m;
 }
 
