@@ -270,8 +270,8 @@ diffuseColor.a = mix(0.34, 0.93, smoothstep(0.0, 1.7, wDep));`,
   vec2 along = normalize(wFlow + 1e-4);
   // soft drifts of froth on the quick water, long along the current and broken up (not hard lines)
   vec2 sq = vec2(dot(p, along) * 0.07, dot(p, vec2(-along.y, along.x)) * 0.55) - vec2(uTime * length(wFlow) * 0.3, 0.0);
-  float drift = smoothstep(0.6, 0.88, wn(sq)) * smoothstep(0.4, 0.8, wn(p * 0.8 - wFlow * uTime * 0.5));
-  wFoam += drift * length(wFlow) * 0.2 * wDetail * smoothstep(0.8, 2.0, wDep);
+  float drift = smoothstep(0.62, 0.9, wn(sq)) * smoothstep(0.45, 0.8, wn(p * 1.1 - wFlow * uTime * 0.5));
+  wFoam += drift * smoothstep(0.35, 0.85, length(wFlow)) * 0.14 * wDetail * smoothstep(0.8, 2.0, wDep);
   wFoam *= 1.0 - uIce;
   wFoam = max(wFoam, smoothstep(0.25, 0.85, wBody) * 0.95);
 }`,
@@ -290,7 +290,9 @@ diffuseColor.a = mix(0.34, 0.93, smoothstep(0.0, 1.7, wDep));`,
   vec3 sunC = mix(vec3(1.0, 0.93, 0.78), vec3(0.62, 0.72, 0.95), uNight);
   outgoingLight += sunC * (pow(sd, 700.0) * 7.0 + pow(sd, 60.0) * 0.25) * (uDay * 0.9 + uNight * 0.35) * wDetail;
   // foam
-  outgoingLight = mix(outgoingLight, vec3(0.86, 0.9, 0.9) * (0.45 + 0.55 * max(uDay, 0.25)), clamp(wFoam, 0.0, 1.0) * 0.85);
+  // (white by day, a dim moonlit grey at night: it must not glow in the dark)
+  vec3 foamC = mix(vec3(0.07, 0.09, 0.13), vec3(0.86, 0.9, 0.9), clamp(uDay, 0.0, 1.0));
+  outgoingLight = mix(outgoingLight, foamC, clamp(wFoam, 0.0, 1.0) * 0.85);
   diffuseColor.a = max(diffuseColor.a, wFoam * 0.9);
   diffuseColor.a = max(diffuseColor.a, fr * 0.9);
   // petals in spring, red and gold leaves in autumn, floating downstream (two phases, fading in and out)
@@ -310,7 +312,7 @@ diffuseColor.a = mix(0.34, 0.93, smoothstep(0.0, 1.7, wDep));`,
       float petal = smoothstep(1.0, 0.75, length(d * vec2(9.0, 15.0)));
       vec3 pc = uSeason.x > uSeason.z ? mix(vec3(0.98, 0.76, 0.82), vec3(1.0, 0.9, 0.93), wh(ci + 8.8)) : mix(vec3(0.80, 0.25, 0.08), vec3(0.88, 0.62, 0.15), wh(ci + 8.8));
       float a = petal * has * wgt * smoothstep(0.15, 0.6, wDep) * wDetail;
-      outgoingLight = mix(outgoingLight, pc * (0.5 + 0.5 * max(uDay, 0.3)), a);
+      outgoingLight = mix(outgoingLight, pc * (0.08 + 0.92 * clamp(uDay, 0.0, 1.0)), a);
       diffuseColor.a = max(diffuseColor.a, a);
     }
   }
@@ -323,7 +325,7 @@ diffuseColor.a = mix(0.34, 0.93, smoothstep(0.0, 1.7, wDep));`,
 #include <opaque_fragment>`,
       );
   };
-  m.customProgramCacheKey = () => 'tq-river-v3';
+  m.customProgramCacheKey = () => 'tq-river-v4';
   return m;
 }
 
@@ -557,7 +559,7 @@ diffuseColor.rgb = diffuseColor.rgb * (uSeason.x * vec3(1.1, 1.15, 0.9) + uSeaso
     built.pads.visible = sea.w < 0.6 && ICE.amt < 0.5;
     built.flowers.visible = sea.y > 0.35;
     built.reeds.visible = true;
-    stepLanterns(built.lanterns, sim, dt);
+    stepLanterns(built.lanterns, sim, dt, camera);
     stepMist(built.mist, sim, camera, dt);
     stepFish(built.fish, sim, camera, dt);
     void c;
@@ -615,7 +617,25 @@ function lanterns() {
   const list: Lantern[] = [];
   const body = new THREE.CylinderGeometry(0.16, 0.22, 0.2, 8);
   const petals = flowerGeometry();
-  const paper = new THREE.MeshStandardMaterial({ color: '#ffd9a0', emissive: '#ff9a3c', emissiveIntensity: 1.6, roughness: 0.8 });
+  const paper = new THREE.MeshStandardMaterial({ color: '#ffd9a0', emissive: '#ff9a3c', emissiveIntensity: 2.6, roughness: 0.8 });
+  // the lantern's light laid on the water toward whoever looks at it: a long soft streak
+  const streakTex = (() => {
+    const c = document.createElement('canvas');
+    c.width = 32;
+    c.height = 128;
+    const x = c.getContext('2d')!;
+    for (let j = 0; j < 128; j++) {
+      const v = j / 127, a = Math.pow(1 - v, 1.6) * 0.9;
+      const g = x.createLinearGradient(0, 0, 32, 0);
+      g.addColorStop(0, 'rgba(255,255,255,0)');
+      g.addColorStop(0.5, `rgba(255,255,255,${a.toFixed(3)})`);
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = g;
+      x.fillRect(0, j, 32, 1);
+    }
+    return new THREE.CanvasTexture(c);
+  })();
+  const streakGeo = new THREE.PlaneGeometry(0.9, 6).rotateX(-Math.PI / 2).translate(0, 0, 3);
   const petalMat = new THREE.MeshStandardMaterial({ vertexColors: true, side: THREE.DoubleSide, emissive: '#ff5a7a', emissiveIntensity: 0.6 });
   for (let k = 0; k < 14; k++) {
     const o = new THREE.Group();
@@ -624,19 +644,23 @@ function lanterns() {
     const p = new THREE.Mesh(petals, petalMat);
     p.scale.setScalar(1.1);
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow(), color: '#ffb35a', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.85 }));
-    halo.scale.setScalar(1.6);
-    halo.position.y = 0.25;
-    const pool = new THREE.Mesh(new THREE.CircleGeometry(1.4, 16), new THREE.MeshBasicMaterial({ map: glow(), color: '#ff9a3c', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.45 }));
+    halo.scale.setScalar(3.4);
+    halo.position.y = 0.3;
+    const pool = new THREE.Mesh(new THREE.CircleGeometry(2.6, 20), new THREE.MeshBasicMaterial({ map: glow(), color: '#ff9a3c', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.5 }));
     pool.rotation.x = -Math.PI / 2;
     pool.position.y = 0.02;
-    o.add(b, p, halo, pool);
+    const streak = new THREE.Mesh(streakGeo, new THREE.MeshBasicMaterial({ map: streakTex, color: '#ffa04a', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.6 }));
+    streak.position.y = 0.03;
+    streak.name = 'streak';
+    o.add(b, p, halo, pool, streak);
+    o.scale.setScalar(1.5);
     o.visible = false;
     group.add(o);
     list.push({ x: 0, z: 0, bob: Math.random() * 6, o });
   }
   return { group, list, on: 0 };
 }
-function stepLanterns(L: ReturnType<typeof lanterns>, sim: Sim, dt: number) {
+function stepLanterns(L: ReturnType<typeof lanterns>, sim: Sim, dt: number, camera: THREE.Camera) {
   const hour = sim.clock.hour, spots = launchSpots();
   const night = (hour >= 19 || hour < 1) && ICE.amt < 0.5 && spots.length > 0;
   const fest = !!sim.clock.festival;
@@ -662,7 +686,11 @@ function stepLanterns(L: ReturnType<typeof lanterns>, sim: Sim, dt: number) {
     l.z += (w.fz * sp + Math.cos(sim.time * 0.27 + i) * 0.05) * dt;
     l.bob += dt;
     l.o.position.set(l.x, WATER_Y + 0.02 + Math.sin(l.bob * 1.8) * 0.03, l.z);
-    l.o.rotation.y += dt * 0.1;
+    // the streak runs from the lantern toward the eye (the group doesn't turn, so it stays put while the paper spins)
+    const st = l.o.getObjectByName('streak');
+    if (st) st.rotation.y = Math.atan2(camera.position.x - l.x, camera.position.z - l.z);
+    l.o.children[0].rotation.y += dt * 0.1;
+    l.o.children[1].rotation.y += dt * 0.1;
   });
 }
 

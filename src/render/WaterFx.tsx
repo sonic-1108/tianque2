@@ -6,6 +6,7 @@ import { useFrame } from '@react-three/fiber';
 import type { Sim } from '../game/sim';
 import { WATER_Y, groundHeight } from '../game/world';
 import { bodyR } from '../game/giants';
+import { WATER_U } from './season';
 
 const RINGS = 48, DROPS = 220;
 /** spray asked for from elsewhere (the river dragon breaking the surface): where, how many drops, how hard, a ring */
@@ -98,6 +99,8 @@ export function WaterFx({ sim }: { sim: Sim }) {
         splash(t.x, t.z, 24, t.shape === 'circle' ? 1.6 + t.r * 0.1 : 1.4);
         ring(t.x, t.z, 0.5, t.r + 2, 1.4);
       }
+    // white water by day, a dim grey under the moon (these are unlit: they must not glow at night)
+    const lum = 0.16 + 0.84 * Math.min(1, Math.max(0, WATER_U.uDay.value));
     for (let e = WATER_FX.shift(); e; e = WATER_FX.shift()) {
       splash(e.x, e.z, e.n, e.p);
       if (e.r) ring(e.x, e.z, 0.5, e.r, 1.3);
@@ -107,6 +110,7 @@ export function WaterFx({ sim }: { sim: Sim }) {
         r.t -= dt;
         const u = 1 - r.t / r.max, rr = r.r0 + (r.r1 - r.r0) * (1 - (1 - u) * (1 - u));
         r.m.scale.set(rr, 1, rr);
+        (r.m.material as THREE.MeshBasicMaterial).color.setRGB(0.91 * lum, 0.96 * lum, lum);
         (r.m.material as THREE.MeshBasicMaterial).opacity = 0.55 * (1 - u);
         if (r.t <= 0) r.m.visible = false;
       }
@@ -116,6 +120,7 @@ export function WaterFx({ sim }: { sim: Sim }) {
         d.v.y -= 9.8 * dt;
         d.s.position.addScaledVector(d.v, dt);
         d.s.scale.setScalar(d.size);
+        (d.s.material as THREE.SpriteMaterial).color.setRGB(0.95 * lum, 0.98 * lum, lum);
         (d.s.material as THREE.SpriteMaterial).opacity = Math.min(0.85, d.t * 1.4);
         if (d.t <= 0 || d.s.position.y < WATER_Y - 0.1) {
           d.t = 0;
