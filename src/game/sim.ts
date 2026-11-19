@@ -42,6 +42,7 @@ import './moves2';
 import { kitAfter, kitGuard, kitHidden, kitSpeed, kitStep, kitSwing } from './kit';
 import { NPCS, QUESTS, fromStory, type NpcRole } from './quests';
 import { controlRemote, hostKill, makeCoopSlots } from '../net/coop';
+import { makeGhosts } from '../net/world';
 import { END_TOUCH, doEndTouch, endTouch, makeEndgame, newEnd, onEndKill, onPlayerDown, roomOpen, startTower, endTower, stepEndgame } from './endgame';
 import { ALL_FOLK, ROOMS, ROOM_Y, roomAt, roomSpawn, roomExit, roomRealm } from './interiors';
 import { pushOutOfRealm, realmFloor, realmGap } from './realms';
@@ -387,6 +388,7 @@ export class Sim {
     makeEndgame(this);
     // 联机: the bodies guests will walk (net/coop.ts), last of all
     makeCoopSlots(this);
+    makeGhosts(this); // the others online, walking here (net/world.ts)
     // an escort under way when the game was closed starts again from its start
     const q0 = this.quest();
     if (q0?.escort && this.progress.quest.state === 'active') startEscort(this, q0.escort);
@@ -1162,10 +1164,10 @@ export class Sim {
     for (let i = 0; i < F.length; i++) {
       const a = F[i];
       if (a.hp <= 0 || a.act === 'burrow' || a.st.invuln > 0) continue; // a roll or a blink goes through bodies
-      if ((a as any).away) continue;
+      if ((a as any).away || (a as any).ghost) continue;
       for (let j = i + 1; j < F.length; j++) {
         const b = F[j];
-        if (b.hp <= 0 || b.act === 'burrow' || (b.st.invuln > 0 && !b.master) || (b as any).away) continue;
+        if (b.hp <= 0 || b.act === 'burrow' || (b.st.invuln > 0 && !b.master) || (b as any).away || (b as any).ghost) continue;
         const dx = b.pos[0] - a.pos[0];
         if (dx > 0.9 || dx < -0.9) continue;
         const dz = b.pos[2] - a.pos[2];
@@ -1250,7 +1252,7 @@ export class Sim {
     this.near = -1;
     let nearD = Infinity;
     for (const f of this.fighters)
-      if (f.master && !(f as any).away && pl.hp > 0 && this.dist(f, pl) < 3.6 && this.dist(f, pl) < nearD) {
+      if ((f.master || (f as any).ghost) && !(f as any).away && pl.hp > 0 && this.dist(f, pl) < 3.6 && this.dist(f, pl) < nearD) {
         this.near = f.id;
         nearD = this.dist(f, pl);
       }
@@ -1598,6 +1600,7 @@ export class Sim {
 
   /** disciples and masters */
   private think(f: Fighter, dt: number) {
+    if ((f as any).ghost) return; // someone else online: net/world.ts walks them
     if ((f as any).frozen) {
       (f as any).wish = [0, 0];
       return;
@@ -1730,6 +1733,7 @@ export class Sim {
   }
 
   private physics(f: Fighter, dt: number) {
+    if ((f as any).ghost) return;
     const wish: [number, number] = (f as any).wish ?? [0, 0];
     // swimming (owner: in deep water you swim, not walk): out of your depth and afloat; the body glides on (slow to
     // start, slow to stop, slow to turn); Rig lays the body flat in a stroke, or treads water when still
@@ -1867,6 +1871,7 @@ export class Sim {
   }
 
   private acts(f: Fighter, dt: number) {
+    if ((f as any).ghost) return; // their blows land in their own world, not here
     f.actT += dt;
     if (f.act === 'attack') {
       const c = CHAIN[f.combo];

@@ -1,5 +1,8 @@
 // The start screen (散人 or a hero) and the skill tree (K): spend points, set the bar, 转职 at 30.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { account, logout } from '../net/account';
+import { AccountForm } from './Online';
+import { SaveChoice } from './Chat';
 import type { Sim } from '../game/sim';
 import { SKILLS } from '../game/skills';
 import { HEROES, HeroId, LOW_SKILLS, TRANSFER_LEVEL, WANDERER, heroOf } from '../game/heroes';
@@ -9,9 +12,46 @@ import { BAR_KEYS, capOf, chooseHero, learn, resetSkills, spFree, spTotal, stepC
 const IMG = import.meta.env.BASE_URL + 'portraits/';
 const KEYS = BAR_KEYS;
 
+function StartAccount() {
+  const [open, setOpen] = useState(false);
+  const [, setN] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setN((n) => n + 1), 500);
+    return () => clearInterval(t);
+  }, []);
+  const a = account.auth;
+  return (
+    <div className="start-acct">
+      {a ? (
+        <>
+          已登录：<b>{a.name}</b>
+          <button onClick={() => void logout()}>退出</button>
+        </>
+      ) : (
+        <button className="hot" onClick={() => setOpen(true)}>
+          登录 / 注册
+        </button>
+      )}
+      {open && !a && (
+        <div className="game-wrap">
+          <div className="game-box online-box">
+            <div className="game-title">账 号</div>
+            <AccountForm onDone={() => setOpen(false)} />
+            <button className="game-close" onClick={() => setOpen(false)}>
+              关闭
+            </button>
+          </div>
+        </div>
+      )}
+      <SaveChoice />
+    </div>
+  );
+}
+
 export function StartScreen({ onPick }: { onPick: (hero: HeroId | null) => void }) {
   return (
     <div className="start">
+      <StartAccount />
       <h1>天阙 · 散人行</h1>
       <p className="sub">一开始就选好职业，或者做个散人一路闯到 30 级再转职。30 级之前没有大招。</p>
       <div className="picks">
@@ -30,7 +70,7 @@ export function StartScreen({ onPick }: { onPick: (hero: HeroId | null) => void 
           </button>
         ))}
       </div>
-      <p className="sub">选了就不能改（散人到 30 级可以转一次）。进度保存在这个浏览器里。</p>
+      <p className="sub">选了就不能改（散人到 30 级可以转一次）。进度保存在这个浏览器里；登录账号后也存在云端，换台电脑登录接着玩。</p>
     </div>
   );
 }

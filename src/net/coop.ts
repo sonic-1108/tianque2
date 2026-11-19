@@ -10,7 +10,6 @@ import { GIANTS, rearmGiant } from '../game/giants';
 import { heroOf } from '../game/heroes';
 import { BAR_R, gainXp, save, skillPower } from '../game/progress';
 import { fullHp, gearOf } from '../game/jianghu';
-import { storyDone } from '../game/endgame';
 import { clockOf } from '../game/clock';
 import { openRelay, type Relay } from './relay';
 
@@ -98,7 +97,8 @@ export const coop = {
 };
 const mapId = (id: number) => (id === 0 ? coop.mySlot : id === coop.mySlot ? 0 : id); // host's numbers ↔ mine
 
-export const canCoop = (s: Sim) => storyDone(s.progress);
+// (owner: from the very start now, not only after 伪帝)
+export const canCoop = (_s: Sim) => true;
 const code = () => Array.from({ length: 4 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
 
 /** host a room: returns its code */
@@ -255,7 +255,7 @@ export function hostAfterStep(s: Sim, dt: number) {
   const F: any[] = [];
   for (const f of s.fighters) {
     const a = f as any;
-    if (a.benched || a.away || (f.hp <= 0 && f.actT > 3 && f.team !== 'ally') || !near(f)) continue;
+    if (a.benched || a.away || a.ghost || (f.hp <= 0 && f.actT > 3 && f.team !== 'ally') || !near(f)) continue;
     const row: any[] = [f.id, r1(f.pos[0]), r2(f.pos[1]), r1(f.pos[2]), r2(f.yaw), f.act, f.anim, r2(f.actT), r2(f.actDur), Math.round(f.hp), Math.round(f.maxHp), a.hitAt ?? 0, (a.hitHeavy ? 1 : 0) | (a.frozen ? 2 : 0), f.run ? [f.run.id, r2(f.run.t)] : 0];
     const g = a.giant;
     row.push(g ? [g.key, g.move ? g.move.m.id : '', g.move ? r2(g.move.t) : 0, r2(g.open), g.phase, g.awake ? 1 : 0] : 0);

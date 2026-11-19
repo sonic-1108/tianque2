@@ -429,3 +429,46 @@ button:not(:disabled):hover { border-color: var(--gold); }
 .party-card.locked { opacity: 0.8; }
 .party-card.picked { border-color: #8a3a12; box-shadow: inset 0 0 0 2px #8a3a12; }
 @media (max-width: 600px) { .party-along { grid-template-columns: 1fr; } }
+
+/* ---- 聊天 (ui/Chat.tsx) and what's asked of you */
+.chat { position: absolute; left: 14px; bottom: 96px; width: min(400px, 60vw); z-index: 22; pointer-events: none; font-family: serif; }
+.chat.open { pointer-events: auto; }
+.chat-list { max-height: 150px; overflow: hidden; display: flex; flex-direction: column; gap: 2px; }
+.chat.open .chat-list { max-height: 260px; overflow-y: auto; background: rgba(15, 10, 6, 0.55); border-radius: 6px; padding: 6px 8px; }
+.chat-line { font-size: 14px; line-height: 1.45; color: #efe6d2; text-shadow: 0 1px 2px #000, 0 0 3px #000; word-break: break-all; }
+.chat-line a { color: #ffe29a; cursor: pointer; pointer-events: auto; }
+.chat-ch { margin-right: 4px; opacity: 0.85; }
+.ch-world .chat-ch, .chat-chan.ch-world { color: #f4d38a; }
+.ch-near .chat-ch, .chat-chan.ch-near { color: #e9e2d2; }
+.ch-party .chat-ch, .chat-chan.ch-party { color: #8fd4ff; }
+.ch-whisper .chat-ch, .chat-chan.ch-whisper, .ch-whisper { color: #f2a6e4; }
+.ch-sys { color: #b9b2a2; }
+.chat-in { display: flex; gap: 6px; margin-top: 6px; }
+.chat-in input { flex: 1; min-width: 0; padding: 6px 8px; font-family: serif; font-size: 14px; background: rgba(250, 242, 222, 0.95); border: 1px solid #8a6a3a; border-radius: 4px; color: #2a1c0e; }
+.chat-in input.chat-to { flex: 0 0 90px; }
+.chat-chan { flex: none; padding: 4px 10px; font-family: serif; background: rgba(40, 26, 14, 0.85); border: 1px solid #8a6a3a; border-radius: 4px; cursor: pointer; }
+.chat-hint { font-size: 11px; color: rgba(240, 230, 210, 0.55); margin-top: 2px; text-shadow: 0 1px 2px #000; }
+.notices { position: absolute; left: 14px; bottom: 262px; display: flex; flex-direction: column; gap: 6px; z-index: 23; font-family: serif; }
+.notice { background: rgba(241, 230, 203, 0.96); color: #3a2a18; border: 1px solid #8a6a3a; border-radius: 6px; padding: 6px 10px; font-size: 14px; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); }
+.notice button { padding: 2px 10px; font-family: serif; font-size: 13px; background: #e6d6b0; color: #5a3a1e; border: 1px solid #a8864e; border-radius: 4px; cursor: pointer; }
+.notice button.hot { background: #8a3a12; color: #ffe9a8; border-color: #5a2a10; }
+
+/* ---- 江湖 (ui/Online.tsx): account, friends, everyone online, party */
+.game-box.online-box { width: min(620px, 95vw); }
+.acct-form { display: flex; flex-direction: column; gap: 8px; margin: 6px auto 0; max-width: 380px; }
+.acct-form label { display: flex; flex-direction: column; gap: 3px; font-size: 14px; color: #5a3a1e; }
+.acct-form input, .online-row input { padding: 7px 9px; font-family: serif; font-size: 15px; background: #fffaf0; border: 1px solid #a8864e; border-radius: 4px; color: #2a1c0e; }
+.online-row { display: flex; justify-content: center; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+.online-row button, .online-person button { padding: 5px 14px; font-family: serif; font-size: 14px; background: #e6d6b0; color: #5a3a1e; border: 1px solid #a8864e; border-radius: 4px; cursor: pointer; }
+.online-row button.hot, .online-person button.hot { background: #8a3a12; color: #ffe9a8; border-color: #5a2a10; }
+.online-row button:disabled { opacity: 0.5; cursor: default; }
+.online-person { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.online-person button { padding: 3px 10px; font-size: 13px; margin-left: 4px; }
+.online-code { text-align: center; font-size: 18px; color: #6a2a10; margin: 4px 0; }
+.online-code b { font-size: 26px; letter-spacing: 4px; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #a89a80; vertical-align: middle; }
+.dot.on { background: #3aa856; box-shadow: 0 0 4px #3aa856; }
+.acct-me { text-align: center; }
+.start-acct { position: absolute; top: 14px; right: 18px; display: flex; align-items: center; gap: 8px; color: #f1e6cb; font-family: serif; z-index: 5; }
+.start-acct button { padding: 5px 14px; font-family: serif; font-size: 14px; background: #e6d6b0; color: #5a3a1e; border: 1px solid #a8864e; border-radius: 4px; cursor: pointer; }
+.start-acct button.hot { background: #8a3a12; color: #ffe9a8; border-color: #5a2a10; }

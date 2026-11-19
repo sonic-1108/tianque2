@@ -1,4 +1,5 @@
-// 天阙 · 散人行 relay (Cloudflare Worker + Durable Object, WebSocket hibernation), the same as 天阙 1's rooms.
+// 天阙 · 散人行 relay (Cloudflare Worker + Durable Object, WebSocket hibernation): 联机 rooms (the same as 天阙 1's),
+// and the hub (hub.js): accounts, cloud saves, the big 江湖's presence, chat and friends.
 // wss://<worker>/r/<ROOM>?side=h  the host        wss://<worker>/r/<ROOM>?side=g  a guest
 // Whatever the host sends goes to every guest of that room; whatever a guest sends goes to the host. The game's own
 // messages say who they're from, so the relay only forwards (and answers an echo, for timing the round trip).
@@ -37,9 +38,13 @@ export class Room {
   webSocketError() {}
 }
 
+export { Hub } from './hub.js';
+
 export default {
   async fetch(req, env) {
     const path = new URL(req.url).pathname;
+    // accounts, cloud saves and the one big 江湖 (hub.js): a single object holds them all
+    if (path.startsWith('/api/') || path === '/w') return env.HUB.get(env.HUB.idFromName('main')).fetch(req);
     const m = path.match(/^\/r\/([A-Za-z0-9_-]{3,24})$/);
     if (!m) return new Response('tianque2 relay ok', { headers: { 'access-control-allow-origin': '*' } });
     return env.ROOM.get(env.ROOM.idFromName(m[1].toUpperCase())).fetch(req);

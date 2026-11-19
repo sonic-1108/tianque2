@@ -17,6 +17,11 @@ import { Games } from './ui/Games';
 import { ROOMS, roomExit } from './game/interiors';
 import { use } from './game/play';
 import { attachInput, ui } from './input';
+import { Chat } from './ui/Chat';
+import { account, checkSession } from './net/account';
+import { world } from './net/world';
+import { coop } from './net/coop';
+(globalThis as any).__T2_NET = { world, account, coop }; // headless tests read the network state
 
 declare const __BUILD_TIME__: string;
 
@@ -34,10 +39,14 @@ export function App() {
   (globalThis as any).__T2_ROOM_EXIT = roomExit;
   (globalThis as any).__T2_TQ = { c: TQ_POS, gate: tqWorld(0, 30), far: roadPoint(TQ_ROAD, 560), road: roadPoint(TQ_ROAD, 735) };
   const [bigMap, setBigMap] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [chron, setChron] = useState(false);
   const card = started && !tree && chapterDue(sim);
   const note = started && !tree && !!sim.note && !(globalThis as any).__T2_NOCARD;
 
+  useEffect(() => {
+    void checkSession(); // still signed in? (and what the cloud holds)
+  }, []);
   useEffect(() => {
     if (!started || !wrap.current) return;
     const canvas = wrap.current.querySelector('canvas');
@@ -49,12 +58,15 @@ export function App() {
     return () => clearInterval(id);
   }, []);
   useEffect(() => {
-    ui.open = tree || !started || sim.dialog >= 0 || card || note || bigMap || !!sim.game;
+    ui.open = tree || !started || sim.dialog >= 0 || card || note || bigMap || !!sim.game || chatOpen || !!account.choose;
     if (ui.open && document.pointerLockElement) document.exitPointerLock();
-  }, [tree, started, tick >= 0 && sim.dialog >= 0, card, note, bigMap, !!sim.game]);
+  }, [tree, started, tick >= 0 && sim.dialog >= 0, card, note, bigMap, !!sim.game, chatOpen, !!account.choose]);
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       if (!started) return;
+      // typing (chat, a name, a password): the keys are the text's, not the game's
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
       if (e.code === 'KeyK' || e.code === 'Tab') setTree((v) => !v);
       if (e.code === 'KeyM') setBigMap((v) => !v);
       if (e.code === 'KeyJ') setChron((v) => !v);
@@ -105,6 +117,7 @@ export function App() {
           {bigMap && <BigMap sim={sim} onClose={() => setBigMap(false)} />}
           {chron && <Chronicle sim={sim} onClose={() => setChron(false)} />}
           {sim.game && <Games sim={sim} onClose={() => setTick((n) => n + 1)} />}
+          {!tree && <Chat sim={sim} open={chatOpen} setOpen={setChatOpen} />}
           {tree && <SkillTree sim={sim} onClose={() => setTree(false)} onHero={() => setVersion((v) => v + 1)} />}
           {!document.pointerLockElement && !tree && <div className="lockhint">点击画面开始（锁定鼠标转视角）</div>}
           <div className="build">tianque2 · {new Date(__BUILD_TIME__).toLocaleString()}</div>

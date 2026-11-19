@@ -11,6 +11,9 @@ import { giantOf } from '../game/giants';
 import { GiantBeasts } from './GiantBeasts';
 import { GiantSerpent } from './GiantSerpent';
 import { Thrush } from './Thrush';
+import { stepWorld } from '../net/world';
+import { outfitBody } from '../game/wardrobe';
+import { Others } from './Others';
 import { readInput, takeMouse, took, heldKey } from '../input';
 import { World } from './World';
 import { Rig } from './Rig';
@@ -130,6 +133,8 @@ function Loop({ sim }: { sim: Sim }) {
       for (let k = 0; k < turbo; k++) sim.step(sdt, readInput(cam.yaw));
       hostAfterStep(sim, sdt);
     }
+    // the big 江湖: say where I am, walk the others here (net/world.ts)
+    stepWorld(sim, dt, sim.player.model === 'wanderer_m.glb' ? outfitBody(sim.progress) ?? sim.player.model : sim.player.model);
     // camera: over the right shoulder, the player in the left third; wheeled in close it comes up to the head
     const p = sim.player.pos;
     const near = Math.max(0, Math.min(1, (2.6 - cam.dist) / 1.2));
@@ -267,6 +272,7 @@ export function Scene({ sim, version }: { sim: Sim; version: number }) {
       <GiantSerpent sim={sim} />
       {/* after the bodies: it sits on your shoulder bone as this frame's pose has it */}
       <Thrush sim={sim} />
+      <Others sim={sim} />
       <HouseFx sim={sim} />
       <Juice sim={sim} />
       <Post sim={sim} />

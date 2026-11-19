@@ -1,6 +1,6 @@
-# 天阙 · 散人行 relay (联机): one Durable Object per room code; whatever the host sends goes to every guest, whatever a
-# guest sends goes to the host. Deployed by .github/workflows/deploy.yml when the repo has the Cloudflare secrets
-# (the same pipeline as 天阙 1's); without them the game uses 天阙 1's relay, which speaks the same.
+# 天阙 · 散人行 relay: 联机 rooms (one Durable Object per room code: the host's messages to every guest, a guest's to
+# the host) and the hub (one object with its SQLite: accounts, sessions, cloud saves, friends, the world socket).
+# Deployed from sonic-1108/tianque-assets by its `t2 relay` workflow (run by hand), where the Cloudflare secrets are.
 name = "tianque2-relay"
 main = "src/index.js"
 compatibility_date = "2025-06-01"
@@ -10,6 +10,14 @@ workers_dev = true
 name = "ROOM"
 class_name = "Room"
 
+[[durable_objects.bindings]]
+name = "HUB"
+class_name = "Hub"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Room"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["Hub"]

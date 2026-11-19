@@ -8,6 +8,7 @@ import { worldRemark } from '../game/life';
 import { BUYERS, ITEMS, SHOPS, bag, buy, done, give, nextCase, priceOf, purse, sell, startSpar, wantOf } from '../game/play';
 import { WARD_SHOPS, outfitTalk } from '../game/wardrobe';
 import type { Sim as SimT } from '../game/sim';
+import { addFriend, chat, invite, world } from '../net/world';
 import { GIFTS, PARTY_MAX, RIVALS, arenaState, callComp, comps, giftTo, party, setMode, startArena, type Comp } from '../game/jianghu';
 
 /** 1 to 9 press a talk's buttons in order (the mouse works too) */
@@ -144,8 +145,34 @@ function CompDialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => void;
   );
 }
 
+/** someone else online (net/world.ts): greet them, befriend them, whisper, invite them into your 江湖 */
+function PlayerDialog({ sim, onClose }: { sim: Sim; onClose: () => void }) {
+  const box = useNumberKeys();
+  const f = sim.fighters[sim.dialog], id = (f as any).other as string;
+  const friend = world.friends.some((x) => x.id === id);
+  return (
+    <div className="dialog talk-in" ref={box}>
+      <div className="dialog-name">
+        {f.name}
+        <span className="dialog-act"> · {f.level} 级 · {friend ? '你的好友' : '江湖中人'}</span>
+      </div>
+      <div className="dialog-body">{friend ? '老朋友，又碰上了。' : '萍水相逢，抱拳为礼。'}</div>
+      <div className="dialog-btns numbered">
+        <button className="hot" onClick={() => (chat('near', `向${f.name}抱拳：幸会！`), onClose())}>
+          抱拳问好
+        </button>
+        {!friend && <button onClick={() => (addFriend(id), onClose())}>加为好友</button>}
+        <button onClick={() => (window.dispatchEvent(new CustomEvent('tq-whisper', { detail: f.name })), onClose())}>私聊</button>
+        <button onClick={() => (invite(sim, id), onClose())}>邀请组队</button>
+        <button onClick={onClose}>离开 (F)</button>
+      </div>
+    </div>
+  );
+}
+
 export function Dialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => void; onChange: () => void }) {
   const f = sim.fighters[sim.dialog];
+  if (f && (f as any).ghost) return <PlayerDialog sim={sim} onClose={onClose} />;
   if (f && (f as any).comp) return <CompDialog sim={sim} onClose={onClose} onChange={onChange} />;
   const role = (f as any)?.role as 'elder' | 'doctor' | 'teller' | undefined;
   const npc = NPCS.find((n) => n.role === role);

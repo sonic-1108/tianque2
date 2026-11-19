@@ -333,3 +333,22 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   (they used to turn toward you). Perks `COMP_PERK` / `compPerk` (sim.hitCore): 石猛 sturdier and heavier, 柳飞燕's darts
   slow, 了尘 heals, 莫寒's first blow on an unhurt foe is a double crit, 韩烈 near you takes a tenth off what you suffer.
   Test: scratch party/party.mts.
+- 账号 / 大江湖 / 聊天好友 (owner: accounts by email and password, everyone online in one world, chat and friends, 组队 from
+  the start). Server: `relay/` (tianque2-relay.msjzxy2022.workers.dev): `/r/<room>` the old 联机 rooms, and `hub.js` (one
+  Durable Object "main", SQLite): `/api/register|login|logout|me|save/get|save/put|password` and the world socket
+  `/w` (auth first, then `st` presence 4 Hz, throttled `w` list to all, `chat` world / near (60 m, same room) / party
+  (the 联机 room) / whisper (left as a letter for an offline friend), `freq` / `fans` / `fdel` friends, `inv` / `invr`
+  invites). Passwords: PBKDF2 100k in the page (salt `tianque2|email`), again 2k rounds with a random salt on the hub;
+  tokens random, kept as SHA-256; login misses rate limited. No mail service: no verification or reset by mail.
+  Deploy the server: `gh workflow run t2-relay.yml -R sonic-1108/tianque-assets` (checks out tianque2 main's relay/,
+  wrangler deploy with that repo's secrets, then checks / answers and a wrong login gives 401); tianque2's own deploy
+  step stays skipped (no secrets here). Client: `net/account.ts` (session in localStorage `tq2_auth`, cloud save of
+  tq2_progress_v2 + tq2_world_v1 a minute after a change and on page hide; a sign-in that finds a cloud save asks which
+  to keep, or takes it when this device has nothing), `net/world.ts` (socket, others as `GHOSTS` stand-ins: 16 benched
+  team-npc bodies made after the 联机 slots, skipped by think / physics / acts / pushing, eased to where their owner says,
+  their body from a whitelist; party members are not doubled), `render/Others.tsx` (name tags, gold for friends),
+  `ui/Chat.tsx` (Enter, /n /s /p /w 名号, friend request and invite notices, the save choice), `ui/Online.tsx` (O: 账号 /
+  好友 / 在线 / 组队), F on someone online (ui/Dialog PlayerDialog), the start screen's 登录 / 注册, minimap dots. 联机
+  (`canCoop`) is open from the start. `__T2_NET` for tests. Local test: `wrangler dev` in relay/ (port 8787) and the
+  game with `?relay=ws://127.0.0.1:8787`; scratch wr/hubtest.mjs (API and socket, 32 checks) and wr/nettest.cjs (the
+  game page plus a socket player: sign up, meet, chat, F, friends, invites both ways, cloud save on a fresh page).

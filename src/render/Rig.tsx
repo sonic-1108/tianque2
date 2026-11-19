@@ -404,8 +404,8 @@ export function Rig({ sim, id }: { sim: Sim; id: number }) {
     g.rotation.y = f.yaw + Math.PI;
     // what the player wears (wardrobe.ts): his outfit's body (loaded when it changes), the pieces put on when they
     // change, the cloak's cloth and the hangings' swing each frame
-    if (f.id === sim.player.id) {
-      const want = bodyOf(sim, f);
+    if (f.id === sim.player.id || (f as any).ghost) {
+      const want = bodyOf(sim, f); // (someone else online wears what they wear: net/world.ts sets the model)
       if (want !== file) setFile(want);
     }
     if (f.id === sim.player.id && model?.obj) {

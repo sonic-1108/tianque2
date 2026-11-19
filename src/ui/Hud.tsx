@@ -3,6 +3,7 @@
 import { EndBar } from './Endgame';
 import { look } from '../render/Scene';
 import { GATES, lit } from '../game/gates';
+import { world } from '../net/world';
 import { CT_POS } from '../game/court';
 import { RIVALS, VLEVELS } from '../game/jianghu';
 import { ERA, SEASONS, weatherName } from '../game/clock';
@@ -134,6 +135,20 @@ function Minimap({ sim }: { sim: Sim }) {
           g.fillStyle = '#ff5050';
           g.fillRect(X(f.pos[0]) - 1.5, Z(f.pos[2]) - 1.5, 3, 3);
         }
+      // others online: a blue dot, a friend gold
+      {
+        const fr = new Set(world.friends.map((x) => x.id));
+        for (const o of world.players) {
+          if (o.i === world.me?.id || o.r !== sim.indoor || Math.hypot(o.x - p[0], o.z - p[2]) > MM_R) continue;
+          g.beginPath();
+          g.arc(X(o.x), Z(o.z), 3.2, 0, Math.PI * 2);
+          g.fillStyle = fr.has(o.i) ? '#ffd36a' : '#7fd3ff';
+          g.fill();
+          g.strokeStyle = '#08202e';
+          g.lineWidth = 1;
+          g.stroke();
+        }
+      }
       g.save();
       g.translate(S / 2, S / 2);
       g.rotate(-cam.yaw);
@@ -381,7 +396,7 @@ export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
       {sim.near < 0 && sim.dialog < 0 && sim.door === -2 && <div className="talk-hint">{sim.indoor >= 0 && ROOMS[sim.indoor].theme === 'realm' ? 'F 离开秘境' : 'F 出门'}</div>}
       {sim.indoor >= 0 && <div className="room-name">{ROOMS[sim.indoor].name}</div>}
       <div className="door-fade" style={{ opacity: Math.max(0, Math.min(1, sim.fadeT / 0.3)) }} />
-      <div className="help">WASD 移动 · 鼠标转视角 · 左键攻击 · Shift/右键 闪避 · 空格 跳 · 1-0 技能 · 按住 R 大招 · K 技能树 · M 地图 · C 衣装 · G 兵器谱 · P 同伴 · J 江湖志 · 滚轮 远近 · V 端详</div>
+      <div className="help">WASD 移动 · 鼠标转视角 · 左键攻击 · Shift/右键 闪避 · 空格 跳 · 1-0 技能 · 按住 R 大招 · K 技能树 · M 地图 · C 衣装 · G 兵器谱 · P 同伴 · O 江湖（账号 好友 组队）· Enter 聊天 · J 江湖志 · 滚轮 远近 · V 端详</div>
       {sim.snow.cold > 1 && (
         <>
           <div className="frost" style={{ opacity: Math.min(1, sim.snow.cold / 100) }} />

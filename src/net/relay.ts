@@ -1,12 +1,12 @@
-// The room relay (联机): a WebSocket to the Cloudflare worker in relay/ (deployed with the site when the repo has the
-// Cloudflare secrets: its address is baked in as VITE_T2_RELAY), else 天阙 1's relay, which forwards the same way.
-// ?relay=ws://... in the address overrides it (a local relay for tests: tools/relay-local.mjs).
+// The server (relay/: 联机 rooms, and the hub: accounts, cloud saves, the big 江湖): tianque2's own Cloudflare worker,
+// deployed from sonic-1108/tianque-assets (its `t2 relay` workflow, where the Cloudflare secrets are). VITE_T2_RELAY
+// overrides it at build time; ?relay=ws://... in the address at run time (a local `wrangler dev` for tests).
 export interface Relay {
   send(m: unknown): void;
   close(): void;
 }
 const fromUrl = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('relay') : null;
-export const RELAY_URL: string = fromUrl || (import.meta as any).env?.VITE_T2_RELAY || 'wss://tianque-relay.msjzxy2022.workers.dev';
+export const RELAY_URL: string = fromUrl || (import.meta as any).env?.VITE_T2_RELAY || 'wss://tianque2-relay.msjzxy2022.workers.dev';
 
 export function openRelay(room: string, side: 'h' | 'g', onMsg: (m: any) => void, onState: (s: string) => void): Relay {
   let ws: WebSocket | null = null;
