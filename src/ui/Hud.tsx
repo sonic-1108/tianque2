@@ -381,7 +381,7 @@ export function Hud({ sim, tick }: { sim: Sim; tick: number }) {
       {sim.near < 0 && sim.dialog < 0 && sim.door === -2 && <div className="talk-hint">{sim.indoor >= 0 && ROOMS[sim.indoor].theme === 'realm' ? 'F 离开秘境' : 'F 出门'}</div>}
       {sim.indoor >= 0 && <div className="room-name">{ROOMS[sim.indoor].name}</div>}
       <div className="door-fade" style={{ opacity: Math.max(0, Math.min(1, sim.fadeT / 0.3)) }} />
-      <div className="help">WASD 移动 · 鼠标转视角 · 左键攻击 · Shift/右键 闪避 · 空格 跳 · 1-0 技能 · 按住 R 大招 · K 技能树 · M 地图 · C 衣装 · G 兵器谱 · J 江湖志 · 滚轮 远近 · V 端详</div>
+      <div className="help">WASD 移动 · 鼠标转视角 · 左键攻击 · Shift/右键 闪避 · 空格 跳 · 1-0 技能 · 按住 R 大招 · K 技能树 · M 地图 · C 衣装 · G 兵器谱 · P 同伴 · J 江湖志 · 滚轮 远近 · V 端详</div>
       {sim.snow.cold > 1 && (
         <>
           <div className="frost" style={{ opacity: Math.min(1, sim.snow.cold / 100) }} />

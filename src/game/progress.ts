@@ -43,6 +43,9 @@ export interface Progress {
   equip?: Partial<Record<'weapon' | 'armor' | 'charm', string>>;
   /** companions who joined you (by rival id) */
   comps?: Record<string, import('./jianghu').Comp>;
+  /** how the companions with you fight: 抢攻 (go for any foe near you, the moment they see one) or 护卫 (only those
+   *  who come at you) */
+  partyStance?: 'charge' | 'guard';
   /** you bought the empty house in the village */
   home?: boolean;
 }

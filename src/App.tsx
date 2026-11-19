@@ -64,6 +64,8 @@ export function App() {
       else if (e.code === 'KeyG' && (sim.game?.kind === 'atlas' || sim.game?.kind === 'forge' || sim.game?.kind === 'gear')) sim.game = null;
       if (e.code === 'KeyB' && !sim.game) sim.game = { kind: 'bag' };
       else if (e.code === 'KeyB' && sim.game?.kind === 'bag') sim.game = null;
+      if (e.code === 'KeyP' && (!sim.game || sim.game.kind === 'bag') && sim.dialog < 0) sim.game = { kind: 'party' };
+      else if (e.code === 'KeyP' && sim.game?.kind === 'party') sim.game = null;
       if (e.code === 'KeyC' && (!sim.game || sim.game.kind === 'bag')) sim.game = { kind: 'ward' };
       else if (e.code === 'KeyC' && sim.game?.kind === 'ward') sim.game = null;
       if (e.code === 'KeyH' && !sim.game && sim.dialog < 0) use(sim, 'plaster') || sim.toast('包袱里没有金疮药（云游道人那里有卖）');

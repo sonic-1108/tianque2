@@ -8,7 +8,7 @@ import { worldRemark } from '../game/life';
 import { BUYERS, ITEMS, SHOPS, bag, buy, done, give, nextCase, priceOf, purse, sell, startSpar, wantOf } from '../game/play';
 import { WARD_SHOPS, outfitTalk } from '../game/wardrobe';
 import type { Sim as SimT } from '../game/sim';
-import { GIFTS, RIVALS, arenaState, comps, giftTo, setMode, startArena, type Comp } from '../game/jianghu';
+import { GIFTS, PARTY_MAX, RIVALS, arenaState, callComp, comps, giftTo, party, setMode, startArena, type Comp } from '../game/jianghu';
 
 /** 1 to 9 press a talk's buttons in order (the mouse works too) */
 function useNumberKeys() {
@@ -109,6 +109,7 @@ function CompDialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => void;
     onChange();
   };
   const gifts = GIFTS.filter((id) => (B[id] ?? 0) > 0);
+  const full = party(sim).filter((w) => w.c?.mode === 'follow');
   return (
     <div className="dialog talk-in" ref={box}>
       <div className="dialog-name">
@@ -117,11 +118,18 @@ function CompDialog({ sim, onClose, onChange }: { sim: Sim; onClose: () => void;
       </div>
       <div className="dialog-body">{said}</div>
       <div className="dialog-btns numbered">
-        {c.mode !== 'follow' && (
+        {c.mode !== 'follow' && full.length < PARTY_MAX && (
           <button className="hot" onClick={go('follow')}>
             跟我走
           </button>
         )}
+        {c.mode !== 'follow' &&
+          full.length >= PARTY_MAX &&
+          full.map((w) => (
+            <button key={w.r.id} className="hot" onClick={() => (callComp(sim, r.id, w.r.id), onChange())}>
+              让{w.r.name.split(' · ')[1]}回村，带{short}走
+            </button>
+          ))}
         {c.mode !== 'wait' && <button onClick={go('wait')}>在这儿等着</button>}
         {c.mode !== 'home' && <button onClick={go('home')}>回村里等我</button>}
         {gifts.map((id) => (

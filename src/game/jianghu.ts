@@ -22,6 +22,7 @@ import { SKILLS } from './skills';
 import { dropsOf, fwStats, giveMats } from './forge';
 import { EL, STAGES, fwName, parseFw, recipe } from './mats';
 import { heroOf } from './heroes';
+import { bodyR, underTele } from './giants';
 
 /** the sim's share of all this, saved with the world */
 export interface JH {
@@ -329,14 +330,44 @@ function syncAlly(s: Sim, f: Fighter) {
   if (f.level === P.level && f.maxHp > 0 && (f as any).synced) return;
   const ratio = f.maxHp ? f.hp / f.maxHp : 1;
   f.level = P.level;
-  f.maxHp = Math.round(playerMaxHp(P.level) * ((f as any).militia ? 0.6 : 0.85));
+  f.maxHp = Math.round(playerMaxHp(P.level) * ((f as any).militia ? 0.6 : 0.85) * (rivalOf(f)?.id === 'shimeng' ? 1.2 : 1));
   f.hp = f.hp > 0 ? Math.max(1, Math.round(f.maxHp * ratio)) : 0;
   (f as any).synced = true;
 }
 export function allyPower(s: Sim, f: Fighter) {
   const r = rivalOf(f);
   const close = r && (comps(s.progress)[r.id]?.aff ?? 0) >= 100 ? 1.15 : 1;
-  return playerPower(s.progress.level) * ((f as any).militia ? 0.35 : 0.55) * close;
+  return playerPower(s.progress.level) * ((f as any).militia ? 0.35 : 0.55) * close * (r?.id === 'shimeng' ? 1.15 : 1);
+}
+/** what each companion brings (shown on the roster, P); 了尘's healing is in allyThink */
+export const COMP_PERK: Record<string, { role: string; perk: string }> = {
+  shimeng: { role: '狂刃 · 近身猛砍', perk: '皮糙肉厚：气血多两成，出手重一成半' },
+  liufeiyan: { role: '暗器 · 远处飞镖', perk: '燕子镖：镖镖带劲，打中的敌人脚下发慢' },
+  liaochen: { role: '梵音 · 金刚掌', perk: '妙手回春：你气血不到一半时为你疗伤' },
+  mohan: { role: '影刃 · 来去无踪', perk: '暗袭：对没受伤的敌人，头一击必中要害（双倍）' },
+  hanlie: { role: '天子 · 禁军刀法', perk: '护驾：他跟在身边，你受的伤少一成' },
+};
+const following1 = (s: Sim, id: string) => (comps(s.progress)[id]?.mode === 'follow');
+/** a blow's share from the companions' ways (sim.hitCore) */
+export function compPerk(s: Sim, att: Fighter, def: Fighter, o: { ranged?: boolean }) {
+  let k = 1, crit = false;
+  const ra = rivalOf(att);
+  if (ra && att.team === 'ally') {
+    if (ra.id === 'mohan' && def.team === 'sect') {
+      const d = def as any;
+      if (d.shadowHit !== att.id || def.hp >= def.maxHp) {
+        d.shadowHit = att.id;
+        k *= 2;
+        crit = true;
+      }
+    }
+    if (ra.id === 'liufeiyan' && o.ranged && def.team === 'sect') def.st.slow = Math.max(def.st.slow, 1.4);
+  }
+  if (def.id === s.player.id && att.team === 'sect' && following1(s, 'hanlie')) {
+    const h = s.fighters.find((f) => rivalOf(f)?.id === 'hanlie');
+    if (h && h.hp > 0 && !(h as any).away && s.dist(h, def) < 20) k *= 0.9;
+  }
+  return { k, crit };
 }
 /** where a companion stands when not following: your house's yard, or the square */
 function anchorOf(s: Sim, f: Fighter, c?: Comp): [number, number] {
@@ -457,6 +488,17 @@ export function allyThink(s: Sim, f: Fighter, dt: number) {
   const r = rivalOf(f);
   const c = r ? comps(P)[r.id] : undefined;
   const follow = !!c && c.mode === 'follow';
+  // called from the roster (P): on the way to you, out of sight till they get here
+  if (a.comeT > 0) {
+    a.away = true;
+    if ((a.comeT -= dt) > 0) return;
+    a.comeT = 0;
+    if (s.indoor < 0) {
+      a.away = false;
+      snapBehind(s, f);
+      s.toast(`${shortName(f)}赶到了`);
+    }
+  }
   // with you: into no room (they wait outside, out of sight) and never left far behind
   if (follow) {
     const inside = s.indoor >= 0;
@@ -467,20 +509,64 @@ export function allyThink(s: Sim, f: Fighter, dt: number) {
     if (a.away) return;
     if (s.dist(f, p) > 48 && p.hp > 0) snapBehind(s, f);
   } else a.away = false;
+  // sent home from the roster: off they go, and once out of the way they're simply there
+  if (a.leaveT > 0) {
+    a.leaveT -= dt;
+    const dx = f.pos[0] - p.pos[0], dz = f.pos[2] - p.pos[2], d = Math.hypot(dx, dz) || 1;
+    a.wish = [dx / d, dz / d];
+    if (a.leaveT <= 0 || d > 26) {
+      a.leaveT = 0;
+      const [x, z] = anchorOf(s, f, c);
+      f.pos = [x, groundHeight(x, z), z];
+      f.vel = [0, 0, 0];
+    }
+    return;
+  }
   const anchor: [number, number] = follow ? [p.pos[0], p.pos[2]] : anchorOf(s, f, c);
-  // whom to fight
+  a.dash = 1;
+  // in a giant's mark about to land: out of it first
+  const mk = underTele(s, f.pos[0], f.pos[2]);
+  if (mk && !a.militia) {
+    let dx = f.pos[0] - mk.x, dz = f.pos[2] - mk.z;
+    if (mk.shape === 'line' || mk.shape === 'cone') {
+      const fx = -Math.sin(mk.yaw), fz = -Math.cos(mk.yaw), side = dx * fz - dz * fx >= 0 ? 1 : -1;
+      dx = fz * side;
+      dz = -fx * side;
+    } else if (mk.shape === 'ring') {
+      dx = -dx;
+      dz = -dz;
+    }
+    const d = Math.hypot(dx, dz) || 1;
+    a.wish = [dx / d, dz / d];
+    a.dash = 1.15;
+    return;
+  }
+  // whom to fight (owner: they go in at once, not stand about waiting)
+  const charge = follow && stanceOf(P) === 'charge';
+  const cur = a.tgt >= 0 ? s.fighters[a.tgt] : null;
+  const mates = follow ? following(s).filter((o) => o !== f).map((o) => (o as any).tgt) : [];
   let t: Fighter | null = null, bd = Infinity;
   for (const o of s.fighters) {
-    if (o.team !== 'sect' || o.hp <= 0 || (o as any).benched || (o as any).away || (o as any).spar || (o as any).arena) continue;
+    if (!fair(o)) continue;
     const fromA = Math.hypot(o.pos[0] - anchor[0], o.pos[2] - anchor[1]);
-    if (follow ? fromA > 17 : fromA > 24) continue;
     const mine = s.dist(o, f);
-    if (follow ? !o.aggro && mine > 7 : !o.aggro && (o as any).mode !== 'raid') continue;
-    if (mine < bd) {
-      bd = mine;
+    const yours = o.id === s.pTgt && s.time - s.pTgtT < 6; // the one you're hitting
+    const onYou = o.id === s.pFoe && s.time - s.pFoeT < 6; // the one hitting you
+    let ok: boolean;
+    if (follow) ok = charge ? fromA < (yours || onYou ? 34 : o.aggro ? 26 : 18) : (o.aggro && fromA < 18) || ((yours || onYou) && fromA < 28);
+    else ok = fromA < 24 && (o.aggro || (o as any).mode === 'raid');
+    if (!ok) continue;
+    let sc = mine - bodyR(o);
+    if (yours) sc -= 5;
+    if (onYou) sc -= 4;
+    if (o === cur) sc -= 3; // keep at it rather than flit between foes
+    if (mates.includes(o.id)) sc += 2.5; // and spread out over them
+    if (sc < bd) {
+      bd = sc;
       t = o;
     }
   }
+  a.tgt = t ? t.id : -1;
   const kind = s.kindOf(f);
   // the monk sees to your wounds
   if (kind?.house === 'fanyin' && follow && p.hp > 0 && p.hp < p.maxHp * 0.5 && (f.cds.mend ?? 0) <= 0 && s.dist(f, p) < 14) {
@@ -503,31 +589,112 @@ export function allyThink(s: Sim, f: Fighter, dt: number) {
     const dx = gx - f.pos[0], dz = gz - f.pos[2], d = Math.hypot(dx, dz);
     if (d > (follow ? 1.2 : 0.8)) a.wish = [(dx / d) * Math.min(1, d / 3 + 0.25), (dz / d) * Math.min(1, d / 3 + 0.25)];
     else if (!follow) f.yaw = Math.atan2(f.pos[0], f.pos[2]); // facing out of the village
+    if (follow && d > 7) a.dash = 1.2; // left behind: catch up
     if (f.hp < f.maxHp) f.hp = Math.min(f.maxHp, f.hp + f.maxHp * 0.03 * dt);
     return;
   }
   const ranged = !!kind?.ranged;
-  const d = bd, dx = (t.pos[0] - f.pos[0]) / (d || 1), dz = (t.pos[2] - f.pos[2]) / (d || 1);
-  const keep = ranged ? 7 : 1.5;
-  if (d > keep + (ranged ? 3 : 0.3)) a.wish = [dx, dz];
+  const full = s.dist(f, t), d = full - bodyR(t), dx = (t.pos[0] - f.pos[0]) / (full || 1), dz = (t.pos[2] - f.pos[2]) / (full || 1);
+  const keep = ranged ? 6 : 1.4;
+  if (d > keep + (ranged ? 3 : 0.3)) {
+    a.wish = [dx, dz];
+    if (d > 6) a.dash = 1.15; // run in, don't stroll
+  } else if (ranged && d < 3) a.wish = [-dx * 0.7, -dz * 0.7]; // a thrower keeps a little room
   else if (!ranged) a.wish = [-dz * 0.3 * Math.sin(f.id), dx * 0.3 * Math.sin(f.id)];
   f.aiT = (f.aiT ?? 0) - dt;
   if (!s.free(f) || f.aiT > 0) return;
   s.faceTo(f, t.pos[0], t.pos[2]);
-  if (kind) {
+  // a move of their house between chains (not cutting into one)
+  if (kind && f.act !== 'attack') {
     const usable = kind.skills.filter((id, k) => f.level >= 1 + k * 4 && (f.cds[id] ?? 0) <= 0 && f.mp >= SKILLS[id].mp && d <= SKILLS[id].aiRange);
-    if (usable.length && Math.random() < 0.3) {
+    if (usable.length && Math.random() < (a.comp ? 0.4 : 0.3)) {
       const id = usable[Math.floor(Math.random() * usable.length)];
       if (s.cast(f, id)) {
-        f.aiT = 1.8 + Math.random() * 1.2;
+        f.aiT = a.comp ? 0.6 + Math.random() * 0.4 : 1.8 + Math.random() * 1.2;
         return;
       }
     }
   }
-  if (ranged ? d < 15 : d < 2.9) {
-    s.attack(f, ranged && d > 3);
-    f.aiT = ranged ? 1.2 + Math.random() : 0.7 + Math.random() * 0.6;
+  if (ranged ? d < 15 : d < 2.6) {
+    if (!s.attack(f, ranged && d > 3)) return;
+    if (!a.comp) f.aiT = ranged ? 1.2 + Math.random() : 0.7 + Math.random() * 0.6;
+    // a companion cuts a full chain like you do (one, two, the launching third), then a breath
+    else f.aiT = f.combo === 2 ? 0.4 + Math.random() * 0.35 : 0.05;
   }
+}
+/** may a companion go for this one (a wanted man walking his road is yours to call out; a sleeping giant is left be) */
+function fair(o: Fighter) {
+  const a = o as any;
+  if (o.team !== 'sect' || o.hp <= 0 || a.benched || a.away || a.spar || a.arena || a.frozen) return false;
+  if (a.rival !== undefined && !o.aggro) return false;
+  if (a.giant && !a.giant.awake) return false;
+  return true;
+}
+const shortName = (f: Fighter) => f.name.split(' · ')[1] ?? f.name;
+export const stanceOf = (P: Progress) => P.partyStance ?? 'charge';
+export function setStance(s: Sim, st: 'charge' | 'guard') {
+  s.progress.partyStance = st;
+  save(s.progress);
+}
+
+// ---------------------------------------------------------------- 同伴名册 (P): who's with you, swapped from anywhere
+export interface PartyRow {
+  r: Rival;
+  f: Fighter | null;
+  c: Comp | null;
+  /** locked: not met yet; down: badly hurt, up again soon */
+  state: 'locked' | 'follow' | 'home' | 'wait' | 'down' | 'coming';
+}
+export function party(s: Sim): PartyRow[] {
+  return RIVALS.filter((r) => r.join).map((r) => {
+    const i = RIVALS.indexOf(r);
+    const f = s.fighters.find((o) => (o as any).rival === i) ?? null;
+    const c = comps(s.progress)[r.id] ?? null;
+    const a = f as any;
+    const state: PartyRow['state'] = !c || !f || f.team !== 'ally' ? 'locked' : f.hp <= 0 ? 'down' : a.comeT > 0 ? 'coming' : c.mode;
+    return { r, f, c, state };
+  });
+}
+/** bring one to your side (from wherever they are); with two already along, `out` goes home to make room */
+export function callComp(s: Sim, id: string, out?: string): string | null {
+  const rows = party(s), row = rows.find((w) => w.r.id === id);
+  if (!row?.f || !row.c) return '还没结识这位';
+  if (row.c.mode === 'follow') return null;
+  const with_ = rows.filter((w) => w.c?.mode === 'follow');
+  if (with_.length >= PARTY_MAX) {
+    const o = with_.find((w) => w.r.id === out);
+    if (!o) return `身边最多带 ${PARTY_MAX} 位同伴，先换下一位`;
+    sendComp(s, o.r.id, 'home');
+  }
+  const f = row.f, a = f as any;
+  row.c.mode = 'follow';
+  row.c.at = undefined;
+  a.leaveT = 0;
+  // near enough to see you: they just come running; further off they come along the road a moment later
+  if (f.hp > 0 && s.dist(f, s.player) > 40) {
+    a.comeT = 2.5;
+    s.toast(`已经派人去叫${shortName(f)}了`);
+  } else s.toast(`${shortName(f)}跟上了你`);
+  save(s.progress);
+  return null;
+}
+/** send one home (or have them wait where they stand) */
+export function sendComp(s: Sim, id: string, mode: 'home' | 'wait') {
+  const row = party(s).find((w) => w.r.id === id);
+  if (!row?.f || !row.c) return;
+  const f = row.f, a = f as any;
+  row.c.mode = mode;
+  a.comeT = 0;
+  a.tgt = -1;
+  if (mode === 'wait') row.c.at = [f.pos[0], f.pos[2]];
+  else {
+    row.c.at = undefined;
+    // out on the land: they set off and are simply home once out of the way
+    const [hx, hz] = anchorOf(s, f, row.c);
+    if (f.hp > 0 && Math.hypot(f.pos[0] - hx, f.pos[2] - hz) > 40) a.leaveT = s.indoor >= 0 || a.away ? 0.01 : 4;
+    s.toast(`${shortName(f)}先回村里等你`);
+  }
+  save(s.progress);
 }
 function snapBehind(s: Sim, f: Fighter) {
   const p = s.player;

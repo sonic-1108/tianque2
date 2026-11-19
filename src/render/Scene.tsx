@@ -10,6 +10,7 @@ import { realmFloor, realmGap } from '../game/realms';
 import { giantOf } from '../game/giants';
 import { GiantBeasts } from './GiantBeasts';
 import { GiantSerpent } from './GiantSerpent';
+import { Thrush } from './Thrush';
 import { readInput, takeMouse, took, heldKey } from '../input';
 import { World } from './World';
 import { Rig } from './Rig';
@@ -72,11 +73,16 @@ function pickLook(sim: Sim) {
 
 function Loop({ sim }: { sim: Sim }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
+  const gl = useThree((s) => s.gl);
   const smooth = useRef(new THREE.Vector3());
   const init = useRef(false);
   const scope = useRef(0);
   const lift = useRef(0);
   useFrame((_, dt) => {
+    // last frame's draw calls and triangles, every pass together (headless tests read them)
+    gl.info.autoReset = false;
+    (globalThis as any).__T2_INFO = { calls: gl.info.render.calls, tris: gl.info.render.triangles };
+    gl.info.reset();
     if (sim.camSnap !== null) {
       cam.yaw = sim.camSnap; // through a door: look the way you're walking
       sim.camSnap = null;
@@ -259,6 +265,8 @@ export function Scene({ sim, version }: { sim: Sim; version: number }) {
       ))}
       <GiantBeasts sim={sim} />
       <GiantSerpent sim={sim} />
+      {/* after the bodies: it sits on your shoulder bone as this frame's pose has it */}
+      <Thrush sim={sim} />
       <HouseFx sim={sim} />
       <Juice sim={sim} />
       <Post sim={sim} />

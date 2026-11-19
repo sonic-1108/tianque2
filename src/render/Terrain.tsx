@@ -7,10 +7,12 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Sky, mergeVertices } from 'three-stdlib';
-import { GROUND_CELL, ICE, SNOW_Y, TREES, VILLAGE_R, WATER_Y, WORLD_R, groundHeight, noise, onSnowPad, pathDist, slopeAt, snowTrailDist } from '../game/world';
+import { GROUND_CELL, ICE, SNOW_Y, VILLAGE_R, WATER_Y, WORLD_R, groundHeight, noise, onSnowPad, pathDist, slopeAt, snowTrailDist } from '../game/world';
 import { DENS, DEN_R } from '../game/foes';
 import { nearTq, onGudao } from '../game/layout';
 import { PLACES, nearPlace } from '../game/places';
+import { Grass, Shrubs, Trees } from './Flora';
+export { GRASS } from './Flora';
 import type { Sim } from '../game/sim';
 
 // chunks of 128 m laid on the physics grid (world.ts, 4 m): up close a chunk's corners are the grid's own points and
@@ -317,111 +319,6 @@ function lumpy(r: number, detail: number, amp: number, seed: number) {
   g.computeVertexNormals();
   return g;
 }
-function mergeGeos(list: THREE.BufferGeometry[]) {
-  const parts = list.map((g) => (g.index ? g.toNonIndexed() : g));
-  const n = parts.reduce((a, g) => a + g.getAttribute('position').count, 0);
-  const pos = new Float32Array(n * 3);
-  const nor = new Float32Array(n * 3);
-  let o = 0;
-  for (const g of parts) {
-    pos.set(g.getAttribute('position').array as Float32Array, o * 3);
-    nor.set(g.getAttribute('normal').array as Float32Array, o * 3);
-    o += g.getAttribute('position').count;
-  }
-  const out = new THREE.BufferGeometry();
-  out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
-  return out;
-}
-
-/** trees: pines of drooping tiers, round broadleaf crowns of several lumps, bare dead trees; every one a slightly
- *  different green, smooth shaded (the faceted cones read as low-poly toys) */
-/** broadleaf crowns through the year: light green and a few in peach blossom in spring, deep green in summer,
- *  orange, red and gold in autumn, thin brown in winter (each tree its own shade, from its instance colour) */
-function seasonalLeaves(m: THREE.MeshStandardMaterial) {
-  m.onBeforeCompile = (sh) => {
-    sh.uniforms.uSeason = SEASON_U.uSeason;
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec4 uSeason;').replace(
-      '#include <color_fragment>',
-      `#include <color_fragment>
-vec3 lb = diffuseColor.rgb;
-float hv = fract(sin(dot(vColor.rgb, vec3(129.898, 782.33, 377.19))) * 43758.5453);
-vec3 lSpring = mix(lb * vec3(1.05, 1.3, 0.85), vec3(0.96, 0.62, 0.72), step(0.7, hv) * 0.85);
-vec3 lSummer = lb * vec3(0.85, 1.0, 0.8);
-vec3 lAutumn = mix(mix(vec3(0.86, 0.45, 0.08), vec3(0.72, 0.16, 0.06), hv), vec3(0.85, 0.68, 0.16), step(0.62, hv)) * (0.55 + length(lb) * 1.3);
-vec3 lWinter = mix(lb * 0.55, vec3(0.36, 0.29, 0.22), 0.75);
-diffuseColor.rgb = lSpring * uSeason.x + lSummer * uSeason.y + lAutumn * uSeason.z + lWinter * uSeason.w;`,
-    );
-  };
-  m.customProgramCacheKey = () => 'leaves';
-}
-function Trees() {
-  const meshes = useMemo(() => {
-    const bark = new THREE.MeshStandardMaterial({ color: '#4a3526', roughness: 1 });
-    const needles = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.92 });
-    const leaves = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9 });
-    const dead = new THREE.MeshStandardMaterial({ color: '#6b5b4b', roughness: 1 });
-    seasonalLeaves(leaves);
-    for (const m of [bark, needles, leaves, dead]) withSnow(m);
-    const trunk = new THREE.CylinderGeometry(0.18, 0.42, 5, 7).translate(0, 2.5, 0);
-    const tiers: THREE.BufferGeometry[] = [];
-    for (let k = 0; k < 5; k++) {
-      const r = 2.6 - k * 0.45;
-      const c = new THREE.ConeGeometry(r, 2.6 - k * 0.15, 12, 2, true);
-      // the rim droops and is a little ragged
-      const p = c.getAttribute('position') as THREE.BufferAttribute;
-      for (let i = 0; i < p.count; i++) {
-        const y = p.getY(i);
-        if (y < 0) p.setY(i, y - 0.25 - hash(i, k) * 0.35);
-        const s = 1 + (hash(i * 3.1, k * 7.7) - 0.5) * 0.25;
-        p.setX(i, p.getX(i) * s);
-        p.setZ(i, p.getZ(i) * s);
-      }
-      c.computeVertexNormals();
-      tiers.push(c.translate(0, 3.2 + k * 1.25, 0));
-    }
-    const crown = [lumpy(2.2, 3, 0.16, 1).scale(1, 0.85, 1).translate(0, 5.2, 0), lumpy(1.6, 3, 0.18, 2).translate(1.2, 6.1, 0.5), lumpy(1.5, 3, 0.18, 3).translate(-1.0, 5.8, -0.6), lumpy(1.3, 3, 0.2, 4).translate(0.2, 6.9, -0.2)];
-    const deadParts = [new THREE.CylinderGeometry(0.15, 0.32, 5, 6).translate(0, 2.5, 0), new THREE.CylinderGeometry(0.06, 0.12, 2.2, 5).rotateZ(0.9).translate(0.8, 3.6, 0), new THREE.CylinderGeometry(0.05, 0.1, 1.8, 5).rotateZ(-1).translate(-0.6, 4.2, 0.2)];
-    const kinds = [0, 1, 2].map((k) => TREES.filter((t) => t.kind === k));
-    const make = (geo: THREE.BufferGeometry, mat: THREE.Material, list: typeof TREES, sy: number, tint?: (t: (typeof TREES)[number]) => THREE.Color) => {
-      const im = new THREE.InstancedMesh(geo, mat, Math.max(1, list.length));
-      const m = new THREE.Matrix4();
-      const q = new THREE.Quaternion();
-      const sc = new THREE.Vector3();
-      const p = new THREE.Vector3();
-      list.forEach((t, i) => {
-        p.set(t.x, groundHeight(t.x, t.z) - 0.3, t.z);
-        q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), (t.x * 13.1 + t.z * 7.7) % 6.28);
-        sc.set(t.s, t.s * sy * (0.9 + hash(t.x, t.z) * 0.25), t.s);
-        m.compose(p, q, sc);
-        im.setMatrixAt(i, m);
-        if (tint) im.setColorAt(i, tint(t));
-      });
-      im.count = list.length;
-      im.castShadow = true;
-      im.receiveShadow = true;
-      im.frustumCulled = false;
-      return im;
-    };
-    const pineCol = (t: (typeof TREES)[number]) => new THREE.Color().setHSL(0.3 + hash(t.x, t.z) * 0.06, 0.38 + hash(t.z, t.x) * 0.12, 0.17 + hash(t.x + 1, t.z) * 0.06);
-    const leafCol = (t: (typeof TREES)[number]) => new THREE.Color().setHSL(0.2 + hash(t.x, t.z) * 0.08, 0.42 + hash(t.z, t.x) * 0.15, 0.24 + hash(t.x + 2, t.z) * 0.08);
-    return [
-      make(trunk, bark, kinds[0], 1),
-      make(mergeGeos(tiers), needles, kinds[0], 1, pineCol),
-      make(trunk, bark, kinds[1], 1),
-      make(mergeGeos(crown), leaves, kinds[1], 1, leafCol),
-      make(mergeGeos(deadParts), dead, kinds[2], 1),
-    ];
-  }, []);
-  return (
-    <>
-      {meshes.map((m, i) => (
-        <primitive key={i} object={m} />
-      ))}
-    </>
-  );
-}
-
 /** boulders and stones: big ones on the hillsides and in the mountains, small ones by the paths */
 function Rocks() {
   const mesh = useMemo(() => {
@@ -464,153 +361,6 @@ const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
 };
-/** the blade texture: a tuft of tapering blades, light at the tips */
-function bladeTexture() {
-  const c = document.createElement('canvas');
-  c.width = 128;
-  c.height = 128;
-  const g = c.getContext('2d')!;
-  for (let k = 0; k < 38; k++) {
-    const x = 6 + hash(k, 1) * 116;
-    const lean = (hash(k, 2) - 0.5) * 46;
-    const h = 40 + hash(k, 3) * 86;
-    const w = 1.6 + hash(k, 4) * 2.4;
-    const t = hash(k, 5);
-    const grd = g.createLinearGradient(0, 128, 0, 128 - h);
-    grd.addColorStop(0, `rgb(${52 + t * 20},${74 + t * 20},${30 + t * 8})`);
-    grd.addColorStop(0.55, `rgb(${110 + t * 30},${140 + t * 20},${60 + t * 10})`);
-    grd.addColorStop(1, `rgb(${175 + t * 40},${185 + t * 20},${105 + t * 20})`);
-    g.fillStyle = grd;
-    g.beginPath();
-    g.moveTo(x - w, 128);
-    g.quadraticCurveTo(x + lean * 0.3, 128 - h * 0.5, x + lean, 128 - h);
-    g.quadraticCurveTo(x + lean * 0.3 + w * 0.4, 128 - h * 0.5, x + w, 128);
-    g.closePath();
-    g.fill();
-  }
-  const t = new THREE.CanvasTexture(c);
-  t.anisotropy = 8;
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
-const GRASS_N = 20000;
-const GRASS_R = 44;
-/** grass tufts round the player, swaying in the wind; laid again as he walks (same tufts in the same places) */
-/** the grass blades' material: the climate tints it with the season */
-export const GRASS: { mat: THREE.MeshStandardMaterial | null } = { mat: null };
-function Grass({ sim }: { sim: Sim }) {
-  const st = useMemo(() => {
-    const q1 = new THREE.PlaneGeometry(1.1, 0.55).translate(0, 0.26, 0);
-    const q2 = q1.clone().rotateY(Math.PI / 2);
-    const q3 = q1.clone().rotateY(Math.PI / 4);
-    const geo = new THREE.BufferGeometry();
-    const parts = [q1, q2, q3].map((g) => g.toNonIndexed());
-    const n = parts.reduce((a, g) => a + g.getAttribute('position').count, 0);
-    const pos = new Float32Array(n * 3), uv = new Float32Array(n * 2), nor = new Float32Array(n * 3);
-    let o = 0;
-    for (const g of parts) {
-      const c = g.getAttribute('position').count;
-      pos.set(g.getAttribute('position').array as Float32Array, o * 3);
-      uv.set(g.getAttribute('uv').array as Float32Array, o * 2);
-      for (let i = 0; i < c; i++) nor.set([0, 1, 0], (o + i) * 3); // lit like the ground under it
-      o += c;
-    }
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-    geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
-    const mat = new THREE.MeshStandardMaterial({ map: bladeTexture(), alphaTest: 0.45, side: THREE.DoubleSide, roughness: 1 });
-    GRASS.mat = mat;
-    mat.onBeforeCompile = (sh) => {
-      sh.uniforms.uTime = { value: 0 };
-      sh.uniforms.uSeason = SEASON_U.uSeason;
-      sh.uniforms.uSnowCover = SEASON_U.uSnowCover;
-      mat.userData.sh = sh;
-      // both faces lit as the ground under them (the back faces used to turn black)
-      sh.fragmentShader = sh.fragmentShader
-        .replace('#include <normal_fragment_begin>', '#include <normal_fragment_begin>\nnormal = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);')
-        .replace('#include <common>', '#include <common>\nuniform vec4 uSeason;\nuniform float uSnowCover;')
-        .replace(
-          '#include <color_fragment>',
-          `#include <color_fragment>
-// the blades with the seasons: lush in spring and summer, straw and russet in autumn, dun in winter, frosted white in snow
-float gl = dot(diffuseColor.rgb, vec3(0.3, 0.5, 0.2));
-vec3 gc = diffuseColor.rgb * (uSeason.x * vec3(1.0, 1.1, 0.85) + uSeason.y * vec3(0.9, 1.0, 0.85));
-gc += uSeason.z * mix(diffuseColor.rgb, vec3(0.78, 0.6, 0.24) * gl * 2.6, 0.75);
-gc += uSeason.w * mix(diffuseColor.rgb, vec3(0.5, 0.45, 0.33) * gl * 2.4, 0.8);
-diffuseColor.rgb = mix(gc, vec3(0.9, 0.93, 0.97), uSnowCover * 0.75);`,
-        );
-      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uTime;\nuniform float uSnowCover;').replace(
-        '#include <begin_vertex>',
-        `#include <begin_vertex>
-vec4 ip = instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
-float sway = sin(uTime * 1.7 + ip.x * 0.35 + ip.z * 0.27) * 0.5 + sin(uTime * 3.1 + ip.x * 0.9) * 0.2;
-transformed.y *= 1.0 - uSnowCover * 0.55; // half buried in snow
-transformed.x += sway * 0.18 * uv.y;
-transformed.z += sway * 0.08 * uv.y;`,
-      );
-    };
-    const im = new THREE.InstancedMesh(geo, mat, GRASS_N);
-    im.count = 0;
-    im.frustumCulled = false;
-    im.receiveShadow = true;
-    return { im, mat, cx: 1e9, cz: 1e9 };
-  }, []);
-  useFrame((state) => {
-    const sh = st.mat.userData.sh;
-    if (sh) sh.uniforms.uTime.value = state.clock.elapsedTime;
-    const p = sim.player.pos;
-    const cx = Math.round(p[0] / 8) * 8, cz = Math.round(p[2] / 8) * 8;
-    if (cx === st.cx && cz === st.cz) return;
-    st.cx = cx;
-    st.cz = cz;
-    const m = new THREE.Matrix4();
-    const q = new THREE.Quaternion();
-    const v = new THREE.Vector3();
-    const sc = new THREE.Vector3();
-    const col = new THREE.Color();
-    const Y = new THREE.Vector3(0, 1, 0);
-    const S = 0.92;
-    let n = 0;
-    const near = DENS.filter((d) => Math.abs(d.x - cx) < GRASS_R + DEN_R + 4 && Math.abs(d.z - cz) < GRASS_R + DEN_R + 4);
-    const town = Math.hypot(cx, cz) < GRASS_R + VILLAGE_R + 8;
-    const tq = nearTq(cx, cz, 300);
-    const ct = nearCourt(cx, cz, 200);
-    for (let gx = Math.floor((cx - GRASS_R) / S); gx <= Math.ceil((cx + GRASS_R) / S) && n < GRASS_N; gx++)
-      for (let gz = Math.floor((cz - GRASS_R) / S); gz <= Math.ceil((cz + GRASS_R) / S) && n < GRASS_N; gz++) {
-        const x = (gx + hash(gx, gz)) * S, z = (gz + hash(gz, gx)) * S;
-        const dd = Math.hypot(x - cx, z - cz);
-        if (dd > GRASS_R) continue;
-        // thinner towards the edge of the patch, and in the dry places
-        const dens = hash(gx * 1.7, gz * 2.3);
-        if (dens > 1 - dd / GRASS_R * 0.55) continue;
-        if (town && Math.hypot(x, z) < VILLAGE_R + 6) continue;
-        let skip = false;
-        for (const d of near) if (Math.hypot(d.x - x, d.z - z) < DEN_R + 3) skip = true;
-        if (skip) continue;
-        const h = groundHeight(x, z);
-        if (h < WATER_Y + 0.4 || h > SNOW_Y - 20) continue;
-        const pd = pathDist(x, z);
-        if (pd < 3.2 || (tq && (nearTq(x, z, 46) || onGudao(x, z, pd))) || (ct && nearCourt(x, z, 92))) continue;
-        if (slopeAt(x, z) > 0.55 || nearPlace(x, z, -3)) continue;
-        q.setFromAxisAngle(Y, hash(x, z) * 6.28);
-        // smaller toward the patch's rim, so it ends softly instead of in a ring
-        const s = (0.6 + hash(z, x) * 0.75) * (1 - smoothstep(GRASS_R * 0.6, GRASS_R, dd) * 0.7);
-        sc.set(s, s * (0.8 + hash(x * 3, z) * 0.6), s);
-        m.compose(v.set(x, h - 0.05, z), q, sc);
-        st.im.setMatrixAt(n, m);
-        // patches of greener and drier tufts, following a slow noise like the ground's
-        const dry = Math.max(0, Math.min(1, noise(x * 0.03, z * 0.03) * 0.9 + 0.35));
-        col.setHSL(0.24 - dry * 0.07 + hash(x, z * 2) * 0.03, 0.42 - dry * 0.1, 0.34 + dry * 0.1 + hash(x * 2, z) * 0.1);
-        st.im.setColorAt(n, col);
-        n++;
-      }
-    st.im.count = n;
-    st.im.instanceMatrix.needsUpdate = true;
-    if (st.im.instanceColor) st.im.instanceColor.needsUpdate = true;
-  });
-  return <primitive object={st.im} />;
-}
-
 /** the sky dome, for the climate to move its sun and thicken its haze */
 export const SKY: { sky: Sky | null } = { sky: null };
 function SkyDome() {
@@ -644,6 +394,7 @@ export function Landscape({ sim }: { sim: Sim }) {
       <Water />
       {!(globalThis as any).__T2_LITE && <RiverLife sim={sim} />}
       {!(globalThis as any).__T2_NOTREES && <Trees />}
+      {!(globalThis as any).__T2_NOTREES && !(globalThis as any).__T2_LITE && <Shrubs />}
       <Rocks />
       {!(globalThis as any).__T2_LITE && <Grass sim={sim} />}
     </>

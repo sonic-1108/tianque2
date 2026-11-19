@@ -237,8 +237,12 @@ function hang(b: Builder, d: Dress) {
   }
 }
 
+// (yard trees and bamboo are grown by render/Flora.tsx now, with the land's trees)
+const none = () => {};
+void tree;
+void bamboo;
 const MAKE: Record<Dress['k'], (b: Builder, d: Dress) => void> = {
-  wall, plot, woodpile, vat, rack, washing, tree, bamboo, table, lion, flagpole, pot, bench, tuft, flowers, basket, millstone, hang,
+  wall, plot, woodpile, vat, rack, washing, tree: none, bamboo: none, table, lion, flagpole, pot, bench, tuft, flowers, basket, millstone, hang,
 };
 
 export function VillageDress({ sim }: { sim: Sim }) {

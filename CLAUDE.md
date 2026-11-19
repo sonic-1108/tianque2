@@ -304,3 +304,32 @@ Chinese, short, no dashes in prose, deploy quickly when asked, say plainly what 
   <id> <radius>` brings a finished take in (rooms: radius 7). A bare splat viewer for checking takes: scratch sv/.
   Tests: plain node walk (scratch realm.mts, REALM=<id>). Software rendering draws splats in game, slowly
   (scratch realmshot.cjs hides the HUD for a clean picture).
+
+- 草木 (owner: the trees, grass and flowers were poor; `render/Flora.tsx`, textures `render/floraTex.ts`): the 7000 trunks
+  of world.ts TREES (still the collision list) are grown in code as nine kinds (`kindOf`: willows by water, bamboo in
+  noise groves, firs high and on 雪岭, pine / 槐 oak / maple / ginkgo / peach blossom / dead snags): bark tubes on a real
+  skeleton plus foliage cards from one painted leaf atlas (8 cells of 512 px), crown-round normals and inner darkness,
+  wind sway and leaf flutter (`FLORA_U`), seasons in the shader (autumn colour per kind, bare boughs in winter, peach
+  flowers in spring, snow via withSnow). LOD: near (within `uNearR` 80 m of the camera, re-picked every 10 m) is the
+  full tree and casts shadows; far is a few big cards; they cross-fade by a dither. The village's yard trees, groves
+  and the square's old locust (game/dress.ts DRESS, `PLANTED`) are grown the same way (VillageDress no longer builds
+  them). Grass is blade tufts in 12 m tiles worked out once (`makeTile`): dense near (17 m), sparse to 46 m, gusts
+  along the wind and parting round your feet (`GRASS_U`); wildflowers by kind and season within 30 m; `Shrubs` under
+  half the trees and in field patches (re-picked round the camera, to 150 m). `GRASS.mat` is still what Climate
+  darkens in the wet. Scratch viewers: zz-flora.html (?season=0..3&kinds=..&cam=&at=&far=1&snow=) and zz-atlas.html.
+- 画眉 (owner: the bird by you looked like blocks; `render/Thrush.tsx`, mounted in Scene after the bodies): a body and
+  head with a feather-scale texture and the hwamei's white brow, a bill that opens to sing, legs that tuck up; each
+  wing is a joint skeleton carrying ~37 textured feathers laid out on the CPU every frame (fold, flap, sweep, twist,
+  bend), a ten-feather tail that domes shut and fans open. It sits on your right shoulder (the Mixamo rightshoulder /
+  rightarm bones) when you stand or stroll: head snaps, tail flicks, preening, song, asleep and fluffed at night; it
+  flies (bounding bursts, banking) when you run, fight, jump, swim or ride, and lands again with a flare. Runs on the
+  sim's clock. `__T2_BIRD` for tests. Viewer zz-bird.html (?poses=perch,down,up,glide,flare,sleep).
+- 同伴 (owner: swap the two companions, and they must go in at once): roster panel `ui/Party.tsx` (P, or from the bag):
+  two slots at your side, the five who can join (portraits `portraits/comp-<id>.png`), swap from anywhere (`callComp`:
+  one called from far comes along the road after 2.5 s, `sendComp` home sets off and is simply there), stance 抢攻 (go
+  for any foe within 18 m of you, the one you hit or who hits you first) or 护卫 (only who comes at you),
+  `P.partyStance`. Companions run at your speed (`dash` to catch up), cut full three-hit chains with your push and
+  launch, use their house moves between chains, step out of giants' marks; the thrower's darts now fly at her target
+  (they used to turn toward you). Perks `COMP_PERK` / `compPerk` (sim.hitCore): 石猛 sturdier and heavier, 柳飞燕's darts
+  slow, 了尘 heals, 莫寒's first blow on an unhurt foe is a double crit, 韩烈 near you takes a tenth off what you suffer.
+  Test: scratch party/party.mts.

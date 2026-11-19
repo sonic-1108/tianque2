@@ -113,23 +113,12 @@ function buildVillage() {
         if (rnd(r * 3, off) < 0.18) continue;
         b.box(rnd(off, r) > 0.5 ? 'pave' : 'pave2', x, gy(x, z) - 0.06, z, 1.0, 0.12, 1.05, Math.PI / 2 - ra + rnd(r, off) * 0.2);
       }
-  // the old locust tree in the square, in a stone ring
+  // the old locust tree's stone ring in the square
   {
     const tx = 8, tz = -9;
     const y = gy(tx, tz);
     for (let k = 0; k < 14; k++) b.box('rock', tx + Math.cos((k / 14) * 6.28) * 2.2, y, tz + Math.sin((k / 14) * 6.28) * 2.2, 0.9, 0.5, 0.6, -(k / 14) * 6.28);
-    b.add('log', new THREE.CylinderGeometry(0.55, 0.9, 6, 9), tx, y + 3, tz);
-    for (const [bx, by, bz, br] of [
-      [0, 6.5, 0, 3.2],
-      [2.2, 5.6, 1, 2.4],
-      [-2, 5.8, -1, 2.5],
-      [0.6, 7.6, -1.6, 2.2],
-      [-1, 6.2, 2, 2.1],
-    ]) {
-      const g = new THREE.IcosahedronGeometry(br, 1);
-      g.scale(1, 0.75, 1);
-      b.add('leaf', g, tx + bx, y + by, tz + bz);
-    }
+    // (the tree itself is grown by render/Flora.tsx)
   }
   // (the old rail fence is gone: render/Stockade.tsx draws 青石村's stockade)
   // (the red lantern balls on posts are gone: NightLights.tsx hangs proper lanterns from arms along the lanes)

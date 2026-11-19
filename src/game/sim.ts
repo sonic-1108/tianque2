@@ -14,7 +14,7 @@ import type { Fighter, Fx, InputState, Projectile, SectId, Status, Team, Zone } 
 import { DENS, DEN_R, FOE_KINDS, TQ_DEN, bossNameOf, menNameOf } from './foes';
 import { ICE, MAX_SLOPE, VILLAGE_R, VILLAGE_SPAWN, WATER_Y, buildingFloor, clampWorld, groundHeight, pushOutOfBuildings, pushOutOfTrees } from './world';
 import { wpnDodge, wpnHit, wpnKill, wpnPre, wpnStep, wpnSwing, wpnSwingK } from './forge';
-import { JH_TOUCH, allyDown, allyPower, wear, startEscort, endEscort, allyThink, allyUp, doJhTouch, dropFrom, fullHp, gearOf, jhTouch, levelFor, makeArenaPool, makeJianghu, newJH, rivalBeaten, stepArena, stepRivals, stepSeasons, warm, addVillagePts, type JH } from './jianghu';
+import { JH_TOUCH, allyDown, allyPower, compPerk, wear, startEscort, endEscort, allyThink, allyUp, doJhTouch, dropFrom, fullHp, gearOf, jhTouch, levelFor, makeArenaPool, makeJianghu, newJH, rivalBeaten, stepArena, stepRivals, stepSeasons, warm, addVillagePts, type JH } from './jianghu';
 
 /** what a body stands on: the ground, or the lake's surface (wading / swimming) */
 /** what a body stands on: the ground (or the river's bed), or, given its feet's height, a roof, a terrace or a step it's on */
@@ -180,6 +180,11 @@ export class Sim {
   /** 玩法 (play.ts): short boosts (seconds left), the little game on screen, the court's counsel standing, the sparring
    *  bouts, the horse you're on, the herbs in the wild, what's in reach to touch, words floating over things */
   buffs = { speed: 0, dmg: 0, regen: 0 };
+  /** whom you last struck and who last struck you (and when): companions go for them first */
+  pTgt = -1;
+  pTgtT = -99;
+  pFoe = -1;
+  pFoeT = -99;
   game: any = null;
   /** after 伪帝: 巨人挑战, the trial tower (endgame.ts) */
   end = newEnd();
@@ -626,6 +631,13 @@ export class Sim {
   /** a blow lands. Returns the damage done (0 when it couldn't land). A blow of the player's (not a fixed amount, not a
    * weapon's own shot) goes past the forged weapon first and sets off its element after (forge.ts) */
   hit(att: Fighter, def: Fighter, base: number, o: HitOpts = {}): number {
+    if (att.id === PLAYER && def.team === 'sect') {
+      this.pTgt = def.id;
+      this.pTgtT = this.time;
+    } else if (def.id === PLAYER && att.team === 'sect') {
+      this.pFoe = att.id;
+      this.pFoeT = this.time;
+    }
     const mine = att.id === PLAYER && !o.noScale && !o.noProc && !this.netGuest;
     if (!mine) return this.hitCore(att, def, base, o);
     const pre = wpnPre(this, att, def, o);
@@ -654,6 +666,10 @@ export class Sim {
       if (pf && att.team === 'sect' && !(att as any).spar) dmg *= pf;
       if (pf && def.team === 'sect' && !(def as any).spar) dmg /= pf;
       if ((att as any).spar) dmg *= 0.55; // sparring: they pull their blows
+      // each companion's own way (jianghu.ts COMP_PERK): 莫寒's first blow from the shadows, 韩烈 shielding you, ...
+      const cp = compPerk(this, att, def, o);
+      dmg *= cp.k;
+      if (cp.crit) crit = true;
     }
     if (def.st.shield > 0) dmg *= 0.35;
     if (def.id === PLAYER && !o.noScale) dmg *= 1 - gearOf(this.progress).def;
@@ -1737,7 +1753,8 @@ export class Sim {
     }
     if (sk?.move) sk.move(this, f, wish, dt);
     else if (canWalk) {
-      let spd = (f.team === 'player' ? RUN : NPC_RUN) * (f.st.slow > 0 ? 0.5 : 1) * (f.st.daze > 0 ? 0.5 : 1) * (f.st.rage > 0 ? RAGE.move : 1) * (f.st.weak > 0 ? 0.8 : 1) * ((f as any).spdMul ?? 1) * (gh < WATER_Y - 0.5 && !ICE.on && !(f as any).waterborne && !(f.id === PLAYER && gearOf(this.progress).swim) ? (swim ? 0.62 : 0.55) : 1); // wading slows you, swimming a little less (水寇 and the 蛟珠's wearer go as fast in water)
+      // companions keep up with you (they used to trot at a bandit's pace and arrive when the fight was over)
+      let spd = (f.team === 'player' ? RUN : (f as any).comp ? RUN * ((f as any).dash ?? 1) : NPC_RUN) * (f.st.slow > 0 ? 0.5 : 1) * (f.st.daze > 0 ? 0.5 : 1) * (f.st.rage > 0 ? RAGE.move : 1) * (f.st.weak > 0 ? 0.8 : 1) * ((f as any).spdMul ?? 1) * (gh < WATER_Y - 0.5 && !ICE.on && !(f as any).waterborne && !(f.id === PLAYER && gearOf(this.progress).swim) ? (swim ? 0.62 : 0.55) : 1); // wading slows you, swimming a little less (水寇 and the 蛟珠's wearer go as fast in water)
       if (!f.aggro && f.team === 'sect' && Math.hypot(f.pos[0] - (f.home?.[0] ?? 0), f.pos[2] - (f.home?.[1] ?? 0)) < 6) spd *= 0.6; // strolling about at home
       const k = swim ? 2.6 : f.grounded ? 14 : 4;
       const tx = wish[0] * spd;
@@ -1858,17 +1875,20 @@ export class Sim {
         f.hitDone = true;
         if (f.run?.id === '_throw') {
           f.run = null;
-          const t = f.id === PLAYER ? null : this.player;
+          // a bandit throws at you; a companion at whom it's fighting (it used to turn and throw at you too, missing
+          // every foe)
+          const t = f.id === PLAYER ? null : f.team === 'ally' ? this.fighters[(f as any).tgt ?? -1] : this.player;
           if (t && t.hp > 0) this.faceTo(f, t.pos[0], t.pos[2]);
           const pr = this.shoot(f, { speed: 22, life: 0.9, dmg: c.dmg * 0.8, color: this.kindOf(f)?.color ?? heroOf(this.progress.hero)?.color ?? '#fff', shape: 'dart', radius: 0.45 });
           pr.mult = 1;
         } else {
           const [fx, fz] = this.fwd(f);
-          if (f.team === 'player') {
+          const side = f.team === 'player' || (f as any).comp; // companions hit with your weight (push, launch on the third)
+          if (side) {
             f.vel[0] += fx * 3;
             f.vel[2] += fz * 3;
           }
-          for (const o of this.inCone(f, MELEE_RANGE, 0.25)) this.hit(f, o, c.dmg, f.combo === 2 ? { knock: 8, heavy: true, dur: 0.55, mult: 1 } : f.team === 'player' ? { knock: 2.2, dur: 0.3, mult: 1 } : { mult: 1 });
+          for (const o of this.inCone(f, MELEE_RANGE, 0.25)) this.hit(f, o, c.dmg, f.combo === 2 ? { knock: 8, heavy: true, dur: 0.55, mult: 1 } : side ? { knock: 2.2, dur: 0.3, mult: 1 } : { mult: 1 });
           if (f.id === PLAYER) wpnSwing(this, f, f.combo);
           this.addFx({ kind: 'slash', x: f.pos[0] + fx * 1.2, y: f.pos[1] + 1.1, z: f.pos[2] + fz * 1.2, max: 0.18, r: 1.4, color: f.team === 'player' ? '#e8f4ff' : this.kindOf(f)?.color ?? '#fff', yaw: f.yaw });
         }

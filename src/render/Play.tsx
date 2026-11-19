@@ -1,5 +1,5 @@
 // What 玩法 (game/play.ts) puts on the map: the notice boards (委托), the 血参 herbs glowing red in the wild (gone
-// for a day once picked), the thrush that follows you once you've bought one, and the red lantern you carry at night.
+// for a day once picked) and the red lantern you carry at night (the thrush you buy is render/Thrush.tsx).
 import { GLADES, firefliesOut } from '../game/jianghu';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
@@ -113,36 +113,12 @@ function Glades({ sim }: { sim: Sim }) {
   return <primitive object={im} />;
 }
 
-/** the thrush (a little bird flying round you) and the lantern (a light at your side at night) */
+/** the lantern (a light at your side at night); the thrush is render/Thrush.tsx */
 function Pet({ sim }: { sim: Sim }) {
-  const bird = useRef<THREE.Group>(null);
-  const wings = useRef<THREE.Mesh[]>([]);
   const lamp = useRef<THREE.Group>(null);
   const light = useRef<THREE.PointLight>(null);
-  const st = useMemo(() => ({ x: 0, y: 0, z: 0, sing: 0 }), []);
-  useFrame((_, dt) => {
+  useFrame(() => {
     const p = sim.player.pos, B = bag(sim.progress), t = sim.time;
-    // the bird: circles over your shoulder, flapping; sings now and then
-    const hasBird = (B.thrush ?? 0) > 0;
-    if (bird.current) {
-      bird.current.visible = hasBird;
-      if (hasBird) {
-        const a = t * 0.9;
-        const tx = p[0] + Math.cos(a) * 1.6, tz = p[2] + Math.sin(a) * 1.6, ty = p[1] + 2.3 + Math.sin(t * 1.7) * 0.3;
-        st.x += (tx - st.x) * Math.min(1, dt * 3);
-        st.y += (ty - st.y) * Math.min(1, dt * 3);
-        st.z += (tz - st.z) * Math.min(1, dt * 3);
-        bird.current.position.set(st.x, st.y, st.z);
-        bird.current.rotation.y = -a;
-        const flap = Math.sin(t * 22) * 0.8;
-        if (wings.current[0]) wings.current[0].rotation.z = flap;
-        if (wings.current[1]) wings.current[1].rotation.z = -flap;
-        if ((st.sing -= dt) <= 0) {
-          st.sing = 9 + Math.random() * 10;
-          sim.say(st.x, st.y + 0.4, st.z, Math.random() < 0.5 ? '啾啾～' : '叽叽喳喳！');
-        }
-      }
-    }
     // the lantern: carried at night
     const hasLamp = (B.lantern ?? 0) > 0 && sim.clock.night && sim.player.hp > 0;
     if (lamp.current) {
@@ -155,26 +131,6 @@ function Pet({ sim }: { sim: Sim }) {
   });
   return (
     <>
-      <group ref={bird} visible={false}>
-        <mesh>
-          <sphereGeometry args={[0.09, 10, 8]} />
-          <meshStandardMaterial color="#a07040" roughness={0.8} />
-        </mesh>
-        <mesh position={[0.08, 0.04, 0]}>
-          <sphereGeometry args={[0.055, 8, 6]} />
-          <meshStandardMaterial color="#c9a070" roughness={0.8} />
-        </mesh>
-        <mesh position={[0.14, 0.04, 0]} rotation={[0, 0, -Math.PI / 2]}>
-          <coneGeometry args={[0.015, 0.05, 4]} />
-          <meshStandardMaterial color="#e0b030" />
-        </mesh>
-        {[-1, 1].map((s, i) => (
-          <mesh key={s} ref={(m) => m && (wings.current[i] = m)} position={[0, 0.02, s * 0.06]}>
-            <boxGeometry args={[0.12, 0.01, 0.16]} />
-            <meshStandardMaterial color="#6a4a2a" />
-          </mesh>
-        ))}
-      </group>
       <group ref={lamp} visible={false}>
         <mesh>
           <sphereGeometry args={[0.16, 10, 8]} />

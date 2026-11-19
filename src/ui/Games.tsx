@@ -1,6 +1,7 @@
 // The little games and panels of 玩法 (game/play.ts): the notice board, the bag, fishing, lantern riddles, the
 // imperial exam, the cases at the drum, the morning court, dice and pot throwing. Space or F plays; Esc leaves.
 import { Online } from './Online';
+import { Party } from './Party';
 import { Atlas, Seal } from './Atlas';
 import { SteleBoard } from './Endgame';
 import { GATES, lit, travel } from '../game/gates';
@@ -121,6 +122,8 @@ export function Games({ sim, onClose }: { sim: Sim; onClose: () => void }) {
       return <SteleBoard sim={sim} onClose={close} />;
     case 'online':
       return <Online sim={sim} onClose={close} />;
+    case 'party':
+      return <Party sim={sim} onClose={close} />;
   }
   return null;
 }
@@ -221,6 +224,7 @@ function Bag({ sim, onClose }: { sim: Sim; onClose: () => void }) {
       <div className="ward-open">
         <button onClick={() => (sim.game = { kind: 'ward' })}>衣装 · 换装备换衣裳 (C)</button>
         <button onClick={() => (sim.game = { kind: 'atlas' })}>兵器图谱 · 素材 (G)</button>
+        <button onClick={() => (sim.game = { kind: 'party' })}>同伴 (P)</button>
       </div>
       {items.some(([id]) => MATS[id]) && (
         <div className="bag-mats">

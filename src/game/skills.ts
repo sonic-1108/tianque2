@@ -509,7 +509,7 @@ def({
     const r = f.run!;
     if (Math.random() < 0.4) s.vfx('embers', P(f.pos[0], f.pos[1] + 1.1, f.pos[2]), 1, '#4ade80', 0.3, 1.5, 0.06);
     if (f.team !== 'player') {
-      const t = s.player;
+      const t = f.team === 'ally' ? s.fighters[(f as any).tgt ?? -1] ?? s.player : s.player;
       if (t.hp > 0) s.faceTo(f, t.pos[0], t.pos[2]);
       if (r.t > 1.6) return fireSnipe(s, f);
     }
